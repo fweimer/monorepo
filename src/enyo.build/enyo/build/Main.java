@@ -1,5 +1,6 @@
 package enyo.build;
 
+import enyo.io.function.IOConsumer;
 import enyo.io.function.IOPredicate;
 
 import java.io.IOException;
@@ -27,6 +28,8 @@ public final class Main {
      */
     public static void main(String[] args) throws IOException {
         DirectoryLayout dirs = new DirectoryLayout(Path.of(""));
+        clearGenerations(dirs);
+
         List<String> modules = listModules(dirs);
         build(dirs, modules, 0);
         document(dirs, modules, 0);
@@ -44,6 +47,28 @@ public final class Main {
             .map(Path::toString)
             .sorted()
             .collect(Collectors.toList());
+    }
+
+    /**
+     * Remove the build/g* and build/d* files built by previous
+     * invocations.
+     */
+    static void clearGenerations(DirectoryLayout dirs) throws IOException {
+        Files.list(dirs.build())
+            .filter(path -> {
+                    String fileName = path.getFileName().toString();
+                    if (fileName.startsWith("g")
+                        || fileName.startsWith("d")) {
+                        try {
+                            Integer.parseInt(fileName.substring(1));
+                            return true;
+                        } catch (NumberFormatException e) {
+                            // fall through
+                        }
+                    }
+                    return false;
+                })
+            .forEach(IOConsumer.of(Main::removeTree));
     }
 
     static void build(DirectoryLayout dirs, List<String> modules,
