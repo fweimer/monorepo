@@ -70,6 +70,7 @@ public final class Bootstrap {
         int status = compiler.run(InputStream.nullInputStream(),
             System.out, System.err,
             new String[] {
+                "-g",
                 "-d", targetPath.toString(),
                 "--module-source-path", "src",
                 "--module", modulesString,

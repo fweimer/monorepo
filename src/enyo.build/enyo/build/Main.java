@@ -59,6 +59,7 @@ public final class Main {
         int status = compiler.run(InputStream.nullInputStream(),
             System.out, System.err,
             new String[] {
+                "-g",
                 "-Xlint:all",
                 "-Xdiags:verbose",
                 "-d", targetPath.toString(),
