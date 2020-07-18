@@ -36,6 +36,10 @@ public final class Main {
     static List<String> listModules(DirectoryLayout dirs) throws IOException {
         return Files.list(dirs.sources())
             .filter(Files::isDirectory)
+            .filter(IOPredicate.of(path -> Files.walk(path)
+                    .map(Path::getFileName)
+                    .map(Path::toString)
+                    .anyMatch(pathString -> pathString.endsWith(".java"))))
             .map(Path::getFileName)
             .map(Path::toString)
             .sorted()
