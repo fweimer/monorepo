@@ -58,6 +58,16 @@ public interface Testing {
     public void assertEquals(Object left, Object right);
 
     /**
+     * Checks that the two objects are not equal.
+     * An exception is thrown if they are equal according to
+     * {@link java.util.Objects#equals(Object,Object)}.
+     * This function acts as {@linkplain #fullBarrier() full test barrier}.
+     * @param left the first object
+     * @param right the second object
+     */
+    public void assertNotEquals(Object left, Object right);
+
+    /**
      * Checks that the two arrays are equal.
      * An exception is thrown if they are not equal according to
      * {@link java.util.Arrays#equals(Object[],Object[])}, or if

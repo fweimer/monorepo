@@ -70,6 +70,15 @@ final class TestingImpl implements Testing {
     }
 
     @Override
+    public void assertNotEquals(Object left, Object right) {
+        if (Objects.equals(left, right)) {
+            failed = true;
+            throw new TestFailure("Equals");
+        }
+        fullBarrier();
+    }
+
+    @Override
     public void assertArrayEquals(Object[] left, Object[] right) {
         if (left == null && right == null) {
             failed = true;
