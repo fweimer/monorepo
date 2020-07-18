@@ -126,6 +126,27 @@ final class TestingImpl implements Testing {
     }
 
     @Override
+    public void assertNotSame(Object left, Object right) {
+        if (left == null && right == null) {
+            failed = true;
+            throw new TestFailure("left and right are null");
+        }
+        if (left == null) {
+            failed = true;
+            throw new TestFailure("left is null");
+        }
+        if (right == null) {
+            failed = true;
+            throw new TestFailure("right is null");
+        }
+        if (left == right) {
+            failed = true;
+            throw new TestFailure("Objects are the same");
+        }
+        fullBarrier();
+    }
+
+    @Override
     public <T, E extends Throwable> void expect(
         ThrowingSupplier<T> source,
         Class<E> exception, Consumer<? super E> consumer) {

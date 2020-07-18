@@ -89,6 +89,16 @@ public interface Testing {
     public void assertSame(Object left, Object right);
 
     /**
+     * Checks that the two objects are not the same.
+     * An exception is thrown if they are the same, or if
+     * they are null.
+     * This function acts as {@linkplain #fullBarrier() full test barrier}.
+     * @param left the first object
+     * @param right the second object
+     */
+    public void assertNotSame(Object left, Object right);
+
+    /**
      * Checks that an expected exception is thrown.
      * @param source the callback that is expected to throw
      * @param exception the type of the expected exception
