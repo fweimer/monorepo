@@ -185,7 +185,11 @@ public final class Main {
     static Map<Path, FileIdentity> sourceFileIdentities(DirectoryLayout dirs)
         throws IOException {
         return Files.walk(dirs.sources())
-            .filter(path -> path.getFileName().toString().endsWith(".java"))
+            .filter(path -> {
+                    String fileName = path.getFileName().toString();
+                    return fileName.endsWith(".java")
+                        && !fileName.startsWith(".#");
+                })
             .collect(FileIdentity.mapToFileIdentity());
     }
 
