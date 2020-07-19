@@ -21,6 +21,58 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public final class RunTests {
     /**
+     * Entry point for manually running tests in one class.
+     *
+     * @param args a single command line argument, containing the test
+     *   class name, optionally with a module prefix
+     * @throws Exception if something goes wrong while locating the test
+     */
+    public static void main(String[] args) throws Exception {
+        if (args.length != 1) {
+            String argv0 = RunTests.class.getName();
+            System.err.format("usage: %s MODULE/TEST-CLASS::METHOD()%n", argv0);
+            System.err.format("       %s TEST-CLASS::METHOD()%n", argv0);
+            System.exit(1);
+        }
+
+        String specifier = args[0];
+        int slash = specifier.indexOf('/');
+        int colons = specifier.indexOf("::", slash + 1);
+        int descriptorStart = specifier.indexOf('(', colons + 1);
+        if (colons < 0 || descriptorStart < 0) {
+            System.err.format("error: missing \"::\" in specifier: %s%n",
+                specifier);
+            System.exit(1);
+        }
+
+        String moduleName;
+        if (slash >= 0)
+            moduleName = specifier.substring(0, slash);
+        else
+            moduleName = "";
+        String className = specifier.substring(slash + 1, colons);
+        String methodName = specifier.substring(colons + 2, descriptorStart);
+        boolean hasTestingArgument;
+        switch (specifier.substring(descriptorStart)) {
+        case "()":
+            hasTestingArgument = false;
+            break;
+        case "(Testing)":
+        case "(enyo.testing.Testing)":
+            hasTestingArgument = true;
+            break;
+        default:
+            System.err.format("error: invalid argument list in specifier: %s%n",
+                specifier);
+            System.exit(1);
+            return; // Unreachable.
+        }
+        TestMethodLocator test = new TestMethodLocator(
+            moduleName, className, methodName, hasTestingArgument);
+        runOneTest(test);
+    }
+
+    /**
      * Entry point for running tests within the same virtual machine.
      * @param root the directory containing sources and build outputs
      * @param modules the names of the modules discovered;
@@ -74,6 +126,13 @@ public final class RunTests {
         }
     }
 
+    private static void runOneTest(TestMethodLocator test) {
+        if (runTest(ModuleLayer.boot(), test))
+            System.exit(0);
+        else
+            System.exit(1);
+    }
+
     static ModuleLayer testLayer(DirectoryLayout dirs, int generation,
         Collection<String> testModules) {
         ModuleLayer bootLayer = ModuleLayer.boot();
@@ -100,8 +159,12 @@ public final class RunTests {
         Method testMethod;
         Constructor<?> constructor;
         try {
-            testClass = testLayer.findLoader(test.module())
-                .loadClass(test.className());
+            ClassLoader loader;
+            if (test.module().isEmpty()) // FIXME
+                loader = RunTests.class.getClassLoader();
+            else
+                loader = testLayer.findLoader(test.module());
+            testClass = loader.loadClass(test.className());
             if (test.hasTestingArgument())
                 testMethod = testClass.getMethod(test.methodName(),
                     Testing.class);
