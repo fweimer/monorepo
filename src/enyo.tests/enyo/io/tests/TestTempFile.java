@@ -1,0 +1,175 @@
+package enyo.io.tests;
+
+import enyo.io.TempFile;
+import enyo.testing.Cost;
+import enyo.testing.Test;
+import enyo.testing.Testing;
+
+import java.io.IOException;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
+import java.util.Set;
+
+public final class TestTempFile {
+    @Test
+    public static void testOf(Testing t) throws IOException {
+        Path path = Files.createTempFile("enyo-TestTempFile-", ".tmp");
+        try (TempFile file = TempFile.of(path)) {
+            t.assertEquals(path, file.path());
+            t.assertTrue(path.toString(), Files.exists(path));
+        }
+        t.assertFalse(path.toString(), Files.exists(path));
+    }
+
+    @Test
+    public static void testEquals(Testing t) throws IOException {
+        try (TempFile file1 = TempFile.create("enyo-TestTempFile-", ".tmp");
+            TempFile file2 = TempFile.of(file1.path())) {
+            t.assertNotEquals(file1, file2);
+        }
+    }
+
+    @Test
+    public static void testClose(Testing t) throws IOException {
+        Path path;
+        try (TempFile file = TempFile.create("enyo-TestTempFile-", ".tmp")) {
+            path = file.path();
+            t.assertTrue(path.toString(), Files.exists(path));
+        }
+        t.assertFalse(path.toString(), Files.exists(path));
+    }
+
+    @Test
+    public static void testCloseRepeat(Testing t) throws IOException {
+        // Verify that a repeated close() does not delete the file again.
+        Path tempDir = Files.createTempDirectory("Enyo-TestTempFile-");
+        try {
+            TempFile file =
+                TempFile.create(tempDir, "enyo-TestTempFile-", ".tmp");
+            Path path = file.path();
+            t.assertTrue(Files.exists(path));
+            file.close(); // First call.
+            t.assertFalse(Files.exists(path));
+            Files.writeString(path, "");
+            t.assertTrue(Files.exists(path));
+            file.close(); // Second call.
+            t.assertTrue(Files.exists(path));
+            Files.delete(path);
+        } finally {
+            Files.delete(tempDir);
+        }
+    }
+
+    @Test
+    public static void testCloseNotFound(Testing t) throws IOException {
+        // Deleting a non-existing temporary file should not raise an
+        // exception.
+        try (TempFile file = TempFile.create("enyo-TestTempFile-", ".tmp")) {
+            Path path = file.path();
+            Files.delete(path);
+            t.assertFalse(Files.exists(path));
+        }
+    }
+
+    @Test
+    public static void testCloseException(Testing t) throws IOException {
+        Path tempDir = Files.createTempDirectory("Enyo-TestTempFile-");
+        try {
+            var perms = Files.getPosixFilePermissions(tempDir);
+            boolean canTest = false;
+            {
+                Path file = tempDir.resolve("file");
+                try {
+                    Files.writeString(file, "");
+                    Files.setPosixFilePermissions(tempDir, Set.of());
+                    try {
+                        Files.delete(file);
+                        // If this deletion succeeds: We cannot perform the
+                        // test because a DAC override is active (e.g.,
+                        // running as root).
+                    } catch (IOException e) {
+                        // The NoSuchFileException is indistinguishable from
+                        // the already-deleted file.
+                        canTest = !(e instanceof NoSuchFileException);
+                    }
+                } finally {
+                    Files.setPosixFilePermissions(tempDir, perms);
+                    Files.delete(file);
+                }
+            }
+            if (!canTest)
+                return;
+
+            TempFile file = TempFile.create(
+                tempDir, "enyo-TestTempFile-", ".tmp");
+            Path path = file.path();
+            try {
+                t.assertTrue(Files.exists(path));
+                Files.setPosixFilePermissions(tempDir, Set.of());
+                t.assertFalse(Files.exists(path));
+                t.expect(() -> file.close(),
+                    AccessDeniedException.class, e -> {
+                        t.assertEquals(path.toString(), e.getMessage());
+                    });
+            } finally {
+                Files.setPosixFilePermissions(tempDir, perms);
+                t.assertTrue(Files.exists(path));
+                Files.delete(path);
+            }
+        } finally {
+            Files.delete(tempDir);
+        }
+    }
+
+    @Test
+    public static void testPrefixSuffix(Testing t) throws IOException {
+        for (int i = 0; i < 2; ++i) {
+            String prefix = "Enyo-TestTempFile-" + i + "-";
+            String suffix = "-" + i + ".tmp";
+            try (TempFile file = TempFile.create(prefix, suffix)) {
+                String fileName = file.path().getFileName().toString();
+                t.assertTrue(file.toString(), fileName.startsWith(prefix));
+                t.assertTrue(file.toString(), fileName.endsWith(suffix));
+            }
+            Path tempDir = Files.createTempDirectory("Enyo-TestTempFile-");
+            try {
+                try (TempFile file = TempFile.create(
+                        tempDir, prefix, suffix)) {
+                    String fileName = file.path().getFileName().toString();
+                    t.assertTrue(file.toString(), fileName.startsWith(prefix));
+                    t.assertTrue(file.toString(), fileName.endsWith(suffix));
+                    t.assertEquals(file.path(), tempDir.resolve(fileName));
+                }
+            } finally {
+                Files.delete(tempDir);
+            }
+        }
+    }
+
+    @Test
+    @Cost(1.0)
+    public static void testGarbageCollection(Testing t) throws Exception {
+        var helper = new Object() {
+                volatile TempFile file =
+                    TempFile.create("enyo-TestTempFile-", ".tmp");
+            };
+        Path path = helper.file.path();
+        t.assertTrue(Files.exists(path));
+        helper.file = null;
+        // The TempFile object should be eligible for garbage
+        // collection after this point.  Wait for at most 60 seconds.
+        long start = System.currentTimeMillis();
+        for (int i = 1; i <= 600; ++i) {
+            if (!Files.exists(path))
+                break;
+            // Periodically trigger garbage collection.
+            if ((i % 10) == 0)
+                System.gc();
+            Thread.sleep(100);
+        }
+        t.assertFalse(path.toString(), Files.exists(path));
+    }
+}
