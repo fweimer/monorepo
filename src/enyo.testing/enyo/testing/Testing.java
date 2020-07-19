@@ -23,11 +23,12 @@ public interface Testing {
 
     /**
      * Reports a test failure using an exception.
-     * This function never returns normally.
-     * It acts as {@linkplain #fullBarrier() full test barrier}.
+     * It acts as a {@linkplain #fullBarrier() full test barrier}.
      * @param message the message to include in the test failure exception
+     * @return nothing; this method never returns normally
+     * @param <T> the type of the object that is never returned
      */
-    public void assertFail(String message);
+    public <T> T assertFail(String message);
 
     /**
      * Checks that a flag is true.

@@ -30,7 +30,7 @@ final class TestingImpl implements Testing {
     }
 
     @Override
-    public void assertFail(String message) {
+    public <T> T assertFail(String message) {
         failed = true;
         if (message != null)
             throw new TestFailure(message);
