@@ -2,19 +2,23 @@ package enyo.build;
 
 import enyo.io.function.IOConsumer;
 import enyo.io.function.IOPredicate;
+import enyo.io.FileIdentity;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardWatchEventKinds;
+import java.nio.file.WatchService;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
-import javax.tools.JavaCompiler;
 import javax.tools.DocumentationTool;
+import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
-import java.lang.reflect.Method;
 
 /**
  * The Enyo build tool.
@@ -25,15 +29,22 @@ public final class Main {
      * documentation for options.
      * @param args the arguments to pass; see above
      * @throws IOException an I/O error occurred
+     * @throws InterruptedException the thread was interrupted
      */
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args)
+        throws IOException, InterruptedException {
         DirectoryLayout dirs = new DirectoryLayout(Path.of(""));
         clearGenerations(dirs);
 
-        List<String> modules = listModules(dirs);
-        build(dirs, modules, 0);
-        document(dirs, modules, 0);
-        invokeRunTests(dirs, modules, 0);
+        for (int generation = 0; ; ++generation) {
+            Map<Path, FileIdentity> currentSources = sourceFileIdentities(dirs);
+            List<String> modules = listModules(dirs);
+            if (build(dirs, modules, generation)) {
+                document(dirs, modules, generation);
+                invokeRunTests(dirs, modules, generation);
+            }
+            waitForSourceChange(dirs, currentSources);
+        }
     }
 
     static List<String> listModules(DirectoryLayout dirs) throws IOException {
@@ -71,7 +82,11 @@ public final class Main {
             .forEach(IOConsumer.of(Main::removeTree));
     }
 
-    static void build(DirectoryLayout dirs, List<String> modules,
+    /**
+     * Compiles the source tree.
+     * @return true if the compilation was successful
+     */
+    static boolean build(DirectoryLayout dirs, List<String> modules,
         int generation) throws IOException {
         Path targetPath = dirs.buildGeneration(generation);
         removeTree(targetPath);
@@ -91,8 +106,7 @@ public final class Main {
                 "--module-source-path", "src",
                 "--module", modulesString,
             });
-        if (status != 0)
-            System.exit(status);
+        return status == 0;
     }
 
     static void document(DirectoryLayout dirs, List<String> modules,
@@ -131,6 +145,53 @@ public final class Main {
         } catch (Throwable e) {
             e.printStackTrace(System.err);
             System.exit(1);
+        }
+    }
+
+    /**
+     * Returns file identity information for all source files.
+     */
+    static Map<Path, FileIdentity> sourceFileIdentities(DirectoryLayout dirs)
+        throws IOException {
+        return Files.walk(dirs.sources())
+            .filter(path -> path.getFileName().toString().endsWith(".java"))
+            .collect(FileIdentity.mapToFileIdentity());
+    }
+
+    /**
+     * Register all source subdirectories with the watcher.
+     */
+    static void registerSourceDirectories(DirectoryLayout dirs,
+        WatchService watcher) throws IOException {
+        Files.walk(dirs.sources())
+            .filter(Files::isDirectory)
+            .forEach(IOConsumer.of(path -> path.register(watcher,
+                        StandardWatchEventKinds.ENTRY_CREATE,
+                        StandardWatchEventKinds.ENTRY_DELETE,
+                        StandardWatchEventKinds.ENTRY_MODIFY)));
+    }
+
+    /**
+     * Blocks until source changes are detected.
+     */
+    static void waitForSourceChange(DirectoryLayout dirs,
+        Map<Path, FileIdentity> oldSources)
+        throws IOException, InterruptedException {
+        while (true) {
+            WatchService watcher =
+                dirs.sources().getFileSystem().newWatchService();
+            try {
+                registerSourceDirectories(dirs, watcher);
+                // This check must come after registering the
+                // watchers, otherwise changes can be missed.
+                Map<Path, FileIdentity> currentSources =
+                    sourceFileIdentities(dirs);
+                if (!currentSources.equals(oldSources))
+                    break;
+                watcher.take();
+            } finally {
+                watcher.close();
+            }
         }
     }
 
