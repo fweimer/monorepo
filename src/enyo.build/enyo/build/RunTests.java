@@ -14,6 +14,7 @@ import java.lang.reflect.Modifier;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * The Enyo testing tool.
@@ -33,6 +34,8 @@ public final class RunTests {
     public static void runTests(Path root, List<String> modules,
         int generation, ModuleLayer testLayer) throws IOException {
         DirectoryLayout dirs = new DirectoryLayout(root);
+
+        AtomicLong errors = new AtomicLong();
         modules.stream()
             .filter(IOPredicate.of(
                     mod -> FindTests.isTestModule(dirs, generation, mod)))
@@ -49,9 +52,20 @@ public final class RunTests {
                     else {
                         TestMethodLocator test = method.locator();
                         System.out.println(test);
-                        runTest(testLayer, test);
+                        if (!runTest(testLayer, test))
+                            errors.incrementAndGet();
                     }
                 });
+        {
+            long errors0 = errors.get();
+            if (errors0 == 0)
+                System.err.println("error: testing completed successfully");
+            else if (errors0 == 1)
+                System.err.println("error: testing completed with 1 error");
+            else
+                System.err.format("info: testing completed with %d errors%n",
+                    errors0);
+        }
     }
 
     static ModuleLayer testLayer(DirectoryLayout dirs, int generation,
@@ -70,7 +84,12 @@ public final class RunTests {
             .loadClass(clazz.getName());
     }
 
-    static void runTest(ModuleLayer testLayer, TestMethodLocator test) {
+    /**
+     * Run a single test.
+     * @return true if the test succeed, false if it could not be located
+     *   or if it failed
+     */
+    static boolean runTest(ModuleLayer testLayer, TestMethodLocator test) {
         Class<?> testClass;
         Method testMethod;
         Constructor<?> constructor;
@@ -89,7 +108,7 @@ public final class RunTests {
         } catch (ClassNotFoundException | NoSuchMethodException e) {
             System.err.format("%s: cannot find test: %s%n",
                 test, e.getMessage());
-            return;
+            return false;
         }
         try {
             Object obj;
@@ -104,6 +123,7 @@ public final class RunTests {
             } else {
                 testMethod.invoke(obj);
             }
+            return true;
         } catch (InstantiationException | InvocationTargetException
             | IllegalAccessException e) {
             System.err.format("FAIL: %s%n", test);
@@ -113,6 +133,7 @@ public final class RunTests {
             else
                 e1 = e;
             e1.printStackTrace(System.err);
+            return false;
         }
     }
     private RunTests() { } // No instances.
