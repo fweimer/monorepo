@@ -37,6 +37,8 @@ public final class RunTests {
 
         System.err.println("info: testing started");
 
+        long nanoStart = System.nanoTime();
+
         AtomicLong errors = new AtomicLong();
         modules.stream()
             .filter(IOPredicate.of(
@@ -59,9 +61,12 @@ public final class RunTests {
                 });
         {
             long errors0 = errors.get();
-            if (errors0 == 0)
-                System.err.println("info: testing completed successfully");
-            else if (errors0 == 1)
+            if (errors0 == 0) {
+                long nanoEnd = System.nanoTime();
+                System.err.format(
+                    "info: testing completed successfully (%.3f s)%n",
+                    (nanoEnd - nanoStart) * 1e-9);
+            } else if (errors0 == 1)
                 System.err.println("error: testing completed with 1 error");
             else
                 System.err.format("info: testing completed with %d errors%n",
