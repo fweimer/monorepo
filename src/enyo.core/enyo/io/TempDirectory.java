@@ -1,7 +1,10 @@
 package enyo.io;
 
-import java.io.File;
+import enyo.io.function.IORunnable;
+
 import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.lang.ref.Cleaner;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -20,7 +23,11 @@ public final class TempDirectory implements AutoCloseable {
      */
     @Override
     public void close() throws IOException {
-        deleteTree(path);
+        try {
+            cleanable.clean();
+        } catch (UncheckedIOException e) {
+            throw e.getCause();
+        }
     }
 
     /**
@@ -70,7 +77,7 @@ public final class TempDirectory implements AutoCloseable {
         Path sysTempDir = systemTemporaryDirectory();
         Path newTempDir = Files.createTempDirectory(sysTempDir, prefix);
         try {
-            return new TempDirectory(newTempDir);
+            return of0(newTempDir);
         } catch (Throwable t) {
             try {
                 Files.deleteIfExists(newTempDir);
@@ -142,8 +149,28 @@ public final class TempDirectory implements AutoCloseable {
     }
 
     private final Path path;
+    private final Cleaner.Cleanable cleanable;
 
     private TempDirectory(Path path) {
         this.path = path;
+        // Note: This does not work with a security manager
+        // because the cleaner thread has no permissions.
+        this.cleanable = TempFile.cleaner.register(
+            this, IORunnable.of(() -> deleteTree(path)));
+    }
+
+    private static TempDirectory of0(Path path) {
+        try {
+            return new TempDirectory(path);
+        } catch (Throwable e) {
+            // Delete the directory (typically if we could not
+            // allocate the cleaner object or the wrapper object).
+            try {
+                Files.delete(path);
+            } catch (Throwable e1){
+                e.addSuppressed(e1);
+            }
+            throw e;
+        }
     }
 }

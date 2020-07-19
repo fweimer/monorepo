@@ -1,6 +1,7 @@
 package enyo.io.tests;
 
 import enyo.io.TempDirectory;
+import enyo.testing.Cost;
 import enyo.testing.Test;
 import enyo.testing.Testing;
 
@@ -90,5 +91,29 @@ public class TestTempDirectory {
     @Test
     public static void testHierarchyException(Testing t) throws IOException {
         testHierarchy(t, true);
+    }
+
+    @Test
+    @Cost(1.0)
+    public static void testGarbageCollection(Testing t) throws Exception {
+        var helper = new Object() {
+                volatile TempDirectory dir =
+                    TempDirectory.withPrefix("enyo-TestTempDirectory-");
+            };
+        Path path = helper.dir.path();
+        t.assertTrue(Files.isDirectory(path));
+        helper.dir = null;
+        // The TempDirectory object should be eligible for garbage
+        // collection after this point.  Wait for at most 60 seconds.
+        long start = System.currentTimeMillis();
+        for (int i = 1; i <= 600; ++i) {
+            if (!Files.exists(path))
+                break;
+            // Periodically trigger garbage collection.
+            if ((i % 10) == 0)
+                System.gc();
+            Thread.sleep(100);
+        }
+        t.assertFalse(path.toString(), Files.exists(path));
     }
 }

@@ -109,7 +109,9 @@ public final class TempFile implements AutoCloseable {
 
     private final Path path;
     private final Cleaner.Cleanable cleanable;
-    private static final Cleaner cleaner = Cleaner.create();
+
+    // Used by other classes in enyo.io.
+    static final Cleaner cleaner = Cleaner.create();
 
     private TempFile(Path path) {
         this.path = path;
