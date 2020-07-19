@@ -2,6 +2,7 @@ package enyo.build;
 
 import enyo.io.function.IOFunction;
 import enyo.io.function.IOPredicate;
+import enyo.lang.RelaunchVM;
 import enyo.testing.Testing;
 
 import java.io.IOException;
@@ -87,42 +88,74 @@ public final class RunTests {
         int generation, ModuleLayer testLayer) throws IOException {
         DirectoryLayout dirs = new DirectoryLayout(root);
 
-        System.err.println("info: testing started");
+        adjustSystemProperties(dirs, generation, () -> {
+                System.err.println("info: testing started");
 
-        long nanoStart = System.nanoTime();
+                long nanoStart = System.nanoTime();
 
-        AtomicLong errors = new AtomicLong();
-        modules.stream()
-            .filter(IOPredicate.of(
-                    mod -> FindTests.isTestModule(dirs, generation, mod)))
-            .flatMap(IOFunction.of(
-                    mod -> FindTests.tests(dirs, generation, mod)))
-            .filter(method -> method.hasTestAnnotation)
-            .forEach(method -> {
-                    if (method.error != null)
-                        System.err.format("%s %s %s: %s%n",
-                            method.classDetails.module,
-                            method.classDetails.clazz.className(),
-                            method.method.name(),
-                            method.error);
-                    else {
-                        TestMethodLocator test = method.locator();
-                        if (!runTest(testLayer, test))
-                            errors.incrementAndGet();
-                    }
-                });
-        {
-            long errors0 = errors.get();
-            if (errors0 == 0) {
-                long nanoEnd = System.nanoTime();
-                System.err.format(
-                    "info: testing completed successfully (%.3f s)%n",
-                    (nanoEnd - nanoStart) * 1e-9);
-            } else if (errors0 == 1)
-                System.err.println("error: testing completed with 1 error");
+                AtomicLong errors = new AtomicLong();
+                modules.stream()
+                    .filter(IOPredicate.of(
+                            mod -> FindTests.isTestModule(
+                                dirs, generation, mod)))
+                    .flatMap(IOFunction.of(
+                            mod -> FindTests.tests(dirs, generation, mod)))
+                    .filter(method -> method.hasTestAnnotation)
+                    .forEach(method -> {
+                            if (method.error != null)
+                                System.err.format("%s %s %s: %s%n",
+                                    method.classDetails.module,
+                                    method.classDetails.clazz.className(),
+                                    method.method.name(),
+                                    method.error);
+                            else {
+                                TestMethodLocator test = method.locator();
+                                if (!runTest(testLayer, test))
+                                    errors.incrementAndGet();
+                            }
+                        });
+                {
+                    long errors0 = errors.get();
+                    if (errors0 == 0) {
+                        long nanoEnd = System.nanoTime();
+                        System.err.format(
+                            "info: testing completed successfully (%.3f s)%n",
+                            (nanoEnd - nanoStart) * 1e-9);
+                    } else if (errors0 == 1)
+                        System.err.println(
+                            "error: testing completed with 1 error");
+                    else
+                        System.err.format(
+                            "info: testing completed with %d errors%n",
+                            errors0);
+                }
+            });
+    }
+
+    /**
+     * Used by adjustSystemProperties below.
+     */
+    private interface Callback {
+        void run();
+    }
+
+    /**
+     * Some tests depend on system properties to recognize the
+     * execution environment due to the module loader changes.
+     */
+    static void adjustSystemProperties(DirectoryLayout dirs, int generation,
+        Callback callback) {
+        String modulePath = RelaunchVM.class.getName() + ".modulePath";
+        String oldModulePathValue = System.getProperty(modulePath);
+        System.setProperty(
+            modulePath, dirs.buildGeneration(generation).toString());
+        try {
+            callback.run();
+        } finally {
+            if (oldModulePathValue == null)
+                System.getProperties().remove(modulePath);
             else
-                System.err.format("info: testing completed with %d errors%n",
-                    errors0);
+                System.setProperty(modulePath, oldModulePathValue);
         }
     }
 
