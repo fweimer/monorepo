@@ -12,17 +12,39 @@ import java.nio.file.Path;
 import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchService;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 final class SourceFileChanges {
+    /**
+     * Result of the {@linkplain Callback callback function}.
+     */
+    enum Result {
+        /**
+         * The loop should continue, after waiting for changes to
+         * *.java files.
+         */
+        CONTINUE,
+
+        /**
+         * The loop should exit.
+         */
+        EXIT,
+
+        /**
+         * A compilation failure occurred.  This means that rebuilds
+         * should be attempted even if lock files go away, in case the
+         * compilation failure was triggered by a lock file.
+         */
+        CONTINUE_COMPILE_FAILURE,
+    }
+
     /**
      * Callback invoked by
      * {@link SourceFileChanges#loop(DirectoryLayout,Callback)}.
      */
     interface Callback {
-        /**
-         * @return true if the looop should continue, false if it should exit
-         */
-        public boolean call() throws IOException, InterruptedException;
+        public Result call() throws IOException, InterruptedException;
     }
 
     /**
@@ -33,9 +55,19 @@ final class SourceFileChanges {
         throws IOException, InterruptedException {
         while (true) {
             Map<Path, FileIdentity> currentSources = sourceFileIdentities(dirs);
-            if (!callback.call())
+            switch (callback.call()) {
+            case CONTINUE:
+                // Remove the lock files from consideration.
+                waitForSourceChange(dirs, currentSources,
+                    SourceFileChanges::filterOutLockFiles);
                 break;
-            waitForSourceChange(dirs, currentSources);
+            case EXIT:
+                return;
+            case CONTINUE_COMPILE_FAILURE:
+                // Also retry on lock file changes.
+                waitForSourceChange(dirs, currentSources, Function.identity());
+                break;
+            }
         }
     }
 
@@ -48,11 +80,8 @@ final class SourceFileChanges {
             try {
                 try {
                     return Files.walk(dirs.sources())
-                        .filter(path -> {
-                                String fileName = path.getFileName().toString();
-                                return fileName.endsWith(".java")
-                                    && !fileName.startsWith(".#");
-                            })
+                        .filter(path ->
+                            path.getFileName().toString().endsWith(".java"))
                         .collect(FileIdentity.mapToFileIdentity());
                 } catch (UncheckedIOException e) {
                     throw e.getCause();
@@ -63,6 +92,17 @@ final class SourceFileChanges {
                 else
                     throw e;
             }
+    }
+
+    /**
+     * Removes the lock files from the map.
+     */
+    static Map<Path, FileIdentity> filterOutLockFiles(
+        Map<Path, FileIdentity> map) {
+        return map.entrySet().stream()
+            .filter(e ->
+                !e.getKey().getFileName().toString().startsWith(".#"))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     /**
@@ -85,10 +125,14 @@ final class SourceFileChanges {
 
     /**
      * Blocks until source changes are detected.
+     * @param filter old and new source file identities are filtered
+     *   with this function before the comparison
      */
     static void waitForSourceChange(DirectoryLayout dirs,
-        Map<Path, FileIdentity> oldSources)
+        Map<Path, FileIdentity> oldSources,
+        Function<Map<Path, FileIdentity>, Map<Path, FileIdentity>> filter)
         throws IOException, InterruptedException {
+        oldSources = filter.apply(oldSources);
         while (true) {
             WatchService watcher =
                 dirs.sources().getFileSystem().newWatchService();
@@ -109,7 +153,7 @@ final class SourceFileChanges {
                 // This check must come after registering the
                 // watchers, otherwise changes can be missed.
                 Map<Path, FileIdentity> currentSources =
-                    sourceFileIdentities(dirs);
+                    filter.apply(sourceFileIdentities(dirs));
                 if (!currentSources.equals(oldSources))
                     break;
                 watcher.take();

@@ -64,15 +64,16 @@ public final class Main {
                         if (forBootstrap) {
                             System.err.println("info: performing re-bootstrap");
                             clearGenerations(dirs);
-                            return false;
+                            return SourceFileChanges.Result.EXIT;
                         } else
                             System.err.println(
                                 "warning: New bootstrap required");
                     }
                     document(dirs, modules, generation);
                     invokeRunTests(dirs, modules, generation);
-                }
-                return true;
+                    return SourceFileChanges.Result.CONTINUE;
+                } else
+                    return SourceFileChanges.Result.CONTINUE_COMPILE_FAILURE;
             });
     }
 
