@@ -15,6 +15,7 @@ import java.lang.reflect.Modifier;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -46,11 +47,11 @@ public final class RunTests {
             System.exit(1);
         }
 
-        String moduleName;
+        Optional<String> moduleName;
         if (slash >= 0)
-            moduleName = specifier.substring(0, slash);
+            moduleName = Optional.of(specifier.substring(0, slash));
         else
-            moduleName = "";
+            moduleName = Optional.empty();
         String className = specifier.substring(slash + 1, colons);
         String methodName = specifier.substring(colons + 2, descriptorStart);
         boolean hasTestingArgument;
@@ -192,11 +193,9 @@ public final class RunTests {
         Method testMethod;
         Constructor<?> constructor;
         try {
-            ClassLoader loader;
-            if (test.module().isEmpty()) // FIXME
-                loader = RunTests.class.getClassLoader();
-            else
-                loader = testLayer.findLoader(test.module());
+            ClassLoader loader = test.moduleName()
+                .map(testLayer::findLoader)
+                .orElse(RunTests.class.getClassLoader());
             testClass = loader.loadClass(test.className());
             if (test.hasTestingArgument())
                 testMethod = testClass.getMethod(test.methodName(),

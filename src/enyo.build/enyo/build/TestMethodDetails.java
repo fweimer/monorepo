@@ -3,6 +3,7 @@ package enyo.build;
 import enyo.lang.classfile.Method;
 
 import java.util.Objects;
+import java.util.Optional;
 
 final class TestMethodDetails {
     final TestClassDetails classDetails;
@@ -33,7 +34,7 @@ final class TestMethodDetails {
         if (!hasTestAnnotation || error != null)
             throw new IllegalStateException();
         return new TestMethodLocator(
-            classDetails.module,
+            Optional.of(classDetails.module),
             classDetails.clazz.className().replace('/', '.'),
             method.name(),
             hasTestingArgument);

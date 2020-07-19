@@ -1,29 +1,36 @@
 package enyo.build;
 
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Module, class name, method name, and signature of a test method.
  */
 final class TestMethodLocator implements Comparable<TestMethodLocator> {
-    TestMethodLocator(String module, String className,
+    TestMethodLocator(Optional<String> moduleName, String className,
         String methodName, boolean hasTestingArgument) {
-        this.module = Objects.requireNonNull(module, "module");
+        this.moduleName = Objects.requireNonNull(moduleName, "moduleName");
         this.className = Objects.requireNonNull(className, "className");
         this.methodName = Objects.requireNonNull(methodName, "methodName");
         this.hasTestingArgument = hasTestingArgument;
 
+        if (moduleName.map(String::isEmpty).orElse(false))
+            throw new IllegalArgumentException("Empty module name");
+        if (className.isEmpty())
+            throw new IllegalArgumentException("Empty class name");
+        if (methodName.isEmpty())
+            throw new IllegalArgumentException("Empty method name");
         if (className.indexOf('/') >= 0)
             throw new IllegalArgumentException("className: " + className);
     }
 
     /**
      * Returns the name of the module which contains this test method.
-     * @return a Java module name
-     * @see Module#name()
+     * @return a Java module name, if present
+     * @see Module#getName()
      */
-    String module() {
-        return module;
+    Optional<String> moduleName() {
+        return moduleName;
     }
 
     /**
@@ -57,7 +64,7 @@ final class TestMethodLocator implements Comparable<TestMethodLocator> {
         if (o == null || o.getClass() != getClass())
             return false;
         TestMethodLocator obj = (TestMethodLocator) o;
-        return module.equals(obj.module)
+        return moduleName.equals(obj.moduleName)
             && className.equals(obj.className)
             && methodName.equals(obj.methodName)
             && hasTestingArgument == obj.hasTestingArgument;
@@ -65,7 +72,7 @@ final class TestMethodLocator implements Comparable<TestMethodLocator> {
 
     @Override
     public int hashCode() {
-        int hash = module.hashCode();
+        int hash = moduleName.hashCode();
         hash = hash * 17 + className.hashCode();
         hash = hash * 1009 + methodName.hashCode();
         hash ^= Boolean.hashCode(hasTestingArgument);
@@ -79,12 +86,27 @@ final class TestMethodLocator implements Comparable<TestMethodLocator> {
             signature = "(enyo.testing.Testing)";
         else
             signature = "()";
-        return module + '/' + className + "::" + methodName + signature;
+        String modulePrefix = moduleName
+            .map(name -> name + '/')
+            .orElse("");
+        return modulePrefix + className + "::" + methodName + signature;
     }
 
     @Override
     public int compareTo(TestMethodLocator other) {
-        int ret = module.compareTo(other.module);
+        int ret;
+        // Missing module sorts first.
+        if (moduleName.isPresent()) {
+            if (other.moduleName.isPresent())
+                ret = moduleName.get().compareTo(other.moduleName.get());
+            else
+                ret = 1;
+        } else {
+            if (other.moduleName.isPresent())
+                ret = -1;
+            else
+                ret = 0;
+        }
         if (ret != 0)
             return ret;
         ret = className.compareTo(other.className);
@@ -96,7 +118,7 @@ final class TestMethodLocator implements Comparable<TestMethodLocator> {
         return Boolean.compare(hasTestingArgument, other.hasTestingArgument);
     }
 
-    private final String module;
+    private final Optional<String> moduleName;
     private final String className;
     private final String methodName;
     private final boolean hasTestingArgument;
