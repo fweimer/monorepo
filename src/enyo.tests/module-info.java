@@ -1,7 +1,7 @@
 import enyo.testing.TestModule;
 
 @TestModule
-module enyo.core.tests {
+module enyo.tests {
     exports enyo.crypto.tests;
     exports enyo.io.function.tests;
     exports enyo.io.tests;
