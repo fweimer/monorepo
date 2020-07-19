@@ -16,7 +16,7 @@ public final class Bootstrap {
         Path targetPath = Path.of("build/bootstrap");
         while (true) {
             bootstrapBuild(targetPath);
-            if (!invokeBuild(targetPath))
+            if (!invokeBuild(targetPath, args))
                 break;
         }
     }
@@ -100,13 +100,13 @@ public final class Bootstrap {
      * Invoke enyo.build.Build.bootstrap(String[]).
      * @return true if a rebootstrap has been requested
      */
-    private static boolean invokeBuild(Path path)
+    private static boolean invokeBuild(Path path, String[] args)
         throws ClassNotFoundException, NoSuchMethodException,
                IllegalAccessException, InvocationTargetException {
         Class<?> mainClass = bootstrapModuleLayer(path)
             .findLoader(BUILD_MODULE)
             .loadClass(BUILD_CLASS);
         return (boolean) mainClass.getMethod("bootstrap", String[].class)
-            .invoke(null, (Object) new String[0]);
+            .invoke(null, (Object) args);
     }
 }
