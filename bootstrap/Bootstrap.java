@@ -14,8 +14,11 @@ import javax.tools.ToolProvider;
 public final class Bootstrap {
     public static void main(String[] args) throws Exception {
         Path targetPath = Path.of("build/bootstrap");
-        bootstrapBuild(targetPath);
-        invokeBuild(targetPath);
+        while (true) {
+            bootstrapBuild(targetPath);
+            if (!invokeBuild(targetPath))
+                break;
+        }
     }
 
     /**
@@ -93,13 +96,17 @@ public final class Bootstrap {
             conf, ClassLoader.getSystemClassLoader());
     }
 
-    private static void invokeBuild(Path path)
+    /**
+     * Invoke enyo.build.Build.bootstrap(String[]).
+     * @return true if a rebootstrap has been requested
+     */
+    private static boolean invokeBuild(Path path)
         throws ClassNotFoundException, NoSuchMethodException,
                IllegalAccessException, InvocationTargetException {
         Class<?> mainClass = bootstrapModuleLayer(path)
             .findLoader(BUILD_MODULE)
             .loadClass(BUILD_CLASS);
-        mainClass.getMethod("main", String[].class)
+        return (boolean) mainClass.getMethod("bootstrap", String[].class)
             .invoke(null, (Object) new String[0]);
     }
 }

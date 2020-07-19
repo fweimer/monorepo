@@ -35,6 +35,25 @@ public final class Main {
      */
     public static void main(String[] args)
         throws IOException, InterruptedException {
+        run(false, args);
+    }
+
+    /**
+     * Invoked by the bootstrapping to perform builds.
+     * @return true if a rebootstrap has been requested, false if
+     *   no further builds should be performed
+     * @param args the arguments to pass; see above
+     * @throws IOException an I/O error occurred
+     * @throws InterruptedException the thread was interrupted
+     */
+    public static boolean bootstrap(String[] args)
+        throws IOException, InterruptedException {
+        run(true, args);
+        return true;
+    }
+
+    private static void run(boolean forBootstrap, String[] args)
+        throws IOException, InterruptedException {
         DirectoryLayout dirs = new DirectoryLayout(Path.of(""));
         clearGenerations(dirs);
 
@@ -44,8 +63,14 @@ public final class Main {
             Map<Path, FileIdentity> currentSources = sourceFileIdentities(dirs);
             List<String> modules = listModules(dirs);
             if (build(dirs, modules, generation)) {
-                if (!rebootstrapCheck.unchanged(dirs, generation))
-                    System.err.println("WARNING: New bootstrap required");
+                if (!rebootstrapCheck.unchanged(dirs, generation)) {
+                    if (forBootstrap) {
+                        System.err.println("info: performing re-bootstrap");
+                        clearGenerations(dirs);
+                        return;
+                    } else
+                        System.err.println("warning: New bootstrap required");
+                }
                 document(dirs, modules, generation);
                 invokeRunTests(dirs, modules, generation);
             }
