@@ -46,6 +46,17 @@ public final class ClassFile implements Annotated {
     }
 
     /**
+     * Returns the access flags of this class.
+     *
+     * This corresponds to the {@code access_flags} member of the
+     * {@code ClassFile} structure.
+     * @return an integer in the range 0 to 65536 (inclusive)
+     */
+    public int accessFlags() {
+        return Short.toUnsignedInt(accessFlags);
+    }
+
+    /**
      * A stream supplying the methods of this class.
      * @return a stream of methods
      * @throws ClassFileException if the class file is malformed and this
