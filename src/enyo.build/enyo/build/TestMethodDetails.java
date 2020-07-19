@@ -1,5 +1,6 @@
 package enyo.build;
 
+import enyo.lang.classfile.Constants;
 import enyo.lang.classfile.Method;
 
 import java.util.Objects;
@@ -28,6 +29,9 @@ final class TestMethodDetails {
             hasTestingArgument = true;
         else if (!descriptor.equals("()V"))
             error = "Invalid descriptor: " + descriptor;
+        if ((method.accessFlags() & Constants.ACC_PUBLIC) == 0
+            && error == null)
+            error = "Method is not public";
     }
 
     TestMethodLocator locator() {

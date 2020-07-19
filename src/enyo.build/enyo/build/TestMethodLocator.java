@@ -7,6 +7,15 @@ import java.util.Optional;
  * Module, class name, method name, and signature of a test method.
  */
 final class TestMethodLocator implements Comparable<TestMethodLocator> {
+    /**
+     * Creates a new test method locator.
+     * @param moduleName the module name if present, otherwise this
+     *   test resides in the unnamed module
+     * @param className the class name containing the test method
+     * @param methodName the name of the test mode
+     * @param hasTestingArgument if true, the test method expects an
+     *   argument of type {@link enyo.testing.Testing}
+     */
     TestMethodLocator(Optional<String> moduleName, String className,
         String methodName, boolean hasTestingArgument) {
         this.moduleName = Objects.requireNonNull(moduleName, "moduleName");

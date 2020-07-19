@@ -4,6 +4,7 @@ import enyo.io.function.IOFunction;
 import enyo.lang.classfile.Annotation;
 import enyo.lang.classfile.AnnotationDefaultAttribute;
 import enyo.lang.classfile.ClassFile;
+import enyo.lang.classfile.Constants;
 import enyo.lang.classfile.Descriptor;
 import enyo.lang.classfile.EnumConstant;
 import enyo.lang.classfile.Field;
@@ -58,6 +59,10 @@ public final class TestClassFile {
         ClassFile cf = classFile(TestClassFile.class);
         String className = getClass().getName().replace('.', '/');
         t.assertEquals(className, cf.className());
+        t.assertEquals(Constants.ACC_PUBLIC
+            | Constants.ACC_FINAL
+            | Constants.ACC_SUPER,
+            cf.accessFlags());
 
         {
             Set<String> methods = cf.methods()
@@ -65,7 +70,8 @@ public final class TestClassFile {
                 .filter(name -> name.indexOf('$') < 0)
                 .filter(name -> name.indexOf('<') < 0)
                 .collect(Collectors.toSet());
-            t.assertEquals(Set.of("testThisClass", "testAllClasses",
+            t.assertEquals(Set.of("testThisClass", "testEnum",
+                    "testInterface", "testAllClasses",
                     "testAnnotationB", "testAnnotationDefault",
                     "latestBuild", "classFile"), methods);
         }
@@ -80,6 +86,7 @@ public final class TestClassFile {
                     && field.descriptor().equals("(Lenyo/testing/Testing;)V"))
                 .findFirst()
                 .get();
+            t.assertEquals(Constants.ACC_PUBLIC, method.accessFlags());
             t.assertEquals(Set.of(testName, aName),
                 method.annotations()
                 .map(Annotation::descriptor)
@@ -125,6 +132,24 @@ public final class TestClassFile {
     }
 
     @Test
+    public static void testEnum(Testing t) throws IOException {
+        ClassFile cf = classFile(E.class);
+        t.assertEquals(Constants.ACC_FINAL
+            | Constants.ACC_SUPER
+            | Constants.ACC_ENUM,
+            cf.accessFlags());
+    }
+
+    @Test
+    public static void testInterface(Testing t) throws IOException {
+        ClassFile cf = classFile(IOFunction.class);
+        t.assertEquals(Constants.ACC_PUBLIC
+            | Constants.ACC_ABSTRACT
+            | Constants.ACC_INTERFACE,
+            cf.accessFlags());
+    }
+
+    @Test
     @B(byteValue=100, charValue='@', doubleValue=101,
         floatValue=102, intValue=103, longValue=104, shortValue=105,
         booleanValue=false, stringValue="six'", enumValue=E.Y,
@@ -134,8 +159,41 @@ public final class TestClassFile {
         testAnnotationB(t, NamedElementValue::object);
     }
 
+    protected class C {}
+
     @Test
     public void testAllClasses(Testing t) throws IOException {
+        int classAccessFlags = Constants.ACC_PUBLIC
+            | Constants.ACC_FINAL
+            | Constants.ACC_SUPER
+            | Constants.ACC_INTERFACE
+            | Constants.ACC_ABSTRACT
+            | Constants.ACC_SYNTHETIC
+            | Constants.ACC_ANNOTATION
+            | Constants.ACC_ENUM
+            | Constants.ACC_MODULE;
+        int methodAccessFlags = Constants.ACC_PUBLIC
+            | Constants.ACC_PRIVATE
+            | Constants.ACC_PROTECTED
+            | Constants.ACC_STATIC
+            | Constants.ACC_FINAL
+            | Constants.ACC_SYNCHRONIZED
+            | Constants.ACC_BRIDGE
+            | Constants.ACC_VARARGS
+            | Constants.ACC_NATIVE
+            | Constants.ACC_ABSTRACT
+            | Constants.ACC_STRICT
+            | Constants.ACC_SYNTHETIC;
+        int fieldAccessFlags = Constants.ACC_PUBLIC
+            | Constants.ACC_PRIVATE
+            | Constants.ACC_PROTECTED
+            | Constants.ACC_STATIC
+            | Constants.ACC_FINAL
+            | Constants.ACC_VOLATILE
+            | Constants.ACC_TRANSIENT
+            | Constants.ACC_SYNTHETIC
+            | Constants.ACC_ENUM;
+
         Files.walk(latestBuild())
             .filter(path -> path.getFileName().toString().endsWith(".class"))
             .map(IOFunction.of(Files::readAllBytes))
@@ -144,6 +202,7 @@ public final class TestClassFile {
             .forEach(cf -> {
                     String name = cf.className();
                     t.assertTrue(name.length() > 0);
+                    t.assertEquals(0, cf.accessFlags() & ~classAccessFlags);
                     try {
                         t.assertTrue(cf.utf8Strings().count() > 0);
                         t.assertTrue(cf.attributes().count() > 0);
@@ -151,9 +210,17 @@ public final class TestClassFile {
                         t.assertTrue(cf.fields().count() >= 0);
                         t.assertTrue(cf.annotations().count() >= 0);
                         cf.methods().forEach(
-                            method -> t.assertTrue(method.name().length() > 0));
+                            method -> {
+                                t.assertEquals(0,
+                                    method.accessFlags() & ~methodAccessFlags);
+                                t.assertTrue(method.name().length() > 0);
+                            });
                         cf.fields().forEach(
-                            field -> t.assertTrue(field.name().length() > 0));
+                            field -> {
+                                t.assertEquals(0,
+                                    field.accessFlags() & ~fieldAccessFlags);
+                                t.assertTrue(field.name().length() > 0);
+                            });
                         Stream.of(
                             cf.methods().flatMap(Method::annotations),
                             cf.fields().flatMap(Field::annotations),
@@ -280,6 +347,10 @@ public final class TestClassFile {
         Function<AnnotationDefaultAttribute, Object> object)
         throws IOException {
         ClassFile cf = classFile(B.class);
+        t.assertEquals(Constants.ACC_INTERFACE
+            | Constants.ACC_ABSTRACT
+            | Constants.ACC_ANNOTATION,
+            cf.accessFlags());
         Map<String, Object> map = cf.methods()
             .collect(Collectors.toMap(Method::name,
                     method -> method.attributes()
