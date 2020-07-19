@@ -128,7 +128,7 @@ public final class TempFile implements AutoCloseable {
             try {
                 Files.delete(path);
             } catch (Throwable e1){
-                e.addSuppressed(e);
+                e.addSuppressed(e1);
             }
             throw e;
         }
