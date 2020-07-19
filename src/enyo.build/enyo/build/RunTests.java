@@ -58,7 +58,7 @@ public final class RunTests {
         {
             long errors0 = errors.get();
             if (errors0 == 0)
-                System.err.println("error: testing completed successfully");
+                System.err.println("info: testing completed successfully");
             else if (errors0 == 1)
                 System.err.println("error: testing completed with 1 error");
             else
