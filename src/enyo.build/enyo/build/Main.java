@@ -38,10 +38,14 @@ public final class Main {
         DirectoryLayout dirs = new DirectoryLayout(Path.of(""));
         clearGenerations(dirs);
 
+        RebootstrapCheck rebootstrapCheck = new RebootstrapCheck(dirs);
+
         for (int generation = 0; ; ++generation) {
             Map<Path, FileIdentity> currentSources = sourceFileIdentities(dirs);
             List<String> modules = listModules(dirs);
             if (build(dirs, modules, generation)) {
+                if (!rebootstrapCheck.unchanged(dirs, generation))
+                    System.err.println("WARNING: New bootstrap required");
                 document(dirs, modules, generation);
                 invokeRunTests(dirs, modules, generation);
             }

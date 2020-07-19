@@ -1,0 +1,87 @@
+package enyo.build;
+
+import enyo.crypto.FileDigest;
+import enyo.crypto.DigestAlgorithm;
+import enyo.io.function.IOFunction;
+import enyo.io.function.IOPredicate;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.security.MessageDigest;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+/**
+ * Detecting changes to boostrap classes.
+ *
+ * If the class files in the modules which are compiled as part of the
+ * bootstrap change, a new bootstrap cycle needs to be started.
+ */
+final class RebootstrapCheck {
+    /**
+     * Computes digests of the bootstrap classes for later comparison.
+     */
+    RebootstrapCheck(DirectoryLayout dirs) throws IOException {
+        bootstrapClasses = classFiles(dirs.bootstrapBuild())
+            .collect(Collectors.toUnmodifiableMap(
+                    path -> dirs.bootstrapBuild().relativize(path),
+                    IOFunction.of(RebootstrapCheck::fileDigest)));
+        bootstrapModules = bootstrapClasses.keySet().stream()
+            .map(path -> path.getName(0))
+            .collect(Collectors.toUnmodifiableSet());
+    }
+
+    /**
+     * Checks if no new bootstrap is needed.
+     * @return true if there have not been any bootstrap class file changes,
+     *   false if changes are detected
+     */
+    boolean unchanged(DirectoryLayout dirs, int generation) {
+        Path root = dirs.buildGeneration(generation);
+        // Restrict the class list to classes in the bootstrap modules.
+        List<Path> currentClasses = bootstrapModules.stream()
+            .flatMap(IOFunction.of(module ->
+                    classFiles(root.resolve(module))))
+            .collect(Collectors.toList());
+        if (currentClasses.size() != bootstrapClasses.size())
+            // Classes have been deleted or added.
+            return false;
+        return currentClasses.stream()
+            .allMatch(IOPredicate.of(path -> {
+                        Path relpath = root.relativize(path);
+                        FileDigest expected = bootstrapClasses.get(relpath);
+                        return expected != null
+                            && fileDigest(path).equals(expected);
+                    }));
+    }
+
+    private static Stream<Path> classFiles(Path root) throws IOException {
+        return Files.walk(root)
+            .filter(path -> path.getFileName().toString().endsWith(".class"));
+    }
+
+    private static FileDigest fileDigest(Path path) throws IOException {
+        DigestAlgorithm algorithm = DigestAlgorithm.SHA256;
+        MessageDigest md = algorithm.newDigest();
+        long length = 0;
+        try (InputStream in = Files.newInputStream(path)) {
+            byte[] buffer = new byte[4096];
+            while (true) {
+                int ret = in.read(buffer);
+                if (ret <= 0)
+                    break;
+                md.update(buffer, 0, ret);
+                length += ret;
+            }
+        }
+        return FileDigest.of(algorithm, length, md.digest());
+    }
+
+    private final Map<Path, FileDigest> bootstrapClasses;
+    private final Set<Path> bootstrapModules;
+}
