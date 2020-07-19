@@ -55,6 +55,15 @@ public interface Testing {
     public void assertFalse(boolean flag);
 
     /**
+     * Checks that a flag is false.
+     * An exception is thrown if it is true.
+     * This function acts as {@linkplain #fullBarrier() full test barrier}.
+     * @param message an information string to include in the error message
+     * @param flag the flag to check
+     */
+    public void assertFalse(String message, boolean flag);
+
+    /**
      * Checks that the two objects are equal.
      * An exception is thrown if they are not equal according to
      * {@link java.util.Objects#equals(Object,Object)}.

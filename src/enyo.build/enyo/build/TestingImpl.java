@@ -66,6 +66,15 @@ final class TestingImpl implements Testing {
     }
 
     @Override
+    public void assertFalse(String message, boolean flag) {
+        if (flag) {
+            failed = true;
+            throw new TestFailure("Not false: " + message);
+        }
+        fullBarrier();
+    }
+
+    @Override
     public void assertEquals(Object left, Object right) {
         if (!Objects.equals(left, right)) {
             failed = true;
