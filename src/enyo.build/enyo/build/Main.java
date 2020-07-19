@@ -184,13 +184,21 @@ public final class Main {
      */
     static Map<Path, FileIdentity> sourceFileIdentities(DirectoryLayout dirs)
         throws IOException {
-        return Files.walk(dirs.sources())
-            .filter(path -> {
-                    String fileName = path.getFileName().toString();
-                    return fileName.endsWith(".java")
-                        && !fileName.startsWith(".#");
-                })
-            .collect(FileIdentity.mapToFileIdentity());
+        while (true)
+            try {
+                return Files.walk(dirs.sources())
+                    .filter(path -> {
+                            String fileName = path.getFileName().toString();
+                            return fileName.endsWith(".java")
+                                && !fileName.startsWith(".#");
+                        })
+                    .collect(FileIdentity.mapToFileIdentity());
+            } catch (NoSuchFileException e) {
+                if (Files.isDirectory(dirs.sources()))
+                    continue;
+                else
+                    throw e;
+            }
     }
 
     /**
