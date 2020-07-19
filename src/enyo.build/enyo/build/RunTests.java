@@ -35,6 +35,8 @@ public final class RunTests {
         int generation, ModuleLayer testLayer) throws IOException {
         DirectoryLayout dirs = new DirectoryLayout(root);
 
+        System.err.println("info: testing started");
+
         AtomicLong errors = new AtomicLong();
         modules.stream()
             .filter(IOPredicate.of(
