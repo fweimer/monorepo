@@ -12,7 +12,7 @@ import java.util.function.Consumer;
 
 final class TestingImpl implements Testing {
     private final TestMethodLocator test;
-    private volatile boolean failed;
+    volatile boolean failed;
 
     TestingImpl(TestMethodLocator test) {
         this.test = Objects.requireNonNull(test);

@@ -117,12 +117,13 @@ public final class RunTests {
                 obj = null;
 
             if (test.hasTestingArgument()) {
-                Testing t = new TestingImpl(test);
+                TestingImpl t = new TestingImpl(test);
                 testMethod.invoke(obj, t);
+                return !t.failed;
             } else {
                 testMethod.invoke(obj);
+                return true;
             }
-            return true;
         } catch (InstantiationException | InvocationTargetException
             | IllegalAccessException e) {
             System.err.format("FAIL: %s%n", test);
