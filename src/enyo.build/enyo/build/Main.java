@@ -2,22 +2,16 @@ package enyo.build;
 
 import enyo.io.function.IOConsumer;
 import enyo.io.function.IOPredicate;
-import enyo.io.FileIdentity;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UncheckedIOException;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
-import java.nio.file.LinkOption;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
-import java.nio.file.StandardWatchEventKinds;
-import java.nio.file.WatchService;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import javax.tools.DocumentationTool;
 import javax.tools.JavaCompiler;
@@ -60,23 +54,26 @@ public final class Main {
 
         RebootstrapCheck rebootstrapCheck = new RebootstrapCheck(dirs);
 
-        for (int generation = 0; ; ++generation) {
-            Map<Path, FileIdentity> currentSources = sourceFileIdentities(dirs);
-            List<String> modules = listModules(dirs);
-            if (build(dirs, modules, generation)) {
-                if (!rebootstrapCheck.unchanged(dirs, generation)) {
-                    if (forBootstrap) {
-                        System.err.println("info: performing re-bootstrap");
-                        clearGenerations(dirs);
-                        return;
-                    } else
-                        System.err.println("warning: New bootstrap required");
+        AtomicInteger generations = new AtomicInteger();
+        SourceFileChanges.loop(dirs, () -> {
+                int generation = generations.getAndIncrement();
+                List<String> modules = listModules(dirs);
+
+                if (build(dirs, modules, generation)) {
+                    if (!rebootstrapCheck.unchanged(dirs, generation)) {
+                        if (forBootstrap) {
+                            System.err.println("info: performing re-bootstrap");
+                            clearGenerations(dirs);
+                            return false;
+                        } else
+                            System.err.println(
+                                "warning: New bootstrap required");
+                    }
+                    document(dirs, modules, generation);
+                    invokeRunTests(dirs, modules, generation);
                 }
-                document(dirs, modules, generation);
-                invokeRunTests(dirs, modules, generation);
-            }
-            waitForSourceChange(dirs, currentSources);
-        }
+                return true;
+            });
     }
 
     static List<String> listModules(DirectoryLayout dirs) throws IOException {
@@ -177,86 +174,6 @@ public final class Main {
         } catch (Throwable e) {
             e.printStackTrace(System.err);
             System.exit(1);
-        }
-    }
-
-    /**
-     * Returns file identity information for all source files.
-     */
-    static Map<Path, FileIdentity> sourceFileIdentities(DirectoryLayout dirs)
-        throws IOException {
-        while (true)
-            try {
-                try {
-                    return Files.walk(dirs.sources())
-                        .filter(path -> {
-                                String fileName = path.getFileName().toString();
-                                return fileName.endsWith(".java")
-                                    && !fileName.startsWith(".#");
-                            })
-                        .collect(FileIdentity.mapToFileIdentity());
-                } catch (UncheckedIOException e) {
-                    throw e.getCause();
-                }
-            } catch (NoSuchFileException e) {
-                if (Files.isDirectory(dirs.sources()))
-                    continue;
-                else
-                    throw e;
-            }
-    }
-
-    /**
-     * Register all source subdirectories with the watcher.
-     */
-    static void registerSourceDirectories(DirectoryLayout dirs,
-        WatchService watcher) throws IOException {
-        try {
-            Files.walk(dirs.sources())
-                .filter(path -> Files.isDirectory(
-                        path, LinkOption.NOFOLLOW_LINKS))
-                .forEach(IOConsumer.of(path -> path.register(watcher,
-                            StandardWatchEventKinds.ENTRY_CREATE,
-                            StandardWatchEventKinds.ENTRY_DELETE,
-                            StandardWatchEventKinds.ENTRY_MODIFY)));
-        } catch (UncheckedIOException e) {
-            throw e.getCause();
-        }
-    }
-
-    /**
-     * Blocks until source changes are detected.
-     */
-    static void waitForSourceChange(DirectoryLayout dirs,
-        Map<Path, FileIdentity> oldSources)
-        throws IOException, InterruptedException {
-        while (true) {
-            WatchService watcher =
-                dirs.sources().getFileSystem().newWatchService();
-            try {
-                try {
-                    registerSourceDirectories(dirs, watcher);
-                } catch (NoSuchFileException e) {
-                    // Make this more robust in the face of unexpected
-                    // iteration results.  As long as the top-level
-                    // directory exists, a traversal will eventually
-                    // succeed.
-                    if (Files.isDirectory(dirs.sources()))
-                        continue;
-                    else
-                        throw e;
-                }
-
-                // This check must come after registering the
-                // watchers, otherwise changes can be missed.
-                Map<Path, FileIdentity> currentSources =
-                    sourceFileIdentities(dirs);
-                if (!currentSources.equals(oldSources))
-                    break;
-                watcher.take();
-            } finally {
-                watcher.close();
-            }
         }
     }
 
