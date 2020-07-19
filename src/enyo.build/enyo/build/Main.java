@@ -49,6 +49,11 @@ public final class Main {
 
     private static void run(boolean forBootstrap, String[] args)
         throws IOException, InterruptedException {
+        if (args.length != 0) {
+            System.err.println("error: no arguments supported");
+            System.exit(1);
+        }
+
         DirectoryLayout dirs = new DirectoryLayout(Path.of(""));
         clearGenerations(dirs);
 
