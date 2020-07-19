@@ -79,6 +79,17 @@ public interface Testing {
     public void assertArrayEquals(Object[] left, Object[] right);
 
     /**
+     * Checks that the two byte arrays are equal.
+     * An exception is thrown if they are not equal according to
+     * {@link java.util.Arrays#equals(byte[],byte[])}, or if
+     * the array arguments are null.
+     * This function acts as {@linkplain #fullBarrier() full test barrier}.
+     * @param left the first array
+     * @param right the second array
+     */
+    public void assertByteArrayEquals(byte[] left, byte[] right);
+
+    /**
      * Checks that the two objects are the same.
      * An exception is thrown if they are not the same, or if
      * they are null.
