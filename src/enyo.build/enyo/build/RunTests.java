@@ -51,7 +51,6 @@ public final class RunTests {
                             method.error);
                     else {
                         TestMethodLocator test = method.locator();
-                        System.out.println(test);
                         if (!runTest(testLayer, test))
                             errors.incrementAndGet();
                     }
