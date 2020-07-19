@@ -9,6 +9,8 @@ import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchService;
@@ -164,7 +166,7 @@ public final class Main {
     static void registerSourceDirectories(DirectoryLayout dirs,
         WatchService watcher) throws IOException {
         Files.walk(dirs.sources())
-            .filter(Files::isDirectory)
+            .filter(path -> Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS))
             .forEach(IOConsumer.of(path -> path.register(watcher,
                         StandardWatchEventKinds.ENTRY_CREATE,
                         StandardWatchEventKinds.ENTRY_DELETE,
@@ -181,7 +183,19 @@ public final class Main {
             WatchService watcher =
                 dirs.sources().getFileSystem().newWatchService();
             try {
-                registerSourceDirectories(dirs, watcher);
+                try {
+                    registerSourceDirectories(dirs, watcher);
+                } catch (NoSuchFileException e) {
+                    // Make this more robust in the face of unexpected
+                    // iteration results.  As long as the top-level
+                    // directory exists, a traversal will eventually
+                    // succeed.
+                    if (Files.isDirectory(dirs.sources()))
+                        continue;
+                    else
+                        throw e;
+                }
+
                 // This check must come after registering the
                 // watchers, otherwise changes can be missed.
                 Map<Path, FileIdentity> currentSources =
