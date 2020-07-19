@@ -25,6 +25,11 @@ final class TestingImpl implements Testing {
     }
 
     @Override
+    public void unsupported(String message) {
+        System.err.format("%s: warning: unsupported test: %s%n", test, message);
+    }
+
+    @Override
     public void assertFail(String message) {
         failed = true;
         if (message != null)

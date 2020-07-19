@@ -15,6 +15,13 @@ public interface Testing {
     public void fullBarrier();
 
     /**
+     * Logs a test as unsupported.  Does not act as a barrier, and
+     * does not count as a test failure.
+     * @param message a brief explanation of what is unsupported about this test
+     */
+    public void unsupported(String message);
+
+    /**
      * Reports a test failure using an exception.
      * This function never returns normally.
      * It acts as {@linkplain #fullBarrier() full test barrier}.
