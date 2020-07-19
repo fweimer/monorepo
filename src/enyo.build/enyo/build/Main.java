@@ -6,6 +6,7 @@ import enyo.io.FileIdentity;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
@@ -186,13 +187,17 @@ public final class Main {
         throws IOException {
         while (true)
             try {
-                return Files.walk(dirs.sources())
-                    .filter(path -> {
-                            String fileName = path.getFileName().toString();
-                            return fileName.endsWith(".java")
-                                && !fileName.startsWith(".#");
-                        })
-                    .collect(FileIdentity.mapToFileIdentity());
+                try {
+                    return Files.walk(dirs.sources())
+                        .filter(path -> {
+                                String fileName = path.getFileName().toString();
+                                return fileName.endsWith(".java")
+                                    && !fileName.startsWith(".#");
+                            })
+                        .collect(FileIdentity.mapToFileIdentity());
+                } catch (UncheckedIOException e) {
+                    throw e.getCause();
+                }
             } catch (NoSuchFileException e) {
                 if (Files.isDirectory(dirs.sources()))
                     continue;
@@ -206,12 +211,17 @@ public final class Main {
      */
     static void registerSourceDirectories(DirectoryLayout dirs,
         WatchService watcher) throws IOException {
-        Files.walk(dirs.sources())
-            .filter(path -> Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS))
-            .forEach(IOConsumer.of(path -> path.register(watcher,
-                        StandardWatchEventKinds.ENTRY_CREATE,
-                        StandardWatchEventKinds.ENTRY_DELETE,
-                        StandardWatchEventKinds.ENTRY_MODIFY)));
+        try {
+            Files.walk(dirs.sources())
+                .filter(path -> Files.isDirectory(
+                        path, LinkOption.NOFOLLOW_LINKS))
+                .forEach(IOConsumer.of(path -> path.register(watcher,
+                            StandardWatchEventKinds.ENTRY_CREATE,
+                            StandardWatchEventKinds.ENTRY_DELETE,
+                            StandardWatchEventKinds.ENTRY_MODIFY)));
+        } catch (UncheckedIOException e) {
+            throw e.getCause();
+        }
     }
 
     /**
