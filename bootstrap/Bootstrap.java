@@ -14,10 +14,13 @@ import javax.tools.ToolProvider;
 public final class Bootstrap {
     public static void main(String[] args) throws Exception {
         Path targetPath = Path.of("build/bootstrap");
+        int status = bootstrapBuild(targetPath);
+        if (status != 0)
+            System.exit(status);
         while (true) {
-            bootstrapBuild(targetPath);
             if (!invokeBuild(targetPath, args))
                 break;
+            tryToRebootstrap(targetPath);
         }
     }
 
@@ -59,10 +62,11 @@ public final class Bootstrap {
     /**
      * Invokes the Java compiler to build the boostrap modules.
      * All files under {@code targetPath} are deleted first.
+     * @return the suggested exited status, or 0 for a successful completion
      * @param targetPath the directory where the built modules are written
      * @throws IOException if an I/O error occurs
      */
-    private static void bootstrapBuild(Path targetPath) throws IOException {
+    private static int bootstrapBuild(Path targetPath) throws IOException {
         removeTree(targetPath);
         Files.createDirectories(targetPath);
 
@@ -70,7 +74,7 @@ public final class Bootstrap {
             .collect(Collectors.joining(","));
 
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-        int status = compiler.run(InputStream.nullInputStream(),
+        return compiler.run(InputStream.nullInputStream(),
             System.out, System.err,
             new String[] {
                 "-g",
@@ -78,8 +82,27 @@ public final class Bootstrap {
                 "--module-source-path", "src",
                 "--module", modulesString,
             });
-        if (status != 0)
-            System.exit(status);
+    }
+
+    private static void tryToRebootstrap(Path targetPath) throws IOException {
+        // Build to a temporary path, so that we do not overwrite the existing
+        // known-good build with something that is broken.
+        Path tempBootstrapTarget = targetPath.resolveSibling(
+            targetPath.getFileName() + "-1");
+        removeTree(tempBootstrapTarget);
+        int status = bootstrapBuild(tempBootstrapTarget);
+        if (status != 0) {
+            System.err.println(
+                "error: re-bootstrap failed, using previous build");
+            // The caller will re-use the existing (non-rebuilt)
+            // bootstrap directory.  enyo.build.Main will see the
+            // build failure, and wait for it to be fixed.
+            return;
+        }
+
+        // Replace the old bootstrap directory with the new one.
+        removeTree(targetPath);
+        Files.move(tempBootstrapTarget, targetPath);
     }
 
     /**
