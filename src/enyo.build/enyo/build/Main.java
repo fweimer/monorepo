@@ -144,6 +144,11 @@ public final class Main {
                 "--module", modulesString,
             });
         if (status == 0) {
+            Path latestSymlink = dirs.build().resolve("latest-modules");
+            Files.deleteIfExists(latestSymlink);
+            Files.createSymbolicLink(latestSymlink,
+                dirs.build().relativize(targetPath));
+
             long nanoEnd = System.nanoTime();
             System.err.format(
                 "info: build completed successfully (%.3f s)%n",
