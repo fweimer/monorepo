@@ -123,6 +123,8 @@ public final class Main {
      */
     static boolean build(DirectoryLayout dirs, List<String> modules,
         int generation) throws IOException {
+        long nanoStart = System.nanoTime();
+
         Path targetPath = dirs.buildGeneration(generation);
         removeTree(targetPath);
         Files.createDirectories(targetPath);
@@ -141,11 +143,20 @@ public final class Main {
                 "--module-source-path", "src",
                 "--module", modulesString,
             });
-        return status == 0;
+        if (status == 0) {
+            long nanoEnd = System.nanoTime();
+            System.err.format(
+                "info: build completed successfully (%.3f s)%n",
+                (nanoEnd - nanoStart) * 1e-9);
+            return true;
+        } else
+            return false;
     }
 
     static void document(DirectoryLayout dirs, List<String> modules,
         int generation) throws IOException {
+        long nanoStart = System.nanoTime();
+
         Path targetPath = dirs.docGeneration(generation);
         removeTree(targetPath);
         Files.createDirectories(targetPath);
@@ -170,9 +181,15 @@ public final class Main {
                 "--module-source-path", "src",
                 "--module", modulesString,
             });
-        if (status == 0)
+        if (status == 0) {
             Files.createSymbolicLink(latestSymlink,
                 dirs.build().relativize(targetPath));
+
+            long nanoEnd = System.nanoTime();
+            System.err.format(
+                "info: documentation completed successfully (%.3f s)%n",
+                (nanoEnd - nanoStart) * 1e-9);
+        }
     }
 
     static void invokeRunTests(DirectoryLayout dirs, List<String> modules,
