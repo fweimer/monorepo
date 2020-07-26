@@ -150,6 +150,11 @@ public final class Main {
         removeTree(targetPath);
         Files.createDirectories(targetPath);
 
+        // Do not preserve the last successful documentation build
+        // because it may document the wrong thing.
+        Path latestSymlink = dirs.build().resolve("latest-doc");
+        Files.deleteIfExists(latestSymlink);
+
         String modulesString = modules.stream()
             .filter(IOPredicate.of(
                     mod -> !FindTests.isTestModule(dirs, generation, mod)))
@@ -165,6 +170,9 @@ public final class Main {
                 "--module-source-path", "src",
                 "--module", modulesString,
             });
+        if (status == 0)
+            Files.createSymbolicLink(latestSymlink,
+                dirs.build().relativize(targetPath));
     }
 
     static void invokeRunTests(DirectoryLayout dirs, List<String> modules,
