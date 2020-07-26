@@ -1,6 +1,7 @@
 package enyo.build;
 
 import enyo.io.function.IOFunction;
+import enyo.io.function.IOPredicate;
 import enyo.lang.classfile.ClassFile;
 import enyo.util.StringFilter;
 
@@ -8,6 +9,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.ByteBuffer;
+import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 final class FindTests {
@@ -20,6 +23,14 @@ final class FindTests {
         ClassFile clazz = ClassFile.of(ByteBuffer.wrap(blob));
         return clazz.annotations()
             .anyMatch(ann -> ann.descriptor().equals(Descriptors.TestModule));
+    }
+
+    static List<String> onlyTestModules(DirectoryLayout dirs, int generation,
+        List<String> modules) {
+        return modules.stream()
+            .filter(IOPredicate.of(
+                    mod -> FindTests.isTestModule(dirs, generation, mod)))
+            .collect(Collectors.toUnmodifiableList());
     }
 
     static Stream<TestMethodDetails> tests(DirectoryLayout dirs, int generation,

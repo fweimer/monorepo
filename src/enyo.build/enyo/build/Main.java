@@ -76,7 +76,10 @@ public final class Main {
                                 "warning: New bootstrap required");
                     }
                     document(dirs, modules, generation);
-                    invokeRunTests(dirs, modules, generation);
+                    if (TEST_IN_SEPARATE_VM)
+                        RunTests.testInSeparateVM(dirs, modules, generation);
+                    else
+                        invokeRunTests(dirs, modules, generation);
                     return SourceFileChanges.Result.CONTINUE;
                 } else
                     return SourceFileChanges.Result.CONTINUE_COMPILE_FAILURE;
@@ -246,6 +249,8 @@ public final class Main {
 
     private static final String PUBLIC_API =
         "https://docs.oracle.com/en/java/javase/14/docs/api/";
+
+    private static final boolean TEST_IN_SEPARATE_VM = true;
 
     private Main() { } // No instances.
 }
