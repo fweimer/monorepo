@@ -57,6 +57,24 @@ final class TestingImpl implements Testing {
     }
 
     @Override
+    public void assertNull(Object obj) {
+        if (obj != null) {
+            failed = true;
+            throw new TestFailure("Not null");
+        }
+        fullBarrier();
+    }
+
+    @Override
+    public void assertNull(String message, Object obj) {
+        if (obj != null) {
+            failed = true;
+            throw new TestFailure("Not null: "  + message);
+        }
+        fullBarrier();
+    }
+
+    @Override
     public void assertFalse(boolean flag) {
         if (flag) {
             failed = true;

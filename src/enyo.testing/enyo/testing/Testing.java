@@ -65,6 +65,23 @@ public interface Testing {
     public void assertFalse(String message, boolean flag);
 
     /**
+     * Checks that the reference is null.
+     * An exception is thrown if it is not.
+     * This function acts as a {@linkplain #fullBarrier() full test barrier}.
+     * @param obj the reference to check
+     */
+    public void assertNull(Object obj);
+
+    /**
+     * Checks that the reference is null.
+     * An exception is thrown if it is not.
+     * This function acts as a {@linkplain #fullBarrier() full test barrier}.
+     * @param message an information string to include in the error message
+     * @param obj the reference to check
+     */
+    public void assertNull(String message, Object obj);
+
+    /**
      * Checks that the two objects are equal.
      * An exception is thrown if they are not equal according to
      * {@link java.util.Objects#equals(Object,Object)}.
