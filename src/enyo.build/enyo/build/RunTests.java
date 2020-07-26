@@ -170,9 +170,14 @@ public final class RunTests {
     static ModuleLayer testLayer(DirectoryLayout dirs, int generation,
         Collection<String> testModules) {
         ModuleLayer bootLayer = ModuleLayer.boot();
+
+        // Order is important here: Since the modules are all on the
+        // same module path, using a "before" module finder would load
+        // a second instance of the shared modules and classes.
         Configuration conf = bootLayer.configuration().resolve(
-            ModuleFinder.of(dirs.buildGeneration(generation)),
-            ModuleFinder.of(), testModules);
+            ModuleFinder.of(),
+            ModuleFinder.of(dirs.buildGeneration(generation)), testModules);
+
         return bootLayer.defineModulesWithOneLoader(
             conf, ClassLoader.getSystemClassLoader());
     }
