@@ -6,6 +6,7 @@ import enyo.io.function.IOPredicate;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -200,6 +201,11 @@ public final class Main {
     static void invokeRunTests(DirectoryLayout dirs, List<String> modules,
         int generation) {
         try {
+            // Load the RunTests class using the layer that is also
+            // used for testing.  Our RunTests class uses enyo.testing
+            // and other packages from the bootstrap path, so it is
+            // not compatible with testing requirements.  Be careful
+            // not to pass any types not in the platform modules here.
             ModuleLayer testLayer =
                 RunTests.testLayer(dirs, generation, modules);
             Class<?> runTestsClass = RunTests.
@@ -207,10 +213,20 @@ public final class Main {
             Method runTests = runTestsClass.getMethod("runTests",
                 Path.class, List.class, Integer.TYPE, ModuleLayer.class);
             runTests.invoke(null, dirs.root(), modules, generation, testLayer);
+            return;
+        } catch (InvocationTargetException e) {
+            Throwable e1 = e;
+            if (e1.getCause() != null)
+                e1 = e.getCause();
+            e1.printStackTrace(System.err);
+        } catch (ClassNotFoundException | NoSuchMethodException
+            | IllegalAccessException | RuntimeException e) {
+            e.printStackTrace(System.err);
         } catch (Throwable e) {
             e.printStackTrace(System.err);
             System.exit(1);
         }
+        System.err.println("error: unhandled exception during tests");
     }
 
     /**
