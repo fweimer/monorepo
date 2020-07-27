@@ -42,7 +42,8 @@ final class FindTests {
         String module) throws IOException {
         Path modulePath = dirs.buildGeneration().resolve(module);
         return Files.walk(modulePath)
-            .filter(path -> path.getFileName().toString().endsWith(".class"));
+            .filter(path -> path.getFileName().toString().endsWith(".class"))
+            .filter(Files::isRegularFile);
     }
 
     static boolean potentialTestClass(ClassFile clazz) {
