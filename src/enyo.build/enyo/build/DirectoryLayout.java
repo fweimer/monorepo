@@ -6,14 +6,23 @@ import java.nio.file.Path;
  * Computes paths in the build tree.
  */
 final class DirectoryLayout {
-    DirectoryLayout(Path root) {
+    DirectoryLayout(Path root, int generation) {
         this.root = root;
+        this.generation = generation;
         this.sources = root.resolve("src");
         this.build = root.resolve("build");
     }
 
+    DirectoryLayout nextGeneration() {
+        return new DirectoryLayout(root, generation + 1);
+    }
+
     Path root() {
         return root;
+    }
+
+    int generation() {
+        return generation;
     }
 
     Path sources() {
@@ -24,11 +33,11 @@ final class DirectoryLayout {
         return build;
     }
 
-    Path buildGeneration(int generation) {
+    Path buildGeneration() {
         return build().resolve("g" + generation);
     }
 
-    Path docGeneration(int generation) {
+    Path docGeneration() {
         return build().resolve("d" + generation);
     }
 
@@ -41,6 +50,7 @@ final class DirectoryLayout {
     }
 
     private final Path root;
+    private final int generation;
     private final Path sources;
     private final Path build;
 }

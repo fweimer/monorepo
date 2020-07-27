@@ -95,23 +95,22 @@ public final class RunTests {
      */
     public static void runTests(Path root, List<String> modules,
         int generation, ModuleLayer testLayer) throws IOException {
-        DirectoryLayout dirs = new DirectoryLayout(root);
+        DirectoryLayout dirs = new DirectoryLayout(root, generation);
         List<String> testModules =
-            FindTests.onlyTestModules(dirs, generation, modules);
+            FindTests.onlyTestModules(dirs, modules);
 
-        adjustSystemProperties(dirs, generation,
-            () -> runTests0(dirs, testModules, generation, testLayer));
+        adjustSystemProperties(dirs,
+            () -> runTests0(dirs, testModules, testLayer));
     }
 
     private static void runTests0(DirectoryLayout dirs, List<String> modules,
-        int generation, ModuleLayer testLayer) {
+        ModuleLayer testLayer) {
         long nanoStart = System.nanoTime();
         System.err.println("info: testing started");
 
         AtomicLong errors = new AtomicLong();
         modules.stream()
-            .flatMap(IOFunction.of(
-                    mod -> FindTests.tests(dirs, generation, mod)))
+            .flatMap(IOFunction.of(mod -> FindTests.tests(dirs, mod)))
             .filter(method -> method.hasTestAnnotation)
             .forEach(method -> {
                     if (method.error != null)
@@ -151,22 +150,21 @@ public final class RunTests {
     /**
      * Invoked from enyo.build.Main to perform tests in a separate VM.
      */
-    static void testInSeparateVM(DirectoryLayout dirs, List<String> modules,
-        int generation) {
+    static void testInSeparateVM(DirectoryLayout dirs, List<String> modules) {
         try {
             List<String> testModules =
-                FindTests.onlyTestModules(dirs, generation, modules);
+                FindTests.onlyTestModules(dirs, modules);
 
             ArrayList<String> args = new ArrayList<>();
             args.add(RelaunchVM.defaultLauncher());
             args.add("--module-path");
-            args.add(dirs.buildGeneration(generation).toString());
+            args.add(dirs.buildGeneration().toString());
 
             args.addAll(RelaunchVM.mainClassArguments(RunTests.class));
 
             args.add(MODULAR_ARGUMENT);
             args.add(dirs.root().toString());
-            args.add(Integer.toString(generation));
+            args.add(Integer.toString(dirs.generation()));
             args.addAll(testModules);
 
             ProcessBuilder pb = new ProcessBuilder(args);
@@ -193,9 +191,9 @@ public final class RunTests {
         List<String> modules =
             List.of(Arrays.copyOfRange(args, 2, args.length));
 
-        DirectoryLayout dirs = new DirectoryLayout(root);
-        ModuleLayer testLayer = testLayer(dirs, generation, modules);
-        runTests0(dirs, modules, generation, testLayer);
+        DirectoryLayout dirs = new DirectoryLayout(root, generation);
+        ModuleLayer testLayer = testLayer(dirs, modules);
+        runTests0(dirs, modules, testLayer);
     }
 
     /**
@@ -209,12 +207,12 @@ public final class RunTests {
      * Some tests depend on system properties to recognize the
      * execution environment due to the module loader changes.
      */
-    static void adjustSystemProperties(DirectoryLayout dirs, int generation,
+    static void adjustSystemProperties(DirectoryLayout dirs,
         Callback callback) {
         String modulePath = RelaunchVM.class.getName() + ".modulePath";
         String oldModulePathValue = System.getProperty(modulePath);
         System.setProperty(
-            modulePath, dirs.buildGeneration(generation).toString());
+            modulePath, dirs.buildGeneration().toString());
         try {
             callback.run();
         } finally {
@@ -232,7 +230,7 @@ public final class RunTests {
             System.exit(1);
     }
 
-    static ModuleLayer testLayer(DirectoryLayout dirs, int generation,
+    static ModuleLayer testLayer(DirectoryLayout dirs,
         Collection<String> testModules) {
         ModuleLayer bootLayer = ModuleLayer.boot();
 
@@ -241,7 +239,7 @@ public final class RunTests {
         // a second instance of the shared modules and classes.
         Configuration conf = bootLayer.configuration().resolve(
             ModuleFinder.of(),
-            ModuleFinder.of(dirs.buildGeneration(generation)), testModules);
+            ModuleFinder.of(dirs.buildGeneration()), testModules);
 
         return bootLayer.defineModulesWithOneLoader(
             conf, ClassLoader.getSystemClassLoader());

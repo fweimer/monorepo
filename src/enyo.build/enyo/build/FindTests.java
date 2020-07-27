@@ -14,9 +14,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 final class FindTests {
-    static boolean isTestModule(DirectoryLayout dirs, int generation,
-        String module) throws IOException {
-        Path modulePath = dirs.buildGeneration(generation).resolve(module);
+    static boolean isTestModule(DirectoryLayout dirs, String module)
+        throws IOException {
+        Path modulePath = dirs.buildGeneration().resolve(module);
         Path moduleInfoPath = modulePath.resolve("module-info.class");
         // If this throws, the module has not been compiled correctly.
         byte[] blob = Files.readAllBytes(moduleInfoPath);
@@ -25,23 +25,22 @@ final class FindTests {
             .anyMatch(ann -> ann.descriptor().equals(Descriptors.TestModule));
     }
 
-    static List<String> onlyTestModules(DirectoryLayout dirs, int generation,
+    static List<String> onlyTestModules(DirectoryLayout dirs,
         List<String> modules) {
         return modules.stream()
-            .filter(IOPredicate.of(
-                    mod -> FindTests.isTestModule(dirs, generation, mod)))
+            .filter(IOPredicate.of(mod -> isTestModule(dirs, mod)))
             .collect(Collectors.toUnmodifiableList());
     }
 
-    static Stream<TestMethodDetails> tests(DirectoryLayout dirs, int generation,
+    static Stream<TestMethodDetails> tests(DirectoryLayout dirs,
         String module) throws IOException {
         return potentialTestClasses(
-            classFiles(dirs, generation, module), module)
+            classFiles(dirs, module), module)
             .flatMap(TestClassDetails::tests);
     }
-    static Stream<Path> classFiles(DirectoryLayout dirs, int generation,
+    static Stream<Path> classFiles(DirectoryLayout dirs,
         String module) throws IOException {
-        Path modulePath = dirs.buildGeneration(generation).resolve(module);
+        Path modulePath = dirs.buildGeneration().resolve(module);
         return Files.walk(modulePath)
             .filter(path -> path.getFileName().toString().endsWith(".class"));
     }

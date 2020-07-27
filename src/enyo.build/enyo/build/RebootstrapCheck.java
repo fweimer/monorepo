@@ -41,8 +41,8 @@ final class RebootstrapCheck {
      * @return true if there have not been any bootstrap class file changes,
      *   false if changes are detected
      */
-    boolean unchanged(DirectoryLayout dirs, int generation) {
-        Path root = dirs.buildGeneration(generation);
+    boolean unchanged(DirectoryLayout dirs) {
+        Path root = dirs.buildGeneration();
         // Restrict the class list to classes in the bootstrap modules.
         List<Path> currentClasses = bootstrapModules.stream()
             .flatMap(IOFunction.of(module ->

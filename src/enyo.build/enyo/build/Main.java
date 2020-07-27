@@ -12,7 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import javax.tools.DocumentationTool;
 import javax.tools.JavaCompiler;
@@ -55,18 +55,21 @@ public final class Main {
             System.exit(1);
         }
 
-        DirectoryLayout dirs = new DirectoryLayout(Path.of(""));
-        clearGenerations(dirs);
+        DirectoryLayout rootGeneration = new DirectoryLayout(Path.of(""), 0);
+        clearGenerations(rootGeneration);
 
-        RebootstrapCheck rebootstrapCheck = new RebootstrapCheck(dirs);
+        RebootstrapCheck rebootstrapCheck =
+            new RebootstrapCheck(rootGeneration);
 
-        AtomicInteger generations = new AtomicInteger();
-        SourceFileChanges.loop(dirs, () -> {
-                int generation = generations.getAndIncrement();
+        AtomicReference<DirectoryLayout> generations =
+            new AtomicReference<>(rootGeneration);
+        SourceFileChanges.loop(rootGeneration, () -> {
+                DirectoryLayout dirs = generations.getAndUpdate(
+                    DirectoryLayout::nextGeneration);
                 List<String> modules = listModules(dirs);
 
-                if (build(dirs, modules, generation)) {
-                    if (!rebootstrapCheck.unchanged(dirs, generation)) {
+                if (build(dirs, modules)) {
+                    if (!rebootstrapCheck.unchanged(dirs)) {
                         if (forBootstrap) {
                             System.err.println("info: performing re-bootstrap");
                             clearGenerations(dirs);
@@ -75,11 +78,11 @@ public final class Main {
                             System.err.println(
                                 "warning: New bootstrap required");
                     }
-                    document(dirs, modules, generation);
+                    document(dirs, modules);
                     if (TEST_IN_SEPARATE_VM)
-                        RunTests.testInSeparateVM(dirs, modules, generation);
+                        RunTests.testInSeparateVM(dirs, modules);
                     else
-                        invokeRunTests(dirs, modules, generation);
+                        invokeRunTests(dirs, modules);
                     return SourceFileChanges.Result.CONTINUE;
                 } else
                     return SourceFileChanges.Result.CONTINUE_COMPILE_FAILURE;
@@ -125,11 +128,11 @@ public final class Main {
      * Compiles the source tree.
      * @return true if the compilation was successful
      */
-    static boolean build(DirectoryLayout dirs, List<String> modules,
-        int generation) throws IOException {
+    static boolean build(DirectoryLayout dirs, List<String> modules)
+        throws IOException {
         long nanoStart = System.nanoTime();
 
-        Path targetPath = dirs.buildGeneration(generation);
+        Path targetPath = dirs.buildGeneration();
         removeTree(targetPath);
         Files.createDirectories(targetPath);
 
@@ -162,11 +165,11 @@ public final class Main {
             return false;
     }
 
-    static void document(DirectoryLayout dirs, List<String> modules,
-        int generation) throws IOException {
+    static void document(DirectoryLayout dirs, List<String> modules)
+        throws IOException {
         long nanoStart = System.nanoTime();
 
-        Path targetPath = dirs.docGeneration(generation);
+        Path targetPath = dirs.docGeneration();
         removeTree(targetPath);
         Files.createDirectories(targetPath);
 
@@ -176,8 +179,7 @@ public final class Main {
         Files.deleteIfExists(latestSymlink);
 
         String modulesString = modules.stream()
-            .filter(IOPredicate.of(
-                    mod -> !FindTests.isTestModule(dirs, generation, mod)))
+            .filter(IOPredicate.of(mod -> !FindTests.isTestModule(dirs, mod)))
             .collect(Collectors.joining(","));
 
         DocumentationTool doc = ToolProvider.getSystemDocumentationTool();
@@ -201,21 +203,20 @@ public final class Main {
         }
     }
 
-    static void invokeRunTests(DirectoryLayout dirs, List<String> modules,
-        int generation) {
+    static void invokeRunTests(DirectoryLayout dirs, List<String> modules) {
         try {
             // Load the RunTests class using the layer that is also
             // used for testing.  Our RunTests class uses enyo.testing
             // and other packages from the bootstrap path, so it is
             // not compatible with testing requirements.  Be careful
             // not to pass any types not in the platform modules here.
-            ModuleLayer testLayer =
-                RunTests.testLayer(dirs, generation, modules);
+            ModuleLayer testLayer = RunTests.testLayer(dirs, modules);
             Class<?> runTestsClass = RunTests.
                 findBuiltClass(testLayer, RunTests.class);
             Method runTests = runTestsClass.getMethod("runTests",
                 Path.class, List.class, Integer.TYPE, ModuleLayer.class);
-            runTests.invoke(null, dirs.root(), modules, generation, testLayer);
+            runTests.invoke(null, dirs.root(), modules, dirs.generation(),
+                testLayer);
             return;
         } catch (InvocationTargetException e) {
             Throwable e1 = e;
