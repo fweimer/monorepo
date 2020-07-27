@@ -1,16 +1,7 @@
 import enyo.testing.TestModule;
 
 @TestModule
-module enyo.tests {
-    exports enyo.crypto.tests;
-    exports enyo.debian.control.tests;
-    exports enyo.io.function.tests;
-    exports enyo.io.tests;
-    exports enyo.lang.classfile.tests;
-    exports enyo.lang.tests;
-    exports enyo.testing.tests;
-    exports enyo.util.tests;
-
+open module enyo.tests {
     requires transitive enyo.core;
     requires enyo.debian;
     requires transitive enyo.testing;
