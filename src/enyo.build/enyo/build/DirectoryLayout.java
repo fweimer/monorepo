@@ -33,6 +33,14 @@ final class DirectoryLayout {
         return build;
     }
 
+    /**
+     * The path of the directory for daemon/test VM communication.
+     * @return the {@code test-link} subdirectory of the build directory
+     */
+    Path testLink() {
+        return build().resolve("test-link");
+    }
+
     Path buildGeneration() {
         return build().resolve("g" + generation);
     }

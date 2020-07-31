@@ -150,7 +150,10 @@ public final class RunTests {
     /**
      * Invoked from enyo.build.Main to perform tests in a separate VM.
      */
-    static void testInSeparateVM(DirectoryLayout dirs, List<String> modules) {
+    static void testInSeparateVM(DirectoryLayout dirs, List<String> modules)
+        throws IOException {
+        TestLinkController.prepare(dirs, modules);
+
         try {
             List<String> testModules =
                 FindTests.onlyTestModules(dirs, modules);
@@ -185,7 +188,7 @@ public final class RunTests {
      * Invoked from RunTests#main(String[]) to set up the modular
      * testing environment.
      */
-    private static void runInModularMode(String[] args) {
+    private static void runInModularMode(String[] args) throws IOException {
         Path root = Path.of(args[0]);
         int generation = Integer.parseInt(args[1]);
         List<String> modules =
@@ -193,7 +196,14 @@ public final class RunTests {
 
         DirectoryLayout dirs = new DirectoryLayout(root, generation);
         ModuleLayer testLayer = testLayer(dirs, modules);
-        runTests0(dirs, modules, testLayer);
+
+        TestLink testLink = new TestLink(dirs);
+        TestLinkLock lock = testLink.lock();
+        try {
+            runTests0(dirs, modules, testLayer);
+        } finally {
+            lock.release();
+        }
     }
 
     /**
