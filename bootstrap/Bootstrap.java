@@ -12,7 +12,7 @@ import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 
 public final class Bootstrap {
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws Throwable {
         Path targetPath = Path.of("build/bootstrap");
         int status = bootstrapBuild(targetPath);
         if (status != 0)
@@ -124,12 +124,18 @@ public final class Bootstrap {
      * @return true if a rebootstrap has been requested
      */
     private static boolean invokeBuild(Path path, String[] args)
-        throws ClassNotFoundException, NoSuchMethodException,
-               IllegalAccessException, InvocationTargetException {
+        throws Throwable {
         Class<?> mainClass = bootstrapModuleLayer(path)
             .findLoader(BUILD_MODULE)
             .loadClass(BUILD_CLASS);
-        return (boolean) mainClass.getMethod("bootstrap", String[].class)
-            .invoke(null, (Object) args);
+        try {
+            return (boolean) mainClass.getMethod("bootstrap", String[].class)
+                .invoke(null, (Object) args);
+        } catch (InvocationTargetException e) {
+            if (e.getCause() != null)
+                throw e.getCause();
+            else
+                throw e;
+        }
     }
 }
