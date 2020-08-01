@@ -17,10 +17,10 @@ final class TestLinkConsumer {
         throws IOException {
         try (DataInputStream in = testLink.openTestsList(listName)) {
             while (true) {
-                Optional<TestMethodLocator> test = TestLink.readOneTest(in);
+                Optional<ScheduledTest> test = TestLink.readOneTest(in);
                 if (!test.isPresent())
                     break;
-                tester.accept(test.get());
+                tester.accept(test.get().locator());
             }
         }
     }

@@ -62,7 +62,7 @@ final class TestLink {
      * @see #openTestsList(String)
      * @see #readOneTest(DataInput)
      */
-    void writeTests(String listName, Stream<TestMethodLocator> tests)
+    void writeTests(String listName, Stream<ScheduledTest> tests)
         throws IOException {
         Path target = dirs.testLink().resolve(listName + ".testlist");
         try (OutputStream out0 = Files.newOutputStream(target,
@@ -71,7 +71,7 @@ final class TestLink {
             BufferedOutputStream out = new BufferedOutputStream(out0);
             DataOutputStream dout = new DataOutputStream(out)) {
             ObjectSequences.writeSequence(dout, tests,
-                TestLink::writeTestMethodLocator);
+                TestLink::writeScheduledTest);
         }
     }
 
@@ -96,10 +96,9 @@ final class TestLink {
      *   indicating that the end of the list of tests has been reached
      * @see #writeTests(String,Stream)
      */
-    static Optional<TestMethodLocator> readOneTest(DataInput in)
+    static Optional<ScheduledTest> readOneTest(DataInput in)
         throws IOException {
-        return ObjectSequences.readObject(in,
-            TestLink::readTestMethodLocator);
+        return ObjectSequences.readObject(in, TestLink::readScheduledTest);
     }
 
     private final DirectoryLayout dirs;
@@ -132,5 +131,18 @@ final class TestLink {
         boolean hasTestingArgument = in.readBoolean();
         return new TestMethodLocator(moduleName, className, methodName,
             hasTestingArgument);
+    }
+
+    private static void writeScheduledTest(DataOutput out,
+        ScheduledTest test) throws IOException {
+        out.writeInt(test.id());
+        writeTestMethodLocator(out, test.locator());
+    }
+
+    private static ScheduledTest readScheduledTest(DataInput in)
+        throws IOException {
+        int id = in.readInt();
+        TestMethodLocator locator = readTestMethodLocator(in);
+        return new ScheduledTest(id, locator);
     }
 }

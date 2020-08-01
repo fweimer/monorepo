@@ -5,6 +5,7 @@ import enyo.io.function.IOFunction;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 /**
@@ -31,7 +32,8 @@ final class TestLinkController {
     private ConcurrentLinkedQueue<String> errors =
         new ConcurrentLinkedQueue<>();
 
-    private Stream<TestMethodLocator> allTests(List<String> modules) {
+    private Stream<ScheduledTest> allTests(List<String> modules) {
+        AtomicInteger idSource = new AtomicInteger();
         return modules.stream()
             .flatMap(IOFunction.of(mod -> FindTests.tests(dirs, mod)))
             .filter(method -> method.hasTestAnnotation)
@@ -44,7 +46,9 @@ final class TestLinkController {
                                 method.error));
                         return Stream.of();
                     } else
-                        return Stream.of(method.locator());
+                        return Stream.of(new ScheduledTest(
+                                idSource.getAndIncrement(),
+                                method.locator()));
                 });
 
     }
