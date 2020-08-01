@@ -4,8 +4,10 @@ import enyo.io.function.IOFunction;
 import enyo.lang.classfile.Annotation;
 import enyo.lang.classfile.AnnotationDefaultAttribute;
 import enyo.lang.classfile.ClassFile;
+import enyo.lang.classfile.ClassFileException;
 import enyo.lang.classfile.Constants;
 import enyo.lang.classfile.Descriptor;
+import enyo.lang.classfile.ElementValue;
 import enyo.lang.classfile.EnumConstant;
 import enyo.lang.classfile.Field;
 import enyo.lang.classfile.Method;
@@ -21,6 +23,7 @@ import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -73,7 +76,9 @@ public final class TestClassFile {
             t.assertEquals(Set.of("testThisClass", "testEnum",
                     "testInterface", "testAllClasses",
                     "testAnnotationB", "testAnnotationDefault",
-                    "latestBuild", "classFile"), methods);
+                    "testElementValueAs", "latestBuild", "classFile",
+                    "findAnnotationB", "elementValueType",
+                    "elementValueTypeCheck"), methods);
         }
 
         String classFileName = Descriptor.descriptor(ClassFile.class);
@@ -248,6 +253,71 @@ public final class TestClassFile {
         testAnnotationDefault(t, attr -> attr.value().object());
     }
 
+    @Test
+    public static void testElementValueAs(Testing t) throws IOException {
+        Annotation b = findAnnotationB();
+        Map<String, ElementValue> map = b.mapOfValues();
+        for (Map.Entry<String, ElementValue> e : map.entrySet()) {
+            ElementValue ev = e.getValue();
+            switch (e.getKey()) {
+            case "byteValue":
+                t.assertEquals((byte) 100, ev.asByte());
+                t.assertEquals("byte", elementValueType(t, ev));
+                break;
+            case "charValue":
+                t.assertEquals('@', ev.asChar());
+                t.assertEquals("char", elementValueType(t, ev));
+                break;
+            case "doubleValue":
+                t.assertEquals(101.0, ev.asDouble());
+                t.assertEquals("double", elementValueType(t, ev));
+                break;
+            case "floatValue":
+                t.assertEquals(102.0f, ev.asFloat());
+                t.assertEquals("float", elementValueType(t, ev));
+                break;
+            case "intValue":
+                t.assertEquals(103, ev.asInt());
+                t.assertEquals("int", elementValueType(t, ev));
+                break;
+            case "longValue":
+                t.assertEquals(104L, ev.asLong());
+                t.assertEquals("long", elementValueType(t, ev));
+                break;
+            case "shortValue":
+                t.assertEquals((short) 105, ev.asShort());
+                t.assertEquals("short", elementValueType(t, ev));
+                break;
+            case "booleanValue":
+                t.assertEquals(false, ev.asBoolean());
+                t.assertEquals("boolean", elementValueType(t, ev));
+                break;
+            case "stringValue":
+                t.assertEquals("six'", ev.asString());
+                t.assertEquals("String", elementValueType(t, ev));
+                break;
+            case "enumValue":
+                EnumConstant ec = ev.asEnum();
+                t.assertEquals(Descriptor.descriptor(E.class), ec.type());
+                t.assertEquals("Y", ec.name());
+                t.assertEquals("enum", elementValueType(t, ev));
+                break;
+            case "classValue":
+                t.assertEquals(Descriptor.descriptor(ClassFile.class),
+                    ev.asClass());
+                t.assertEquals("class", elementValueType(t, ev));
+                break;
+            case "annotationValue":
+                Annotation a = ev.asAnnotation();
+                t.assertEquals(Descriptor.descriptor(A.class), a.descriptor());
+                t.assertEquals("annotation", elementValueType(t, ev));
+                break;
+            default:
+                t.assertFail("Unknown value: " + e.getKey());
+            }
+        }
+    }
+
     /**
      * Return the latest-generation build directory.
      */
@@ -287,8 +357,7 @@ public final class TestClassFile {
         return ClassFile.of(ByteBuffer.wrap(bytes));
     }
 
-    private void testAnnotationB(Testing t,
-        Function<NamedElementValue, Object> object) throws IOException {
+    private static Annotation findAnnotationB() throws IOException {
         ClassFile cf = classFile(TestClassFile.class);
         Method method = cf.methods()
             .filter(field -> field.name().equals("testAnnotationB")
@@ -297,11 +366,17 @@ public final class TestClassFile {
             .get();
 
         String bName = Descriptor.descriptor(B.class);
-        Annotation b = method.annotations()
+        return method.annotations()
             .filter(ann -> ann.descriptor().equals(bName))
             .findFirst()
             .get();
-        t.assertEquals("Annotation " + bName, b.toString());
+    }
+
+    private void testAnnotationB(Testing t,
+        Function<NamedElementValue, Object> object) throws IOException {
+        Annotation b = findAnnotationB();
+        t.assertEquals("Annotation " + Descriptor.descriptor(B.class),
+            b.toString());
         t.assertEquals(List.of(
                 "annotationValue=@" + Descriptor.descriptor(A.class),
                 "booleanValue=false",
@@ -385,5 +460,41 @@ public final class TestClassFile {
         t.assertArrayEquals(new Object[] { 8, 9 },
             ((Object[]) map.get("arrayType")));
         t.assertEquals(13, map.size());
+    }
+
+
+    // Determine the type of an ElementValue based on the as*() method
+    // which does not throw.
+    private static String elementValueType(Testing t, ElementValue ev) {
+        ArrayList<String> result = new ArrayList<>(1);
+        elementValueTypeCheck(result, ev, ElementValue::asAnnotation,
+            "annotation");
+        elementValueTypeCheck(result, ev, ElementValue::asBoolean, "boolean");
+        elementValueTypeCheck(result, ev, ElementValue::asByte, "byte");
+        elementValueTypeCheck(result, ev, ElementValue::asChar, "char");
+        elementValueTypeCheck(result, ev, ElementValue::asClass, "class");
+        elementValueTypeCheck(result, ev, ElementValue::asDouble, "double");
+        elementValueTypeCheck(result, ev, ElementValue::asEnum, "enum");
+        elementValueTypeCheck(result, ev, ElementValue::asFloat, "float");
+        elementValueTypeCheck(result, ev, ElementValue::asInt, "int");
+        elementValueTypeCheck(result, ev, ElementValue::asLong, "long");
+        elementValueTypeCheck(result, ev, ElementValue::asShort, "short");
+        elementValueTypeCheck(result, ev, ElementValue::asString, "String");
+        t.assertEquals(1, result.size());
+        return result.get(0);
+    }
+
+    interface ElementValueTypeChecker<T> {
+        T valueMethod(ElementValue ev);
+    }
+
+    private static void elementValueTypeCheck(ArrayList<String> result,
+        ElementValue ev, ElementValueTypeChecker<?> checker, String name) {
+        try {
+            checker.valueMethod(ev);
+            result.add(name);
+        } catch (ClassFileException e) {
+            // expected
+        }
     }
 }
