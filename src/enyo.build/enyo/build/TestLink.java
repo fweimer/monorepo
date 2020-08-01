@@ -35,6 +35,13 @@ final class TestLink {
     }
 
     /**
+     * The directory layout in which this test link resides.
+     */
+    DirectoryLayout directoryLayout() {
+        return dirs;
+    }
+
+    /**
      * Make sure that the {@code test-link} directory exists and lock it.
      */
     TestLinkLock prepareAndLock() throws IOException {
@@ -105,15 +112,24 @@ final class TestLink {
      * Parameters shared across the test-link divide.
      */
     final static class Parameters implements Serializable {
-        Parameters(List<String> testModules) {
+        Parameters(List<String> testModules, int testCount) {
             this.testModules = List.copyOf(testModules);
+            this.testCount = testCount;
         }
 
         List<String> testModules() {
             return testModules;
         }
 
+        /**
+         * The maximum {@linkplain ScheduledTest#id() test ID} plus one.
+         */
+        int testCount() {
+            return testCount;
+        }
+
         private final List<String> testModules;
+        private final int testCount;
 
         // This class is Serializable because the convenience of
         // automated serialization is not a problem, given that a test

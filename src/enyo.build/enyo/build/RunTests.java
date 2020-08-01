@@ -143,14 +143,19 @@ public final class RunTests {
                 errors0);
     }
 
-    private static void runTestsFromTestLink(TestLinkConsumer consumer,
-        ModuleLayer testLayer) throws IOException {
+    private static void runTestsFromTestLink(TestLinkConsumer consumer)
+        throws IOException {
         long nanoStart = System.nanoTime();
         System.err.println("info: testing started");
 
         AtomicLong errors = new AtomicLong();
+        ScheduledTestSet startedTests = consumer.state().startedTests();
+        ModuleLayer testLayer = consumer.state().testLayer();
         consumer.iterateTestsList("main", test -> {
-                if (!runTest(testLayer, test))
+                if (!startedTests.add(test))
+                    // The test already executed.
+                    return;
+                if (!runTest(testLayer, test.locator()))
                     errors.incrementAndGet();
             });
 
@@ -209,14 +214,11 @@ public final class RunTests {
         int generation = Integer.parseInt(args[1]);
 
         DirectoryLayout dirs = new DirectoryLayout(root, generation);
-
         TestLink testLink = new TestLink(dirs);
-        TestLink.Parameters testParameters = testLink.readParameters();
-        ModuleLayer testLayer = testLayer(dirs, testParameters.testModules());
 
         TestLinkLock lock = testLink.lock();
         try {
-            runTestsFromTestLink(new TestLinkConsumer(testLink), testLayer);
+            runTestsFromTestLink(new TestLinkConsumer(testLink));
         } finally {
             lock.release();
         }
