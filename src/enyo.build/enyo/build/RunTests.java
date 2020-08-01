@@ -183,7 +183,6 @@ public final class RunTests {
             args.add(MODULAR_ARGUMENT);
             args.add(dirs.root().toString());
             args.add(Integer.toString(dirs.generation()));
-            args.addAll(testModules);
 
             ProcessBuilder pb = new ProcessBuilder(args);
             pb.inheritIO();
@@ -204,15 +203,17 @@ public final class RunTests {
      * testing environment.
      */
     private static void runInModularMode(String[] args) throws IOException {
+        if (args.length != 2)
+            throw new IllegalArgumentException(Arrays.asList(args).toString());
         Path root = Path.of(args[0]);
         int generation = Integer.parseInt(args[1]);
-        List<String> modules =
-            List.of(Arrays.copyOfRange(args, 2, args.length));
 
         DirectoryLayout dirs = new DirectoryLayout(root, generation);
-        ModuleLayer testLayer = testLayer(dirs, modules);
 
         TestLink testLink = new TestLink(dirs);
+        TestLink.Parameters testParameters = testLink.readParameters();
+        ModuleLayer testLayer = testLayer(dirs, testParameters.testModules());
+
         TestLinkLock lock = testLink.lock();
         try {
             runTestsFromTestLink(new TestLinkConsumer(testLink), testLayer);

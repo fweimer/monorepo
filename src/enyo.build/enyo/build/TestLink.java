@@ -11,10 +11,14 @@ import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -64,11 +68,7 @@ final class TestLink {
      */
     void writeTests(String listName, Stream<ScheduledTest> tests)
         throws IOException {
-        Path target = dirs.testLink().resolve(listName + ".testlist");
-        try (OutputStream out0 = Files.newOutputStream(target,
-                StandardOpenOption.CREATE_NEW,
-                StandardOpenOption.WRITE);
-            BufferedOutputStream out = new BufferedOutputStream(out0);
+        try (OutputStream out = newOutputStream(listName + ".testlist");
             DataOutputStream dout = new DataOutputStream(out)) {
             ObjectSequences.writeSequence(dout, tests,
                 TestLink::writeScheduledTest);
@@ -101,7 +101,64 @@ final class TestLink {
         return ObjectSequences.readObject(in, TestLink::readScheduledTest);
     }
 
+    /**
+     * Parameters shared across the test-link divide.
+     */
+    final static class Parameters implements Serializable {
+        Parameters(List<String> testModules) {
+            this.testModules = List.copyOf(testModules);
+        }
+
+        List<String> testModules() {
+            return testModules;
+        }
+
+        private final List<String> testModules;
+
+        // This class is Serializable because the convenience of
+        // automated serialization is not a problem, given that a test
+        // VM only needs one such object.
+        private static final long serialVersionUID = 0x80202bc42496efa6L;
+    }
+
+    void writeParameters(Parameters parameters) throws IOException {
+        Objects.requireNonNull(parameters);
+        try (OutputStream out0 = newOutputStream("parameters");
+             ObjectOutputStream out = new ObjectOutputStream(out0)) {
+            out.writeObject(parameters);
+        }
+    }
+
+    Parameters readParameters() throws IOException {
+        try (InputStream in0 = newInputStream("parameters");
+             ObjectInputStream in = new ObjectInputStream(in0)) {
+            return (Parameters) in.readObject();
+        } catch (ClassNotFoundException e) {
+            throw new IOException(e);
+        }
+    }
+
     private final DirectoryLayout dirs;
+
+    /**
+     * Creates a buffered output stream for a file in the test-link
+     * directory.
+     */
+    private OutputStream newOutputStream(String fileName) throws IOException {
+        return new BufferedOutputStream(Files.newOutputStream(
+                dirs.testLink().resolve(fileName),
+                StandardOpenOption.CREATE_NEW,
+                StandardOpenOption.WRITE));
+    }
+
+    /**
+     * Creates a buffered input stream for a file in the test-link
+     * directory.
+     */
+    private InputStream newInputStream(String fileName) throws IOException {
+        return new BufferedInputStream(Files.newInputStream(
+                dirs.testLink().resolve(fileName)));
+    }
 
     /**
      * Remove stale files in the test-link subdirectory.

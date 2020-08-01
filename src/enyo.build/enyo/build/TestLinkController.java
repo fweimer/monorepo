@@ -22,6 +22,7 @@ final class TestLinkController {
         TestLink testLink = new TestLink(dirs);
         TestLinkLock lock = testLink.prepareAndLock();
         try {
+            testLink.writeParameters(new TestLink.Parameters(modules));
             testLink.writeTests("main", allTests(List.copyOf(modules)));
         } finally {
             lock.release();
