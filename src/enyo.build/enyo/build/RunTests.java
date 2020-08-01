@@ -125,21 +125,36 @@ public final class RunTests {
                             errors.incrementAndGet();
                     }
                 });
-        {
-            long errors0 = errors.get();
-            if (errors0 == 0) {
-                long nanoEnd = System.nanoTime();
-                System.err.format(
-                    "info: testing completed successfully (%.3f s)%n",
-                    (nanoEnd - nanoStart) * 1e-9);
-            } else if (errors0 == 1)
-                System.err.println(
-                    "error: testing completed with 1 error");
-            else
-                System.err.format(
-                    "info: testing completed with %d errors%n",
-                    errors0);
-        }
+        runTestsTail(nanoStart, errors);
+    }
+
+    private static void runTestsTail(long nanoStart, AtomicLong errors) {
+        long errors0 = errors.get();
+        if (errors0 == 0) {
+            long nanoEnd = System.nanoTime();
+            System.err.format("info: testing completed successfully (%.3f s)%n",
+                (nanoEnd - nanoStart) * 1e-9);
+        } else if (errors0 == 1)
+            System.err.println(
+                "error: testing completed with 1 error");
+        else
+            System.err.format(
+                "info: testing completed with %d errors%n",
+                errors0);
+    }
+
+    private static void runTestsFromTestLink(TestLinkConsumer consumer,
+        ModuleLayer testLayer) throws IOException {
+        long nanoStart = System.nanoTime();
+        System.err.println("info: testing started");
+
+        AtomicLong errors = new AtomicLong();
+        consumer.iterateTestsList("main", test -> {
+                if (!runTest(testLayer, test))
+                    errors.incrementAndGet();
+            });
+
+        runTestsTail(nanoStart, errors);
     }
 
     /**
@@ -152,7 +167,7 @@ public final class RunTests {
      */
     static void testInSeparateVM(DirectoryLayout dirs, List<String> modules)
         throws IOException {
-        TestLinkController.prepare(dirs, modules);
+        TestLinkController controller = new TestLinkController(dirs, modules);
 
         try {
             List<String> testModules =
@@ -200,7 +215,7 @@ public final class RunTests {
         TestLink testLink = new TestLink(dirs);
         TestLinkLock lock = testLink.lock();
         try {
-            runTests0(dirs, modules, testLayer);
+            runTestsFromTestLink(new TestLinkConsumer(testLink), testLayer);
         } finally {
             lock.release();
         }
