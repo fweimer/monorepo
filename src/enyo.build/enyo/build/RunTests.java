@@ -363,16 +363,17 @@ public final class RunTests {
             }
         } catch (InstantiationException | InvocationTargetException
             | IllegalAccessException e) {
-            System.err.format("FAIL: %s%n", test);
-            Throwable e1;
-            if (e instanceof InvocationTargetException)
-                e1 = e.getCause();
-            else
-                e1 = e;
-            e1.printStackTrace(System.err);
+            synchronized (System.err) {
+                System.err.format("FAIL: %s%n", test);
+                Throwable e1;
+                if (e instanceof InvocationTargetException)
+                    e1 = e.getCause();
+                else
+                    e1 = e;
+                e1.printStackTrace(System.err);
+            }
             return false;
         }
     }
     private RunTests() { } // No instances.
 }
-
