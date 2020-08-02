@@ -1,5 +1,6 @@
 package enyo.build;
 
+import enyo.testing.introspect.ResourcesManager;
 import enyo.testing.introspect.ScheduledTestSet;
 
 /**
@@ -16,6 +17,7 @@ final class GlobalTestingState {
         this.parameters = parameters;
         this.testLayer = RunTests.testLayer(dirs, parameters.testModules());
         this.startedTests = new ScheduledTestSet(parameters.testCount());
+        this.resources = new ResourcesManager();
     }
 
     ModuleLayer testLayer() {
@@ -29,8 +31,34 @@ final class GlobalTestingState {
         return startedTests;
     }
 
+    /**
+     * Returns the global resources manger.
+     */
+    ResourcesManager resources() {
+        return resources;
+    }
+
+    /**
+     * Checks whether testing should stop.
+     *
+     * @return false if testing should proceed, true if
+     *   termination is requested
+     */
+    boolean stopRequested() {
+        // FIXME: Not yet implemented.
+        return false;
+    }
+
+    /**
+     * Called to signal the completion of one test.
+     */
+    void oneTestCompleted() {
+        // FIXME: Not yet implemented.
+    }
+
     private final DirectoryLayout directoryLayout;
     private final TestLink.Parameters parameters;
     private final ModuleLayer testLayer;
     private final ScheduledTestSet startedTests;
+    private final ResourcesManager resources;
 }

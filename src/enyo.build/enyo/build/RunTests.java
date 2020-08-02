@@ -146,21 +146,20 @@ public final class RunTests {
     }
 
     private static void runTestsFromTestLink(TestLinkConsumer consumer)
-        throws IOException {
+        throws IOException, InterruptedException {
         long nanoStart = System.nanoTime();
         System.err.println("info: testing started");
 
-        AtomicLong errors = new AtomicLong();
-        ModuleLayer testLayer = consumer.state().testLayer();
+        AtomicLong errors;
         try (QueueReader queue = consumer.testQueue()) {
-            while (true) {
-                Optional<ScheduledTest> test0 = queue.read();
-                if (test0.map(test -> {
-                            if (!runTest(testLayer, test.locator()))
-                                errors.incrementAndGet();
-                            return false;
-                        }).orElse(true))
-                    break;
+            QueueProcessor queueProcessor = new QueueProcessor(
+                consumer.state(), queue);
+            queueProcessor.start();
+            queueProcessor.join();
+            errors = new AtomicLong(queueProcessor.errors);
+            if (queueProcessor.threadException != null) {
+                queueProcessor.threadException.printStackTrace(System.err);
+                errors.incrementAndGet();
             }
         }
 
@@ -229,7 +228,8 @@ public final class RunTests {
      * Invoked from RunTests#main(String[]) to set up the modular
      * testing environment.
      */
-    private static void runInModularMode(String[] args) throws IOException {
+    private static void runInModularMode(String[] args)
+        throws IOException, InterruptedException {
         if (args.length != 2)
             throw new IllegalArgumentException(Arrays.asList(args).toString());
         Path root = Path.of(args[0]);
