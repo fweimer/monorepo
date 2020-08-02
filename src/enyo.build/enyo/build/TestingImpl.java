@@ -5,6 +5,7 @@ import enyo.testing.TestFailure;
 import enyo.testing.TestAlreadyFailed;
 import enyo.testing.ThrowingSupplier;
 import enyo.testing.ThrowingAction;
+import enyo.testing.introspect.TestMethodLocator;
 
 import java.util.Arrays;
 import java.util.Objects;

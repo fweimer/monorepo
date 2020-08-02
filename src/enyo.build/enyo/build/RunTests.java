@@ -3,6 +3,7 @@ package enyo.build;
 import enyo.io.function.IOFunction;
 import enyo.lang.RelaunchVM;
 import enyo.testing.Testing;
+import enyo.testing.introspect.TestMethodLocator;
 
 import java.io.IOException;
 import java.lang.module.Configuration;

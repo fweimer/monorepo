@@ -1,5 +1,7 @@
 package enyo.build;
 
+import enyo.testing.introspect.TestMethodLocator;
+
 import java.util.Objects;
 
 /**

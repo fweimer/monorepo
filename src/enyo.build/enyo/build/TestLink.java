@@ -3,6 +3,7 @@ package enyo.build;
 import enyo.io.ObjectSequences;
 import enyo.io.function.IOConsumer;
 import enyo.testing.Resources;
+import enyo.testing.introspect.TestMethodLocator;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
