@@ -8,4 +8,7 @@ module enyo.core {
     exports enyo.util;
     exports enyo.io;
     exports enyo.io.function;
+
+    provides java.nio.charset.spi.CharsetProvider
+        with enyo.provider.ExtendedCharsetProvider;
 }
