@@ -3,6 +3,7 @@ package enyo.build;
 import enyo.io.function.IOFunction;
 import enyo.io.function.IOPredicate;
 import enyo.lang.classfile.ClassFile;
+import enyo.testing.introspect.ScheduledTest;
 import enyo.util.Result;
 import enyo.util.StringFilter;
 

@@ -1,5 +1,7 @@
 package enyo.build;
 
+import enyo.testing.introspect.ScheduledTest;
+
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 
