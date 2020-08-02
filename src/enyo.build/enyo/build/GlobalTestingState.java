@@ -1,5 +1,7 @@
 package enyo.build;
 
+import enyo.testing.introspect.ScheduledTestSet;
+
 /**
  * This class collects global state related to test execution.
  */
