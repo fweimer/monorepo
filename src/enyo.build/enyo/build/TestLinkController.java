@@ -48,9 +48,17 @@ final class TestLinkController {
                 .map(UnscheduledTest::scheduled));
 
             Collections.shuffle(scratchList);
+            Collections.sort(scratchList,
+                UnscheduledTest.comparingCost());
+            testLink.writeTests(QueueKind.COST,
+                scratchList.stream()
+                .map(UnscheduledTest::scheduled));
+
+            Collections.shuffle(scratchList);
             testLink.writeTests(QueueKind.RANDOM,
                 scratchList.stream()
                 .map(UnscheduledTest::scheduled));
+
         } finally {
             lock.release();
         }

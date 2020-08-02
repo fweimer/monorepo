@@ -9,13 +9,16 @@ import java.util.List;
  * @see QueueProcessor
  */
 enum QueueKind {
-    // Order of the enum values matters: Later queues may receive
-    // fewer processing threads due to rounding differences.
-
     /**
      * A queue ordered by modification time of the test source file.
      */
     MODIFICATION,
+
+    /**
+     * A queue ordered by decreasing estimated execution cost of the
+     * tests.
+     */
+    COST,
 
     /**
      * A queue with randomized order.
@@ -42,6 +45,7 @@ enum QueueKind {
             throw new IllegalArgumentException("threads: " + threads);
 
         int modificationCount;
+        int costCount = 0;
         switch (threads) {
         case 1:
             modificationCount = 1;
@@ -55,19 +59,23 @@ enum QueueKind {
             modificationCount = 3;
             break;
         case 6:
-            modificationCount = 4;
+            modificationCount = 3;
+            costCount = 1;
             break;
         default:
-            modificationCount = threads / 2 + 2;
+            modificationCount = threads / 2;
+            costCount = threads / 3;
         }
 
         // The remaining threads execute tests randomly.
-        int randomCount = threads - modificationCount;
+        int randomCount = threads - modificationCount - costCount;
 
         QueueKind[] result = new QueueKind[threads];
         int i = 0;
         for (int j = 0; j < modificationCount; ++j)
             result[i++] = MODIFICATION;
+        for (int j = 0; j < costCount; ++j)
+            result[i++] = COST;
         for (int j = 0; j < randomCount; ++j)
             result[i++] = RANDOM;
 

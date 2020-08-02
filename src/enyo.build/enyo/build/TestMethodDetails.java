@@ -14,6 +14,7 @@ final class TestMethodDetails {
     boolean hasTestAnnotation;
     boolean hasTestingArgument;
     TestResources resources;
+    double cost;
     String error;
 
     TestMethodDetails(TestClassDetails classDetails, Method method) {
@@ -21,6 +22,7 @@ final class TestMethodDetails {
             classDetails, "classDetails");
         this.method = Objects.requireNonNull(method, "method");
         resources = classDetails.resources();
+        cost = classDetails.cost();
 
         method.annotations()
             .forEach(ann -> {
@@ -29,6 +31,12 @@ final class TestMethodDetails {
                     else if (ann.descriptor().equals(Descriptors.Resources))
                         try {
                             resources = ResourcesParser.parse(ann);
+                        } catch (AnnotationParseException e) {
+                            error = e.getMessage();
+                        }
+                    else if (ann.descriptor().equals(Descriptors.Cost))
+                        try {
+                            cost = CostParser.parse(ann);
                         } catch (AnnotationParseException e) {
                             error = e.getMessage();
                         }

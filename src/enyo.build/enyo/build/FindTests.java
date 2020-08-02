@@ -115,7 +115,8 @@ final class FindTests {
                             idSource.getAndIncrement(),
                             method.locator(),
                             method.resources()),
-                        method.classDetails.sourceFileChange())))
+                        method.classDetails.sourceFileChange(),
+                        method.cost)))
             .collect(Result.Collectors.toCollection(
                     ArrayList::new, ArrayList::new));
     }

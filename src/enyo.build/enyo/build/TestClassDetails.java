@@ -3,6 +3,7 @@ package enyo.build;
 import enyo.lang.classfile.ClassFile;
 import enyo.lang.classfile.ClassFileException;
 import enyo.lang.classfile.SourceFileAttribute;
+import enyo.testing.Cost;
 import enyo.testing.introspect.TestResources;
 
 import java.io.File;
@@ -27,6 +28,7 @@ final class TestClassDetails {
     private final ArrayList<String> classErrors = new ArrayList<>();
 
     private final TestResources resources;
+    private final double cost;
 
     // Long.MIN_VALUE + 1 if unknown (to help with negative sorting).
     private final long sourceFileChange;
@@ -47,6 +49,20 @@ final class TestClassDetails {
         }
         resources = resources0;
 
+        {
+            double cost0 = Cost.DEFAULT;
+            try {
+                cost0 = clazz.annotations()
+                    .filter(ann -> ann.descriptor().equals(Descriptors.Cost))
+                    .findFirst()
+                    .map(CostParser::parse)
+                    .orElse(Cost.DEFAULT);
+            } catch (AnnotationParseException | ClassFileException e) {
+                classErrors.add(e.getMessage());
+            }
+            cost = cost0;
+        }
+
         sourceFileChange = guessSourcePath(dirs, module, clazz)
             .flatMap(TestClassDetails::fileModificationTime)
             .orElse(Long.MIN_VALUE + 1);
@@ -66,6 +82,10 @@ final class TestClassDetails {
 
     TestResources resources() {
         return resources;
+    }
+
+    double cost() {
+        return cost;
     }
 
     Stream<TestMethodDetails> tests() {

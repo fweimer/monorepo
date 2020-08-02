@@ -10,9 +10,10 @@ import java.util.Objects;
  */
 final class UnscheduledTest {
     public UnscheduledTest(ScheduledTest scheduled,
-        long sourceFileChange) {
+        long sourceFileChange, double cost) {
         this.scheduled = Objects.requireNonNull(scheduled);
         this.sourceFileChange = sourceFileChange;
+        this.cost = cost;
     }
 
     public ScheduledTest scheduled() {
@@ -24,6 +25,13 @@ final class UnscheduledTest {
      */
     public long sourceFileChange() {
         return sourceFileChange;
+    }
+
+    /**
+     * Return an estimate for the cost of running this test.
+     */
+    public double cost() {
+        return cost;
     }
 
     @Override
@@ -39,9 +47,19 @@ final class UnscheduledTest {
         return SOURCE_FILE_CHANGE;
     }
 
+    /**
+     * Returns a comparator sorting by descending cost.
+     */
+    public static Comparator<UnscheduledTest> comparingCost() {
+        return COST;
+    }
+
     private final ScheduledTest scheduled;
     private final long sourceFileChange;
+    private final double cost;
 
     private static final Comparator<UnscheduledTest> SOURCE_FILE_CHANGE =
         Comparator.comparing(test -> -test.sourceFileChange());
+    private static final Comparator<UnscheduledTest> COST =
+        Comparator.comparing(test -> -test.cost());
 }
