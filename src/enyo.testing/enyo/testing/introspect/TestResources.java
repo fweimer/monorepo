@@ -52,6 +52,33 @@ public final class TestResources implements Serializable {
     }
 
     /**
+     * Returns the resources available in the system.
+     * @return a resources object
+     */
+    public static TestResources systemResources() {
+        Runtime runtime = Runtime.getRuntime();
+        long memoryMB = runtime.maxMemory() >> 20;
+        int intMemoryMB = (int) memoryMB;
+        if (intMemoryMB != memoryMB)
+            intMemoryMB = Integer.MAX_VALUE;
+
+        // Reserve some headroom.  This is rather arbitrary.  The
+        // expectation is that most systems will be in the last
+        // category, with a headroom of 225, and hopefully no
+        // effective limit on test parallelism due to memory usage.
+        if (intMemoryMB <= 10)
+            intMemoryMB = 1;
+        else if (intMemoryMB < 500)
+            intMemoryMB -= intMemoryMB / 5;
+        else if (intMemoryMB < 1000)
+            intMemoryMB -= 100 + (intMemoryMB - 500) / 2;
+        else
+            intMemoryMB -= 225;
+
+        return new TestResources(runtime.availableProcessors(), intMemoryMB);
+    }
+
+    /**
      * Default values of the {@link Resources} annotation.
      */
     public static final TestResources DEFAULT =

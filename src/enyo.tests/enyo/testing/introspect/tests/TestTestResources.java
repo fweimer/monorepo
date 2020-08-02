@@ -24,4 +24,14 @@ public final class TestTestResources {
         t.expect(() -> new TestResources(1, -1),
             IllegalArgumentException.class);
     }
+
+    @Test
+    public static void testSystemResources(Testing t) {
+        TestResources sr = TestResources.systemResources();
+        t.assertTrue(sr.threads() >= 1);
+        t.assertTrue(sr.memory() >= 1);
+        Runtime runtime = Runtime.getRuntime();
+        t.assertTrue(sr.threads() <= runtime.availableProcessors());
+        t.assertTrue(sr.memory() * 1024 * 1024 <= runtime.maxMemory());
+    }
 }
