@@ -172,7 +172,19 @@ public final class RunTests {
      */
     static void testInSeparateVM(DirectoryLayout dirs, List<String> modules)
         throws IOException {
-        TestLinkController controller = new TestLinkController(dirs, modules);
+        TestLinkController controller;
+        {
+            long nanoStart = System.nanoTime();
+            controller = new TestLinkController(dirs, modules);
+            long nanoEnd = System.nanoTime();
+            if (controller.parameters().testCount() == 1)
+                System.out.format("info: 1 test prepared (%.3f s)%n",
+                    (nanoEnd - nanoStart) * 1e-9);
+            else
+                System.out.format("info: %d tests prepared (%.3f s)%n",
+                    controller.parameters().testCount(),
+                    (nanoEnd - nanoStart) * 1e-9);
+        }
 
         try {
             List<String> testModules =
