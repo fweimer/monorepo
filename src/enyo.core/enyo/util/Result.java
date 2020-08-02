@@ -275,6 +275,23 @@ public class Result<T, E> {
     }
 
     /**
+     * Computes a result of a shared type for values and errors.
+     * @param fromValue the mapping function for values
+     * @param fromError the mapping function for errors
+     * @return the result of applying the appropriate mapping function
+     * @param <R> the common result type
+     */
+    public final <R> R compute(Function<? super T, ? extends R> fromValue,
+        Function<? super E, ? extends R> fromError) {
+        Objects.requireNonNull(fromValue, "fromValue");
+        Objects.requireNonNull(fromError, "fromError");
+        if (isPresent())
+            return fromValue.apply(orElseThrow());
+        else
+            return fromError.apply(error().orElseThrow());
+    }
+
+    /**
      * Returns a comparator which sort errors before values.
      * The comparison uses the natural ordering of values and errors.
      * @param <T> the type of the values (must be comparable)

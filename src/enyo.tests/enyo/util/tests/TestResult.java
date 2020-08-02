@@ -19,6 +19,9 @@ public final class TestResult {
     @Test
     public static void testPresent(Testing t) {
         Result<Integer, String> r = Result.of(1);
+        t.assertEquals(2.0, r.compute(
+                value -> value + 1.0,
+                error -> t.assertFail("Unreachable")));
         t.assertEquals(Optional.empty(), r.error());
         {
             Result<Long, String> r2 = Result.of(2L);
@@ -92,6 +95,9 @@ public final class TestResult {
     @Test
     public static void testError(Testing t) {
         Result<String, Integer> r = Result.ofError(1);
+        t.assertEquals(2.0, r.compute(
+                value -> t.assertFail("Unreachable"),
+                error -> error + 1.0));
         t.assertEquals(Optional.of(1), r.error());
         t.assertSame(r, r.flatMap(value -> t.assertFail("Unreachable")));
         r.ifPresent(value -> t.assertFail("Unreachable"));
