@@ -3,8 +3,8 @@ package enyo.build;
 import enyo.io.function.IOFunction;
 import enyo.lang.RelaunchVM;
 import enyo.testing.Testing;
+import enyo.testing.introspect.ScheduledTest;
 import enyo.testing.introspect.TestMethodLocator;
-import enyo.testing.introspect.ScheduledTestSet;
 
 import java.io.IOException;
 import java.lang.module.Configuration;
@@ -151,15 +151,18 @@ public final class RunTests {
         System.err.println("info: testing started");
 
         AtomicLong errors = new AtomicLong();
-        ScheduledTestSet startedTests = consumer.state().startedTests();
         ModuleLayer testLayer = consumer.state().testLayer();
-        consumer.iterateTestsList("main", test -> {
-                if (!startedTests.add(test))
-                    // The test already executed.
-                    return;
-                if (!runTest(testLayer, test.locator()))
-                    errors.incrementAndGet();
-            });
+        try (QueueReader queue = consumer.testQueue()) {
+            while (true) {
+                Optional<ScheduledTest> test0 = queue.read();
+                if (test0.map(test -> {
+                            if (!runTest(testLayer, test.locator()))
+                                errors.incrementAndGet();
+                            return false;
+                        }).orElse(true))
+                    break;
+            }
+        }
 
         runTestsTail(nanoStart, errors);
     }

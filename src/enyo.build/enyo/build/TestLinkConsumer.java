@@ -37,19 +37,12 @@ final class TestLinkConsumer {
     }
 
     /**
-     * Invoke the callback for each test in the named list of tests.
-     * The list is read from the {@code test-link} subdirectory.
+     * Returns a reader for the test queue.
+     * The caller should close the queue.
      */
-    void iterateTestsList(String listName, Consumer<ScheduledTest> tester)
-        throws IOException {
-        try (DataInputStream in = testLink.openTestsList(listName)) {
-            while (true) {
-                Optional<ScheduledTest> test = TestLink.readOneTest(in);
-                if (!test.isPresent())
-                    break;
-                tester.accept(test.get());
-            }
-        }
+    QueueReader testQueue() throws IOException {
+        return new QueueReader(testLink.openTestsList("main"),
+            state.startedTests());
     }
 
     // Mutable state should be added to GlobalTestingState, not here.
