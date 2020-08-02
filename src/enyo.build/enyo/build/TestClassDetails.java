@@ -2,11 +2,17 @@ package enyo.build;
 
 import enyo.lang.classfile.ClassFile;
 import enyo.lang.classfile.ClassFileException;
+import enyo.lang.classfile.SourceFileAttribute;
 import enyo.testing.introspect.TestResources;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
@@ -22,7 +28,10 @@ final class TestClassDetails {
 
     private final TestResources resources;
 
-    TestClassDetails(String module, ClassFile clazz) {
+    // Long.MIN_VALUE + 1 if unknown (to help with negative sorting).
+    private final long sourceFileChange;
+
+    TestClassDetails(DirectoryLayout dirs, String module, ClassFile clazz) {
         this.module = Objects.requireNonNull(module, "module");
         this.clazz = Objects.requireNonNull(clazz, "clazz");
 
@@ -37,6 +46,10 @@ final class TestClassDetails {
             classErrors.add(e.getMessage());
         }
         resources = resources0;
+
+        sourceFileChange = guessSourcePath(dirs, module, clazz)
+            .flatMap(TestClassDetails::fileModificationTime)
+            .orElse(Long.MIN_VALUE + 1);
     }
 
     String className() {
@@ -59,5 +72,41 @@ final class TestClassDetails {
         return clazz.methods()
             .map(method -> new TestMethodDetails(this, method))
             .filter(method -> method.hasTestAnnotation);
+    }
+
+    long sourceFileChange() {
+        return sourceFileChange;
+    }
+
+    static Optional<Path> guessSourcePath(DirectoryLayout dirs, String module,
+        ClassFile classFile) {
+        String packagePath;
+        {
+            String name = classFile.className();
+            int lastSlash = name.lastIndexOf('/');
+            if (lastSlash < 0)
+                return Optional.empty();
+            String substring = name.substring(0, lastSlash);
+            if (File.separatorChar != '/')
+                substring = substring.replace('/', File.separatorChar);
+            packagePath = substring;
+        }
+        return classFile.attributes()
+            .filter(attr -> attr instanceof SourceFileAttribute)
+            .findFirst()
+            .<String>map(attr -> ((SourceFileAttribute) attr).sourceFile())
+            .map(fileName ->
+                dirs.sources()
+                .resolve(module)
+                .resolve(packagePath)
+                .resolve(fileName));
+    }
+
+    static Optional<Long> fileModificationTime(Path path) {
+        try {
+            return Optional.of(Files.getLastModifiedTime(path).toMillis());
+        } catch (IOException e) {
+            return Optional.empty();
+        }
     }
 }

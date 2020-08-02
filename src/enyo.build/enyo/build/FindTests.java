@@ -38,7 +38,7 @@ final class FindTests {
 
     static Stream<TestMethodDetails> tests(DirectoryLayout dirs,
         String module) throws IOException {
-        return potentialTestClasses(
+        return potentialTestClasses(dirs,
             classFiles(dirs, module), module)
             .flatMap(TestClassDetails::tests);
     }
@@ -54,13 +54,14 @@ final class FindTests {
         return clazz.utf8MatchesAny(testClassFilter);
     }
 
-    static Stream<TestClassDetails> potentialTestClasses(
+    static Stream<TestClassDetails> potentialTestClasses(DirectoryLayout dirs,
         Stream<Path> stream, String module) {
         return stream.flatMap(IOFunction.of(path -> {
                     byte[] blob = Files.readAllBytes(path);
                     ClassFile clazz = ClassFile.of(ByteBuffer.wrap(blob));
                     if (potentialTestClass(clazz))
-                        return Stream.of(new TestClassDetails(module, clazz));
+                        return Stream.of(
+                            new TestClassDetails(dirs, module, clazz));
                     else
                         return Stream.of();
                 }));
@@ -70,12 +71,12 @@ final class FindTests {
      * Produces lists of tests, extracted from class files, and errors
      * encountered.
      */
-    static Result.Collected<ArrayList<ScheduledTest>, ArrayList<String>>
+    static Result.Collected<ArrayList<UnscheduledTest>, ArrayList<String>>
         collectedTests(DirectoryLayout dirs, List<String> modules) {
         AtomicInteger idSource = new AtomicInteger();
         return modules.stream()
             .flatMap(IOFunction.of(moduleName ->
-                    FindTests.potentialTestClasses(
+                    FindTests.potentialTestClasses(dirs,
                         FindTests.classFiles(dirs, moduleName), moduleName)))
             // Split into classes with and without errors.
             .<Result<TestClassDetails, TestClassDetails>>map(classDetails -> {
@@ -108,12 +109,13 @@ final class FindTests {
             // Filter out non-test methods.  Keep all errors.
             .filter(
                 r -> r.map(method -> method.hasTestAnnotation).orElse(true))
-            // Convert test methods to scheduled tests.
-            .<Result<ScheduledTest, String>>map(r -> r.map(method ->
-                    new ScheduledTest(
-                        idSource.getAndIncrement(),
-                        method.locator(),
-                        method.resources())))
+            // Convert test methods to unscheduled tests.
+            .<Result<UnscheduledTest, String>>map(r -> r.map(method ->
+                    new UnscheduledTest(new ScheduledTest(
+                            idSource.getAndIncrement(),
+                            method.locator(),
+                            method.resources()),
+                        method.classDetails.sourceFileChange())))
             .collect(Result.Collectors.toCollection(
                     ArrayList::new, ArrayList::new));
     }
