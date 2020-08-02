@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The Enyo testing tool.
@@ -152,15 +153,24 @@ public final class RunTests {
 
         AtomicLong errors;
         try (QueueReader queue = consumer.testQueue()) {
-            QueueProcessor queueProcessor = new QueueProcessor(
-                consumer.state(), queue);
-            queueProcessor.start();
-            queueProcessor.join();
-            errors = new AtomicLong(queueProcessor.errors);
-            if (queueProcessor.threadException != null) {
-                queueProcessor.threadException.printStackTrace(System.err);
-                errors.incrementAndGet();
-            }
+            List<QueueProcessor> processors = Stream.generate(
+                () -> new QueueProcessor(consumer.state(), queue))
+                .limit(consumer.state().resources().available().threads())
+                .collect(Collectors.toList());
+
+            for (QueueProcessor processor : processors)
+                processor.start();
+            for (QueueProcessor processor : processors)
+                processor.join();
+            errors = new AtomicLong(processors.stream()
+                .mapToLong(processor -> processor.errors)
+                .sum());
+
+            for (QueueProcessor processor : processors)
+                if (processor.threadException != null) {
+                    processor.threadException.printStackTrace(System.err);
+                    errors.incrementAndGet();
+                }
         }
 
         runTestsTail(nanoStart, errors);
