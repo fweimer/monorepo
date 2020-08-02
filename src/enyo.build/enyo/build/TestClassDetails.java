@@ -2,7 +2,7 @@ package enyo.build;
 
 import enyo.lang.classfile.ClassFile;
 import enyo.lang.classfile.ClassFileException;
-import enyo.testing.Resources;
+import enyo.testing.introspect.TestResources;
 
 import java.util.ArrayList;
 import java.util.List;

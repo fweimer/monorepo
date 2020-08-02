@@ -3,6 +3,7 @@ package enyo.build;
 import enyo.lang.classfile.Constants;
 import enyo.lang.classfile.Method;
 import enyo.testing.introspect.TestMethodLocator;
+import enyo.testing.introspect.TestResources;
 
 import java.util.Objects;
 import java.util.Optional;

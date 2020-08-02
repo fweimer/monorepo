@@ -3,6 +3,7 @@ package enyo.build;
 import enyo.lang.classfile.Annotation;
 import enyo.lang.classfile.NamedElementValue;
 import enyo.testing.Resources;
+import enyo.testing.introspect.TestResources;
 
 /**
  * Parser for {@link Resources} annotations.
