@@ -23,19 +23,28 @@ final class TestLinkController {
         this.dirs = dirs;
 
         ArrayList<ScheduledTest> allTests = allTests(modules);
+        parameters = new TestLink.Parameters(modules, allTests.size());
 
         TestLink testLink = new TestLink(dirs);
         TestLinkLock lock = testLink.prepareAndLock();
         try {
-            testLink.writeParameters(
-                new TestLink.Parameters(modules, allTests.size()));
+            testLink.writeParameters(parameters);
             testLink.writeTests("main", allTests.stream());
         } finally {
             lock.release();
         }
     }
 
+    /**
+     * Returns the parameters computed as part of setting up the test
+     * link.
+     */
+    TestLink.Parameters parameters() {
+        return parameters;
+    }
+
     private final DirectoryLayout dirs;
+    private final TestLink.Parameters parameters;
     private ConcurrentLinkedQueue<String> errors =
         new ConcurrentLinkedQueue<>();
 
