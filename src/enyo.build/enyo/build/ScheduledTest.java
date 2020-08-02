@@ -6,9 +6,10 @@ import java.util.Objects;
  * An individual test that has been scheduled for execution.
  */
 final class ScheduledTest {
-    ScheduledTest(int id, TestMethodLocator locator) {
+    ScheduledTest(int id, TestMethodLocator locator, TestResources resources) {
         this.id = id;
-        this.locator = Objects.requireNonNull(locator);
+        this.locator = Objects.requireNonNull(locator, "locator");
+        this.resources = Objects.requireNonNull(resources, "resources");
     }
 
     /**
@@ -26,6 +27,14 @@ final class ScheduledTest {
         return locator;
     }
 
+    /**
+     * Projected resource usage of this test.
+     */
+    TestResources resources() {
+        return resources;
+    }
+
     private final int id;
     private final TestMethodLocator locator;
+    private final TestResources resources;
 }

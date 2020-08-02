@@ -2,6 +2,7 @@ package enyo.build;
 
 import enyo.io.ObjectSequences;
 import enyo.io.function.IOConsumer;
+import enyo.testing.Resources;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -210,12 +211,31 @@ final class TestLink {
         ScheduledTest test) throws IOException {
         out.writeInt(test.id());
         writeTestMethodLocator(out, test.locator());
+        writeTestResources(out, test.resources());
     }
 
     private static ScheduledTest readScheduledTest(DataInput in)
         throws IOException {
         int id = in.readInt();
         TestMethodLocator locator = readTestMethodLocator(in);
-        return new ScheduledTest(id, locator);
+        TestResources resources = readTestResources(in);
+        return new ScheduledTest(id, locator, resources);
+    }
+
+    private static void writeTestResources(DataOutput out,
+        TestResources resources) throws IOException {
+        out.writeInt(resources.threads());
+        out.writeInt(resources.memory());
+    }
+
+    private static TestResources readTestResources(DataInput in)
+        throws IOException {
+        int threads = in.readInt();
+        int memory = in.readInt();
+        if (threads == TestResources.DEFAULT.threads()
+            && memory == TestResources.DEFAULT.memory())
+            return TestResources.DEFAULT;
+        else
+            return new TestResources(threads, memory);
     }
 }

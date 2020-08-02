@@ -1,14 +1,10 @@
 package enyo.build;
 
-import enyo.io.function.IOFunction;
+import enyo.util.Result;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Interfacing with the test-link directory on the build daemon side.
@@ -22,14 +18,19 @@ final class TestLinkController {
         throws IOException {
         this.dirs = dirs;
 
-        ArrayList<ScheduledTest> allTests = allTests(modules);
-        parameters = new TestLink.Parameters(modules, allTests.size());
+        {
+            Result.Collected<ArrayList<ScheduledTest>, ArrayList<String>>
+                collected = FindTests.collectedTests(dirs, modules);
+            tests = List.copyOf(collected.values());
+            errors = List.copyOf(collected.errors());
+        }
+        parameters = new TestLink.Parameters(modules, tests.size());
 
         TestLink testLink = new TestLink(dirs);
         TestLinkLock lock = testLink.prepareAndLock();
         try {
             testLink.writeParameters(parameters);
-            testLink.writeTests("main", allTests.stream());
+            testLink.writeTests("main", tests.stream());
         } finally {
             lock.release();
         }
@@ -43,29 +44,22 @@ final class TestLinkController {
         return parameters;
     }
 
+    /**
+     * All scheduled tests.
+     */
+    List<ScheduledTest> tests() {
+        return tests;
+    }
+
+    /**
+     * All error messages.
+     */
+    List<String> errors() {
+        return errors;
+    }
+
     private final DirectoryLayout dirs;
     private final TestLink.Parameters parameters;
-    private ConcurrentLinkedQueue<String> errors =
-        new ConcurrentLinkedQueue<>();
-
-    private ArrayList<ScheduledTest> allTests(List<String> modules) {
-        AtomicInteger idSource = new AtomicInteger();
-        return modules.stream()
-            .flatMap(IOFunction.of(mod -> FindTests.tests(dirs, mod)))
-            .filter(method -> method.hasTestAnnotation)
-            .flatMap(method -> {
-                    if (method.error != null) {
-                        errors.add(String.format("%s %s %s: %s%n",
-                                method.classDetails.module,
-                                method.classDetails.clazz.className(),
-                                method.method.name(),
-                                method.error));
-                        return Stream.of();
-                    } else
-                        return Stream.of(new ScheduledTest(
-                                idSource.getAndIncrement(),
-                                method.locator()));
-                })
-            .collect(Collectors.toCollection(ArrayList::new));
-    }
+    private final List<ScheduledTest> tests;
+    private final List<String> errors;
 }

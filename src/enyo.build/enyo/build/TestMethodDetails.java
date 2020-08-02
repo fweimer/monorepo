@@ -11,17 +11,25 @@ final class TestMethodDetails {
     final Method method;
     boolean hasTestAnnotation;
     boolean hasTestingArgument;
+    TestResources resources;
     String error;
 
     TestMethodDetails(TestClassDetails classDetails, Method method) {
         this.classDetails = Objects.requireNonNull(
             classDetails, "classDetails");
         this.method = Objects.requireNonNull(method, "method");
+        resources = classDetails.resources();
 
         method.annotations()
             .forEach(ann -> {
                     if (ann.descriptor().equals(Descriptors.Test))
                         hasTestAnnotation = true;
+                    else if (ann.descriptor().equals(Descriptors.Resources))
+                        try {
+                            resources = ResourcesParser.parse(ann);
+                        } catch (AnnotationParseException e) {
+                            error = e.getMessage();
+                        }
                 });
 
         String descriptor = method.descriptor();
@@ -42,6 +50,10 @@ final class TestMethodDetails {
             classDetails.clazz.className().replace('/', '.'),
             method.name(),
             hasTestingArgument);
+    }
+
+    TestResources resources() {
+        return resources;
     }
 
     private static final String withTestingDescriptor =

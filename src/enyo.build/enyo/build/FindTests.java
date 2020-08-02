@@ -3,6 +3,7 @@ package enyo.build;
 import enyo.io.function.IOFunction;
 import enyo.io.function.IOPredicate;
 import enyo.lang.classfile.ClassFile;
+import enyo.util.Result;
 import enyo.util.StringFilter;
 
 import java.io.IOException;
@@ -12,6 +13,8 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 final class FindTests {
     static boolean isTestModule(DirectoryLayout dirs, String module)
@@ -60,6 +63,58 @@ final class FindTests {
                     else
                         return Stream.of();
                 }));
+    }
+
+    /**
+     * Produces lists of tests, extracted from class files, and errors
+     * encountered.
+     */
+    static Result.Collected<ArrayList<ScheduledTest>, ArrayList<String>>
+        collectedTests(DirectoryLayout dirs, List<String> modules) {
+        AtomicInteger idSource = new AtomicInteger();
+        return modules.stream()
+            .flatMap(IOFunction.of(moduleName ->
+                    FindTests.potentialTestClasses(
+                        FindTests.classFiles(dirs, moduleName), moduleName)))
+            // Split into classes with and without errors.
+            .<Result<TestClassDetails, TestClassDetails>>map(classDetails -> {
+                    if (classDetails.hasErrors())
+                        return Result.ofError(classDetails);
+                    else
+                        return Result.of(classDetails);
+                })
+            // Convert the classes to test methods, and the errors to
+            // strings.
+            .<Result<TestMethodDetails, String>>flatMap(
+                r -> r.compute(
+                    classDetails -> classDetails.tests().map(Result::of),
+                    error -> error.classErrors().map(
+                        message -> Result.ofError(
+                            String.format("%s: %s",
+                                error.className(), message)))))
+            // Converted erroneous methods to errors.
+            .map(r -> r.flatMap((TestMethodDetails method) -> {
+                    if (method.error == null)
+                        return Result.of(method);
+                    else
+                        return Result.ofError(String.format(
+                                "%s %s %s: %s",
+                                method.classDetails.module,
+                                method.classDetails.clazz.className(),
+                                method.method.name(),
+                                method.error));
+                    }))
+            // Filter out non-test methods.  Keep all errors.
+            .filter(
+                r -> r.map(method -> method.hasTestAnnotation).orElse(true))
+            // Convert test methods to scheduled tests.
+            .<Result<ScheduledTest, String>>map(r -> r.map(method ->
+                    new ScheduledTest(
+                        idSource.getAndIncrement(),
+                        method.locator(),
+                        method.resources())))
+            .collect(Result.Collectors.toCollection(
+                    ArrayList::new, ArrayList::new));
     }
 
     private static final StringFilter testClassFilter =

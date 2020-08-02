@@ -213,6 +213,11 @@ public final class RunTests {
             e.printStackTrace(System.err);
             System.err.println("error: test VM launch failed, nothing tested");
         }
+
+        if (!controller.errors().isEmpty()) {
+            System.err.println("error: There were non-execution errors.");
+            controller.errors().stream().forEach(System.err::println);
+        }
     }
 
     /**
