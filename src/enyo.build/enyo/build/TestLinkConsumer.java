@@ -4,6 +4,8 @@ import enyo.testing.introspect.ScheduledTest;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.util.EnumMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -40,9 +42,16 @@ final class TestLinkConsumer {
      * Returns a reader for the test queue.
      * The caller should close the queue.
      */
-    QueueReader testQueue() throws IOException {
-        return new QueueReader(testLink.openTestsList("main"),
+    QueueReader testQueue(QueueKind kind) throws IOException {
+        return new QueueReader(testLink.openTestsList(kind),
             state.startedTests());
+    }
+
+    Map<QueueKind, QueueReader> testQueues() throws IOException {
+        EnumMap<QueueKind, QueueReader> result = new EnumMap<>(QueueKind.class);
+        for (QueueKind kind : QueueKind.values())
+            result.put(kind, testQueue(kind));
+        return Map.copyOf(result);
     }
 
     // Mutable state should be added to GlobalTestingState, not here.

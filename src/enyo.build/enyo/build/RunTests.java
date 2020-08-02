@@ -18,10 +18,10 @@ import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * The Enyo testing tool.
@@ -152,10 +152,14 @@ public final class RunTests {
         System.err.println("info: testing started");
 
         AtomicLong errors;
-        try (QueueReader queue = consumer.testQueue()) {
-            List<QueueProcessor> processors = Stream.generate(
-                () -> new QueueProcessor(consumer.state(), queue))
-                .limit(consumer.state().resources().available().threads())
+        Map<QueueKind, QueueReader> queues = consumer.testQueues();
+        try {
+            List<QueueProcessor> processors =
+                QueueKind.proposedQueues(
+                    consumer.state().resources().available().threads())
+                .stream()
+                .<QueueReader>map(queues::get)
+                .map(queue -> new QueueProcessor(consumer.state(), queue))
                 .collect(Collectors.toList());
 
             for (QueueProcessor processor : processors)
@@ -171,6 +175,9 @@ public final class RunTests {
                     processor.threadException.printStackTrace(System.err);
                     errors.incrementAndGet();
                 }
+        } finally {
+            for (QueueReader queue : queues.values())
+                queue.close();
         }
 
         runTestsTail(nanoStart, errors);

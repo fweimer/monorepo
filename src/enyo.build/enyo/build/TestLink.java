@@ -87,6 +87,15 @@ final class TestLink {
     }
 
     /**
+     * Writes a stream of test method locators for the specified queue.
+     * @see #writeTests(String,Stream)
+     */
+    void writeTests(QueueKind kind, Stream<ScheduledTest> tests)
+        throws IOException {
+        writeTests(kind.queueName(), tests);
+    }
+
+    /**
      * Opens a tests list file.
      * The file must have been written using
      * {@link #writeTests(String,Stream)}.
@@ -97,6 +106,16 @@ final class TestLink {
         Path path = dirs.testLink().resolve(listName + ".testlist");
         return new DataInputStream(new BufferedInputStream(
                 Files.newInputStream(path)));
+    }
+
+    /**
+     * Opens a tests list file.
+     * The file must have been written using
+     * {@link #writeTests(QueueKind,Stream)}.
+     * @see #readOneTest(DataInput)
+     */
+    DataInputStream openTestsList(QueueKind kind) throws IOException {
+        return openTestsList(kind.queueName());
     }
 
     /**

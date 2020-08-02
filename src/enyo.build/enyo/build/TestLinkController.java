@@ -43,7 +43,12 @@ final class TestLinkController {
         TestLinkLock lock = testLink.prepareAndLock();
         try {
             testLink.writeParameters(parameters);
-            testLink.writeTests("main",
+            testLink.writeTests(QueueKind.MODIFICATION,
+                scratchList.stream()
+                .map(UnscheduledTest::scheduled));
+
+            Collections.shuffle(scratchList);
+            testLink.writeTests(QueueKind.RANDOM,
                 scratchList.stream()
                 .map(UnscheduledTest::scheduled));
         } finally {
