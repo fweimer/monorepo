@@ -212,18 +212,18 @@ final class TestLink {
     private static void writeTestMethodLocator(DataOutput out,
         TestMethodLocator test) throws IOException {
         ObjectSequences.writeAsOptional(out, test.moduleName(),
-            (out1, string) -> out1.writeUTF(string));
-        out.writeUTF(test.className());
-        out.writeUTF(test.methodName());
+            ObjectSequences::writeString);
+        ObjectSequences.writeString(out, test.className());
+        ObjectSequences.writeString(out, test.methodName());
         out.writeBoolean(test.hasTestingArgument());
     }
 
     private static TestMethodLocator readTestMethodLocator(DataInput in)
         throws IOException {
         Optional<String> moduleName =
-            ObjectSequences.readObject(in, DataInput::readUTF);
-        String className = in.readUTF();
-        String methodName = in.readUTF();
+            ObjectSequences.readObject(in, ObjectSequences::readString);
+        String className = ObjectSequences.readString(in);
+        String methodName = ObjectSequences.readString(in);
         boolean hasTestingArgument = in.readBoolean();
         return new TestMethodLocator(moduleName, className, methodName,
             hasTestingArgument);
