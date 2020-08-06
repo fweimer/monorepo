@@ -2,18 +2,23 @@ package enyo.io.tests;
 
 import enyo.io.ObjectSequences;
 import enyo.io.function.IOConsumer;
+import enyo.testing.Cost;
 import enyo.testing.Test;
 import enyo.testing.Testing;
+import enyo.util.ByteArrays;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
+import java.io.EOFException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public final class TestObjectSequences {
@@ -171,6 +176,137 @@ public final class TestObjectSequences {
                 EOFException.class));
     }
 
+    @Test
+    @Cost(0.2)
+    public static void testWriteString(Testing t) throws IOException {
+        checkWrite(t, "\0\0\0\0",
+            out -> ObjectSequences.writeString(out, ""));
+
+        // The null character is special.
+        checkWrite(t, "\0\0\0\1\0",
+            out -> ObjectSequences.writeString(out, "\0"));
+
+        // Other outputs are similar to what
+        // DataOutputStream.writeUTF() produces.
+        ByteArrayOutputStream outExpected = new ByteArrayOutputStream();
+        DataOutputStream dataExpected = new DataOutputStream(outExpected);
+        ByteArrayOutputStream outActual = new ByteArrayOutputStream();
+        DataOutputStream dataActual = new DataOutputStream(outActual);
+        for (int i = 1; i <= 65535; ++i) {
+            String string = Character.toString((char) i);
+
+            outExpected.reset();
+            // Compensate for missing length bytes.
+            outExpected.write(0);
+            outExpected.write(0);
+            dataExpected.writeUTF(string);
+            byte[] expected = outExpected.toByteArray();
+            // Compensate for byte counts instead of character counts.
+            expected[3] = 1;
+
+            outActual.reset();
+            ObjectSequences.writeString(dataActual, string);
+            byte[] actual = outActual.toByteArray();
+
+            t.assertByteArrayEquals(expected, actual);
+        }
+
+        // Check one multi-character string.
+        checkWrite(t, "\0\0\0\3[@]",
+            out -> ObjectSequences.writeString(out, "[@]"));
+    }
+
+    @Test
+    @Cost(0.2)
+    public static void testReadString(Testing t) throws IOException {
+        // The null character is special.
+        checkRead(t, "\0\0\0\1\0", in ->
+            t.assertEquals("\0", ObjectSequences.readString(in)));
+        checkRead(t, "\0\0\0\3[\0]", in ->
+            t.assertEquals("[\0]", ObjectSequences.readString(in)));
+
+        // Other inputs are similar to what
+        // DataOutputStream.writeUTF() produces.
+        WriteStringOutput out = new WriteStringOutput();
+        for (int i = 1; i <= 65535; ++i) {
+            String expected = Character.toString((char) i);
+            ByteArrayInputStream in = new ByteArrayInputStream(
+                out.toBytesPlatform(expected));
+            DataInputStream dataIn = new DataInputStream(in);
+            String actual = ObjectSequences.readString(dataIn);
+            t.assertEquals(expected, actual);
+            t.assertEquals(-1, in.read());
+        }
+
+        // Similar test with three characters.
+        for (int i = 1; i <= 65535; ++i) {
+            String expected = "[" + Character.toString((char) i) + "]";
+            ByteArrayInputStream in = new ByteArrayInputStream(
+                out.toBytesPlatform(expected));
+            DataInputStream dataIn = new DataInputStream(in);
+            t.assertEquals(expected, ObjectSequences.readString(dataIn));
+            t.assertEquals(-1, in.read());
+        }
+    }
+
+    @Test
+    @Cost(0.2)
+    public static void testReadStringTruncated(Testing t) throws IOException {
+        WriteStringOutput out = new WriteStringOutput();
+        for (int i = 0; i <= 65535; ++i) {
+            byte[] input = out.toBytes((char) i);
+            ByteArrayInputStream in = new ByteArrayInputStream(
+                input, 0, input.length - 1);
+            DataInputStream dataIn = new DataInputStream(in);
+            t.expect(() -> ObjectSequences.readString(dataIn),
+                EOFException.class);
+        }
+    }
+
+    @Cost(0.5)
+    @Test
+    public static void testReadStringInvalid2(Testing t) throws IOException {
+        WriteStringOutput out = new WriteStringOutput();
+
+        byte[] buffer = new byte[4 + 2];
+        buffer[3] = 1;          // One character.
+        ByteArrayInputStream in = new ByteArrayInputStream(buffer);
+        DataInputStream dataIn = new DataInputStream(in);
+        for (int b1 = 0; b1 <= 255; ++b1) {
+            buffer[4] = (byte) b1;
+            for (int b2 = 0; b2 <= 255; ++b2) {
+                buffer[5] = (byte) b2;
+                in.reset();
+
+                readStringInvalidTail(t, buffer, dataIn, out);
+            }
+        }
+    }
+
+    @Test
+    @Cost(10)
+    public static void testReadStringInvalid3(Testing t) throws IOException {
+        WriteStringOutput out = new WriteStringOutput();
+
+        byte[] buffer = new byte[4 + 3];
+        buffer[3] = 1;          // One character.
+        ByteArrayInputStream in = new ByteArrayInputStream(buffer);
+        DataInputStream dataIn = new DataInputStream(in);
+        // Do not test leading ASCII bytes because they are all valid.
+        for (int b1 = 128; b1 <= 255; ++b1) {
+            buffer[4] = (byte) b1;
+            for (int b2 = 0; b2 <= 255; ++b2) {
+                buffer[5] = (byte) b2;
+                for (int b3 = 0; b3 <= 255; ++b3) {
+                    buffer[6] = (byte) b3;
+                    in.reset();
+
+                    readStringInvalidTail(t, buffer, dataIn, out);
+                }
+            }
+        }
+    }
+
     private static void checkWrite(Testing t, String expected,
         IOConsumer<DataOutputStream> writer) throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -185,5 +321,88 @@ public final class TestObjectSequences {
             input.getBytes(StandardCharsets.ISO_8859_1));
         reader.accept(new DataInputStream(in));
         t.assertEquals("Unread data in input", -1, in.read());
+    }
+
+    private static final class WriteStringOutput {
+        private final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        private final DataOutputStream dataOut = new DataOutputStream(out);
+
+        /**
+         * Generates the expected output for a single character using
+         * {@link ObjectSequences#writeString(DataOutput,String)}.
+         */
+        byte[] toBytes(char ch) throws IOException {
+            return toBytes(Character.toString(ch));
+        }
+
+        /**
+         * Generates the expected output for a single character using
+         * {@link ObjectSequences#writeString(DataOutput,String)}.
+         */
+        byte[] toBytes(String string) throws IOException {
+            out.reset();
+            ObjectSequences.writeString(dataOut, string);
+            return out.toByteArray();
+        }
+
+        /**
+         * Uses the platform implementation to produce the same output
+         * as {@link #toBytes(char)}.
+         */
+        byte[] toBytesPlatform(char ch) throws IOException {
+            if (ch == 0)
+                // Special case: ObjectSequences::writeString does not
+                // use overlong sequences.
+                return new byte[5];
+            out.reset();
+            // Additional length bytes.
+            dataOut.writeByte(0);
+            dataOut.writeByte(0);
+            dataOut.writeUTF(Character.toString(ch));
+            byte[] result = out.toByteArray();
+            // Patch in length in characters (not bytes).
+            result[3] = 1;
+            return result;
+        }
+
+        /**
+         * Null input characters are not supported.
+         */
+        byte[] toBytesPlatform(String input) throws IOException {
+            if (input.indexOf(0) >= 0 || input.length() > 255)
+                throw new IllegalArgumentException();
+            out.reset();
+            // Additional length bytes.
+            dataOut.writeByte(0);
+            dataOut.writeByte(0);
+            dataOut.writeUTF(input);
+            byte[] result = out.toByteArray();
+            // Patch in length in characters (not bytes).
+            result[3] = (byte) input.length();
+            return result;
+        }
+    }
+
+    private static void readStringInvalidTail(Testing t, byte[] buffer,
+        DataInputStream dataIn, WriteStringOutput out) throws IOException {
+        String decoded;
+        try {
+            decoded = ObjectSequences.readString(dataIn);
+        } catch (IOException e) {
+            // If the sequence is invalid, no further checks
+            // are needed.  testReadString() already ensures
+            // that valid sequences are accepted.
+            return;
+        }
+
+        // Input is valid if buffer is a prefix of the real
+        // encoding of the decoded string.  (buffer could
+        // contain trailing bytes after it.)
+        byte[] validInput = out.toBytes(decoded);
+        if (!Arrays.equals(buffer, 0, validInput.length,
+                validInput, 0, validInput.length))
+            t.assertFail("Invalid input incorrectly accepted: "
+                + ByteArrays.unsignedStream(buffer).boxed().collect(
+                    Collectors.toList()));
     }
 }
