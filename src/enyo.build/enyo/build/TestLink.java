@@ -9,6 +9,7 @@ import enyo.testing.introspect.TestResources;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.Closeable;
 import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.DataOutput;
@@ -19,6 +20,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -30,12 +33,52 @@ import java.util.stream.Stream;
 /**
  * Low-level I/O for the {@code test-link} directory.
  */
-final class TestLink {
+final class TestLink implements Closeable {
     /**
-     * Obtains the {@code test-link} directory from the directory layout.
+     * Creates a new test link for the controller (build daemon) side.
+     * The link object is locked, and the subdirectory has been scrubbed
+     * (it is empty except for lock files).
+     * The link should be closed using {@link #close()}.
+     * @return the test link object
      */
-    TestLink(DirectoryLayout dirs) {
-        this.dirs = Objects.requireNonNull(dirs);
+    static TestLink forController(DirectoryLayout dirs) throws IOException {
+        {
+            Path path = dirs.testLink();
+            if (!Files.isDirectory(path))
+                Files.createDirectory(path);
+        }
+
+        TestLink testLink = new TestLink(dirs);
+        boolean ok = false;
+        try {
+            testLink.cleanup();
+            ok = true;
+        } finally {
+            if (!ok)
+                testLink.close();
+        }
+        return testLink;
+    }
+
+    /**
+     * Creates a new test link for the consumer (test runner) side.
+     * The link should be closed using {@link #close()}.
+     * @return the test link object
+     */
+    static TestLink forConsumer(DirectoryLayout dirs) throws IOException {
+        return new TestLink(Objects.requireNonNull(dirs));
+    }
+
+    /**
+     * Releases the lock on the {@code test-link} subdirectory.
+     */
+    @Override
+    public void close() throws IOException {
+        try {
+            lock.release();
+        } finally {
+            lockChannel.close();
+        }
     }
 
     /**
@@ -43,33 +86,6 @@ final class TestLink {
      */
     DirectoryLayout directoryLayout() {
         return dirs;
-    }
-
-    /**
-     * Make sure that the {@code test-link} directory exists and lock it.
-     */
-    TestLinkLock prepareAndLock() throws IOException {
-        Path testLink = dirs.testLink();
-        if (!Files.isDirectory(testLink))
-            Files.createDirectory(testLink);
-
-        TestLinkLock lock = lock();
-        boolean ok = false;
-        try {
-            cleanupTestLink(lock);
-            ok = true;
-        } finally {
-            if (!ok)
-                lock.release();
-        }
-        return lock;
-    }
-
-    /**
-     * Locks the {@code test-link} directory.
-     */
-    TestLinkLock lock() throws IOException {
-        return new TestLinkLock(dirs);
     }
 
     /**
@@ -178,6 +194,24 @@ final class TestLink {
     }
 
     private final DirectoryLayout dirs;
+    private final FileChannel lockChannel;
+    private final FileLock lock;
+
+    private TestLink(DirectoryLayout dirs) throws IOException {
+        this.dirs = dirs;
+        lockChannel = FileChannel.open(pathLock(), StandardOpenOption.CREATE,
+            StandardOpenOption.WRITE);
+        boolean good = false;
+        try {
+            lock = lockChannel.tryLock(0, 0, false);
+            if (lock == null)
+                throw new IOException("Cannot lock " + dirs.testLink());
+            good = true;
+        } finally {
+            if (!good)
+                lockChannel.close();
+        }
+    }
 
     /**
      * Creates a buffered output stream for a file in the test-link
@@ -200,12 +234,20 @@ final class TestLink {
     }
 
     /**
+     * Path of the main lock file.
+     */
+    private final Path pathLock() {
+        return dirs.testLink().resolve("lock");
+    }
+
+    /**
      * Remove stale files in the test-link subdirectory.
      */
-    private void cleanupTestLink(TestLinkLock lock) throws IOException {
+    private void cleanup() throws IOException {
+        Path lock = pathLock();
         Files.list(dirs.testLink())
             // Do not delete the lock file.
-            .filter(p -> !p.equals(lock.path()))
+            .filter(p -> !p.equals(lock))
             .forEach(IOConsumer.of(Files::delete));
     }
 

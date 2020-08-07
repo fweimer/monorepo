@@ -39,9 +39,7 @@ final class TestLinkController {
         Collections.sort(scratchList,
             UnscheduledTest.comparingSourceFileChange());
 
-        TestLink testLink = new TestLink(dirs);
-        TestLinkLock lock = testLink.prepareAndLock();
-        try {
+        try (TestLink testLink = TestLink.forController(dirs)) {
             testLink.writeParameters(parameters);
             testLink.writeTests(QueueKind.MODIFICATION,
                 scratchList.stream()
@@ -58,9 +56,6 @@ final class TestLinkController {
             testLink.writeTests(QueueKind.RANDOM,
                 scratchList.stream()
                 .map(UnscheduledTest::scheduled));
-
-        } finally {
-            lock.release();
         }
     }
 

@@ -253,13 +253,8 @@ public final class RunTests {
         int generation = Integer.parseInt(args[1]);
 
         DirectoryLayout dirs = new DirectoryLayout(root, generation);
-        TestLink testLink = new TestLink(dirs);
-
-        TestLinkLock lock = testLink.lock();
-        try {
+        try (TestLink testLink = TestLink.forConsumer(dirs)) {
             runTestsFromTestLink(new TestLinkConsumer(testLink));
-        } finally {
-            lock.release();
         }
     }
 
