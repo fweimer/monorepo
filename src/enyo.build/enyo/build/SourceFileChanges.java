@@ -5,12 +5,14 @@ import enyo.io.FileIdentity;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.file.ClosedWatchServiceException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchService;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Function;
@@ -52,6 +54,13 @@ final class SourceFileChanges {
          * @throws InterruptedException the waiting operation was interrupted
          */
         public void await() throws IOException, InterruptedException;
+
+        /**
+         * Cancels all pending waiting operations.
+         * All pending and future {@link #await()} calls will return
+         * immediately.
+         */
+        public void cancel();
     }
 
     /**
@@ -60,6 +69,8 @@ final class SourceFileChanges {
      */
     interface Callback {
         /**
+         * Invoked by {@link SourceFileChanges#loop(DirectoryLayout,Callback)}.
+         * Returning from this callback cancels the waiter.
          * @param changeWaiter this can optionally be called to wait
          *   for actual source code changes to happen
          */
@@ -77,10 +88,20 @@ final class SourceFileChanges {
             Map<Path, FileIdentity> currentSources = sourceFileIdentities(dirs);
             Waiter waiter = new ChangeBlocker(
                 dirs, currentSources, SourceFileChanges::filterOutLockFiles);
-            switch (callback.call(waiter)) {
+            Result result;
+            try {
+                result = callback.call(waiter);
+            } finally {
+                waiter.cancel();
+            }
+
+            switch (result) {
             case CONTINUE:
-                // Remove the lock files from consideration.
-                waiter.await();
+                // Remove the lock files from consideration.  Do not
+                // use the existing waiter object because it has been
+                // cancelled.
+                waitForSourceChange(dirs, currentSources,
+                    SourceFileChanges::filterOutLockFiles);
                 break;
             case EXIT:
                 return;
@@ -172,11 +193,14 @@ final class SourceFileChanges {
             Map<Path, FileIdentity>> filter;
 
         // Multiple threads can use the same Waiter, but they will
-        // wait separately (which is somewhat inefficient).  No
-        // synchronization is necessary because this field will only
-        // transition from false to true, and additional wait
-        // operations (using WatchService etc.) are not a problem.
-        private boolean released;
+        // wait separately (which is somewhat inefficient).  The
+        // volatile is necessary because cancel() sets this variable
+        // as well.
+        private volatile boolean released;
+
+        // Used to keep track of active watch services, so that they
+        // can be canceled.
+        private final HashSet<WatchService> watchers = new HashSet<>();
 
         @Override
         public void await() throws IOException, InterruptedException {
@@ -185,6 +209,26 @@ final class SourceFileChanges {
             } catch (UncheckedIOException e) {
                 throw e.getCause();
             }
+        }
+
+        @Override
+        public void cancel() {
+            released = true;
+            IOException exception = null;
+            synchronized (watchers) {
+                for (WatchService watcher : watchers)
+                    try {
+                        watcher.close();
+                    } catch (IOException e) {
+                        if (exception == null)
+                            exception = e;
+                        else
+                            exception.addSuppressed(e);
+                    }
+                watchers.clear();
+            }
+            if (exception != null)
+                throw new UncheckedIOException(exception);
         }
 
         private ChangeBlocker(DirectoryLayout dirs,
@@ -217,6 +261,15 @@ final class SourceFileChanges {
                 WatchService watcher =
                     dirs.sources().getFileSystem().newWatchService();
                 try {
+                    synchronized (watchers) {
+                        watchers.add(watcher);
+                    }
+
+                    // The cancel request may have been arrived before
+                    // we could add our watcher to the set.
+                    if (released)
+                        return true;
+
                     try {
                         registerSourceDirectories(dirs, watcher);
                     } catch (NoSuchFileException e) {
@@ -236,7 +289,13 @@ final class SourceFileChanges {
                     if (isReleasable())
                         return true;
                     watcher.take();
+                } catch (ClosedWatchServiceException e) {
+                    // cancel() has been invoked.
+                    return true;
                 } finally {
+                    synchronized (watchers) {
+                        watchers.remove(watcher);
+                    }
                     watcher.close();
                 }
             } catch (IOException e) {
