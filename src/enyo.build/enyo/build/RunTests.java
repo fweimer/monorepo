@@ -153,11 +153,10 @@ public final class RunTests {
 
         AtomicLong errors;
         Map<QueueKind, QueueReader> queues = consumer.testQueues();
+        List<QueueProcessor> processors;
         try {
-            List<QueueProcessor> processors =
-                QueueKind.proposedQueues(
-                    consumer.state().resources().available().threads())
-                .stream()
+            processors = QueueKind.proposedQueues(
+                consumer.state().resources().available().threads()).stream()
                 .<QueueReader>map(queues::get)
                 .map(queue -> new QueueProcessor(consumer.state(), queue))
                 .collect(Collectors.toList());
@@ -179,6 +178,12 @@ public final class RunTests {
             for (QueueReader queue : queues.values())
                 queue.close();
         }
+        long completed = processors.stream()
+            .mapToLong(processor -> processor.completed)
+            .sum();
+        if (completed != consumer.parameters().testCount())
+            System.err.format("warning: testing stopped after %d of %d tests%n",
+                completed, consumer.parameters().testCount());
 
         runTestsTail(nanoStart, errors);
     }
