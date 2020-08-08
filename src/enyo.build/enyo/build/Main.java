@@ -63,7 +63,7 @@ public final class Main {
 
         AtomicReference<DirectoryLayout> generations =
             new AtomicReference<>(rootGeneration);
-        SourceFileChanges.loop(rootGeneration, () -> {
+        SourceFileChanges.loop(rootGeneration, changeWaiter -> {
                 DirectoryLayout dirs = generations.getAndUpdate(
                     DirectoryLayout::nextGeneration);
                 List<String> modules = listModules(dirs);

@@ -41,11 +41,30 @@ final class SourceFileChanges {
     }
 
     /**
+     * Blocking until source files change.
+     */
+    interface Waiter {
+        /**
+         * Blocks the calling thread until source file changes have been
+         * detected.  Lock file changes are ignored.
+         *
+         * @throws IOException the source directory tree could not be accessed
+         * @throws InterruptedException the waiting operation was interrupted
+         */
+        public void await() throws IOException, InterruptedException;
+    }
+
+    /**
      * Callback invoked by
      * {@link SourceFileChanges#loop(DirectoryLayout,Callback)}.
      */
     interface Callback {
-        public Result call() throws IOException, InterruptedException;
+        /**
+         * @param changeWaiter this can optionally be called to wait
+         *   for actual source code changes to happen
+         */
+        public Result call(Waiter changeWaiter)
+            throws IOException, InterruptedException;
     }
 
     /**
@@ -56,11 +75,12 @@ final class SourceFileChanges {
         throws IOException, InterruptedException {
         while (true) {
             Map<Path, FileIdentity> currentSources = sourceFileIdentities(dirs);
-            switch (callback.call()) {
+            Waiter waiter = new ChangeBlocker(
+                dirs, currentSources, SourceFileChanges::filterOutLockFiles);
+            switch (callback.call(waiter)) {
             case CONTINUE:
                 // Remove the lock files from consideration.
-                waitForSourceChange(dirs, currentSources,
-                    SourceFileChanges::filterOutLockFiles);
+                waiter.await();
                 break;
             case EXIT:
                 return;
@@ -145,12 +165,27 @@ final class SourceFileChanges {
      * Helper class to make waitForSourceChange ForkJoinPool-friendly.
      */
     private static final class ChangeBlocker
-        implements ForkJoinPool.ManagedBlocker {
+        implements Waiter, ForkJoinPool.ManagedBlocker {
         private final DirectoryLayout dirs;
         private final Map<Path, FileIdentity> oldSources;
         private final Function<Map<Path, FileIdentity>,
             Map<Path, FileIdentity>> filter;
+
+        // Multiple threads can use the same Waiter, but they will
+        // wait separately (which is somewhat inefficient).  No
+        // synchronization is necessary because this field will only
+        // transition from false to true, and additional wait
+        // operations (using WatchService etc.) are not a problem.
         private boolean released;
+
+        @Override
+        public void await() throws IOException, InterruptedException {
+            try {
+                ForkJoinPool.managedBlock(this);
+            } catch (UncheckedIOException e) {
+                throw e.getCause();
+            }
+        }
 
         private ChangeBlocker(DirectoryLayout dirs,
             Map<Path, FileIdentity> oldSources,
