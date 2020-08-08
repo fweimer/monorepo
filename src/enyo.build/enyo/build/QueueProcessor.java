@@ -28,6 +28,7 @@ final class QueueProcessor extends Thread {
 
     Throwable threadException;
     volatile ScheduledTest currentTest;
+    int completed;
     int errors;
 
     private final GlobalTestingState global;
@@ -66,6 +67,7 @@ final class QueueProcessor extends Thread {
 
             if (!RunTests.runTest(global.testLayer(), test.locator()))
                 ++errors;
+            ++completed;
 
             currentTest = null;
 
