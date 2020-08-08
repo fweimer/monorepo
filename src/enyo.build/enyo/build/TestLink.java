@@ -48,16 +48,7 @@ final class TestLink implements Closeable {
                 Files.createDirectory(path);
         }
 
-        TestLink testLink = new TestLink(dirs);
-        boolean ok = false;
-        try {
-            testLink.cleanup();
-            ok = true;
-        } finally {
-            if (!ok)
-                testLink.close();
-        }
-        return testLink;
+        return new TestLink(dirs, true);
     }
 
     /**
@@ -66,7 +57,7 @@ final class TestLink implements Closeable {
      * @return the test link object
      */
     static TestLink forConsumer(DirectoryLayout dirs) throws IOException {
-        return new TestLink(Objects.requireNonNull(dirs));
+        return new TestLink(Objects.requireNonNull(dirs), false);
     }
 
     /**
@@ -197,15 +188,20 @@ final class TestLink implements Closeable {
     private final FileChannel lockChannel;
     private final FileLock lock;
 
-    private TestLink(DirectoryLayout dirs) throws IOException {
+    private TestLink(DirectoryLayout dirs, boolean cleanup) throws IOException {
         this.dirs = dirs;
-        lockChannel = FileChannel.open(pathLock(), StandardOpenOption.CREATE,
+        Path pathLock = dirs.testLink().resolve("lock");
+        lockChannel = FileChannel.open(pathLock, StandardOpenOption.CREATE,
             StandardOpenOption.WRITE);
         boolean good = false;
         try {
             lock = lockChannel.tryLock(0, 0, false);
             if (lock == null)
                 throw new IOException("Cannot lock " + dirs.testLink());
+
+            if (cleanup)
+                cleanup(dirs, pathLock);
+
             good = true;
         } finally {
             if (!good)
@@ -234,17 +230,10 @@ final class TestLink implements Closeable {
     }
 
     /**
-     * Path of the main lock file.
-     */
-    private final Path pathLock() {
-        return dirs.testLink().resolve("lock");
-    }
-
-    /**
      * Remove stale files in the test-link subdirectory.
      */
-    private void cleanup() throws IOException {
-        Path lock = pathLock();
+    private static void cleanup(DirectoryLayout dirs, Path lock)
+        throws IOException {
         Files.list(dirs.testLink())
             // Do not delete the lock file.
             .filter(p -> !p.equals(lock))
