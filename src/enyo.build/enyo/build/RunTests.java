@@ -196,12 +196,13 @@ public final class RunTests {
     /**
      * Invoked from enyo.build.Main to perform tests in a separate VM.
      */
-    static void testInSeparateVM(DirectoryLayout dirs, List<String> modules)
+    static void testInSeparateVM(DirectoryLayout dirs, List<String> modules,
+        SourceFileChanges.Waiter changeWaiter)
         throws IOException {
         TestLinkController controller;
         {
             long nanoStart = System.nanoTime();
-            controller = new TestLinkController(dirs, modules);
+            controller = new TestLinkController(dirs, modules, changeWaiter);
             long nanoEnd = System.nanoTime();
             if (controller.parameters().testCount() == 1)
                 System.out.format("info: 1 test prepared (%.3f s)%n",
@@ -237,7 +238,8 @@ public final class RunTests {
             }
         } catch (Exception e) {
             e.printStackTrace(System.err);
-            System.err.println("error: test VM launch failed, nothing tested");
+            System.err.println(
+                "error: test VM launch failed, nothing tested");
         }
 
         if (!controller.errors().isEmpty()) {

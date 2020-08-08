@@ -80,7 +80,8 @@ public final class Main {
                     }
                     document(dirs, modules);
                     if (TEST_IN_SEPARATE_VM)
-                        RunTests.testInSeparateVM(dirs, modules);
+                        RunTests.testInSeparateVM(
+                            dirs, modules, changeWaiter);
                     else
                         invokeRunTests(dirs, modules);
                     return SourceFileChanges.Result.CONTINUE;

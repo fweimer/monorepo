@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinTask;
 import java.util.stream.Collectors;
 
 /**
@@ -17,7 +19,8 @@ final class TestLinkController {
      * Sets up the {@code test-link} directory, so that tests can be
      * run in a separate VM via {@link RunTests}.
      */
-    TestLinkController(DirectoryLayout dirs, List<String> modules)
+    TestLinkController(DirectoryLayout dirs, List<String> modules,
+                       SourceFileChanges.Waiter changeWaiter)
         throws IOException {
         this.dirs = dirs;
 
@@ -56,6 +59,15 @@ final class TestLinkController {
             testLink.writeTests(QueueKind.RANDOM,
                 scratchList.stream()
                 .map(UnscheduledTest::scheduled));
+
+            SharedArray array = testLink.sharedArray();
+            this.changeWaiter = changeWaiter;
+            // Cancelling the changeWaiter terminates the waiting operation.
+            ForkJoinPool.commonPool().submit(() -> {
+                    changeWaiter.await();
+                    array.set(SharedArray.Slot.STOP_REQUESTED, 1);
+                    return null;
+                });
         }
     }
 
@@ -85,4 +97,5 @@ final class TestLinkController {
     private final TestLink.Parameters parameters;
     private final List<ScheduledTest> tests;
     private final List<String> errors;
+    private final SourceFileChanges.Waiter changeWaiter;
 }
