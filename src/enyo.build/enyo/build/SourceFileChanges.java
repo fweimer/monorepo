@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchService;
 import java.util.Map;
+import java.util.concurrent.ForkJoinPool;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -132,34 +133,82 @@ final class SourceFileChanges {
         Map<Path, FileIdentity> oldSources,
         Function<Map<Path, FileIdentity>, Map<Path, FileIdentity>> filter)
         throws IOException, InterruptedException {
-        oldSources = filter.apply(oldSources);
-        while (true) {
-            WatchService watcher =
-                dirs.sources().getFileSystem().newWatchService();
-            try {
-                try {
-                    registerSourceDirectories(dirs, watcher);
-                } catch (NoSuchFileException e) {
-                    // Make this more robust in the face of unexpected
-                    // iteration results.  As long as the top-level
-                    // directory exists, a traversal will eventually
-                    // succeed.
-                    if (Files.isDirectory(dirs.sources()))
-                        continue;
-                    else
-                        throw e;
-                }
+        try {
+            ForkJoinPool.managedBlock(
+                new ChangeBlocker(dirs, oldSources, filter));
+        } catch (UncheckedIOException e) {
+            throw e.getCause();
+        }
+    }
 
-                // This check must come after registering the
-                // watchers, otherwise changes can be missed.
+    /**
+     * Helper class to make waitForSourceChange ForkJoinPool-friendly.
+     */
+    private static final class ChangeBlocker
+        implements ForkJoinPool.ManagedBlocker {
+        private final DirectoryLayout dirs;
+        private final Map<Path, FileIdentity> oldSources;
+        private final Function<Map<Path, FileIdentity>,
+            Map<Path, FileIdentity>> filter;
+        private boolean released;
+
+        private ChangeBlocker(DirectoryLayout dirs,
+            Map<Path, FileIdentity> oldSources,
+            Function<Map<Path, FileIdentity>, Map<Path, FileIdentity>> filter) {
+            this.dirs = dirs;
+            this.oldSources = filter.apply(oldSources);
+            this.filter = filter;
+        }
+
+        @Override
+        public boolean isReleasable() {
+            try {
+                if (released)
+                    return true;
                 Map<Path, FileIdentity> currentSources =
                     filter.apply(sourceFileIdentities(dirs));
-                if (!currentSources.equals(oldSources))
-                    break;
-                watcher.take();
-            } finally {
-                watcher.close();
+                if (currentSources.equals(oldSources))
+                    return false;
+                released = true;
+                return true;
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
             }
+        }
+
+        @Override
+        public boolean block() throws InterruptedException {
+            try {
+                WatchService watcher =
+                    dirs.sources().getFileSystem().newWatchService();
+                try {
+                    try {
+                        registerSourceDirectories(dirs, watcher);
+                    } catch (NoSuchFileException e) {
+                        // Make this more robust in the face of unexpected
+                        // iteration results.  As long as the top-level
+                        // directory exists, a traversal will eventually
+                        // succeed.
+                        if (Files.isDirectory(dirs.sources()))
+                            // To be called again by managedBlock().
+                            return false;
+                        else
+                            throw e;
+                    }
+
+                    // This check must come after registering the
+                    // watchers, otherwise changes can be missed.
+                    if (isReleasable())
+                        return true;
+                    watcher.take();
+                } finally {
+                    watcher.close();
+                }
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+            // To be called again by managedBlock().
+            return false;
         }
     }
 
