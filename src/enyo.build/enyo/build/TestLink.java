@@ -80,6 +80,13 @@ final class TestLink implements Closeable {
     }
 
     /**
+     * Returns the shared array used for test link communication.
+     */
+    SharedArray sharedArray() {
+        return sharedArray;
+    }
+
+    /**
      * Writes a stream of test method locators under the name.
      * @see #openTestsList(String)
      * @see #readOneTest(DataInput)
@@ -185,6 +192,7 @@ final class TestLink implements Closeable {
     }
 
     private final DirectoryLayout dirs;
+    private final SharedArray sharedArray;
     private final FileChannel lockChannel;
     private final FileLock lock;
 
@@ -201,6 +209,8 @@ final class TestLink implements Closeable {
 
             if (cleanup)
                 cleanup(dirs, pathLock);
+
+            sharedArray = new SharedArray(dirs.testLink().resolve("shared"));
 
             good = true;
         } finally {
