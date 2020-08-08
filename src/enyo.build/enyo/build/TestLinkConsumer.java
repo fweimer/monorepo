@@ -20,8 +20,7 @@ final class TestLinkConsumer {
     TestLinkConsumer(TestLink testLink) throws IOException {
         this.testLink = testLink;
         this.parameters = testLink.readParameters();
-        this.state = new GlobalTestingState(
-            testLink.directoryLayout(), parameters);
+        this.state = new GlobalTestingState(testLink);
     }
 
     /**

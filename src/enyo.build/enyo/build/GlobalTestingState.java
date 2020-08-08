@@ -3,6 +3,8 @@ package enyo.build;
 import enyo.testing.introspect.ResourcesManager;
 import enyo.testing.introspect.ScheduledTestSet;
 
+import java.io.IOException;
+
 /**
  * This class collects global state related to test execution.
  */
@@ -12,12 +14,14 @@ final class GlobalTestingState {
      * test run.
      * @see TestLinkConsumer(TestLink)
      */
-    GlobalTestingState(DirectoryLayout dirs, TestLink.Parameters parameters) {
-        this.directoryLayout = dirs;
-        this.parameters = parameters;
-        this.testLayer = RunTests.testLayer(dirs, parameters.testModules());
+    GlobalTestingState(TestLink testLink) throws IOException {
+        this.directoryLayout = testLink.directoryLayout();
+        this.parameters = testLink.readParameters();
+        this.testLayer = RunTests.testLayer(
+            directoryLayout, parameters.testModules());
         this.startedTests = new ScheduledTestSet(parameters.testCount());
         this.resources = new ResourcesManager();
+        this.sharedArray = testLink.sharedArray();
     }
 
     ModuleLayer testLayer() {
@@ -45,8 +49,7 @@ final class GlobalTestingState {
      *   termination is requested
      */
     boolean stopRequested() {
-        // FIXME: Not yet implemented.
-        return false;
+        return sharedArray.get(SharedArray.Slot.STOP_REQUESTED) != 0;
     }
 
     /**
@@ -61,4 +64,5 @@ final class GlobalTestingState {
     private final ModuleLayer testLayer;
     private final ScheduledTestSet startedTests;
     private final ResourcesManager resources;
+    private final SharedArray sharedArray;
 }
