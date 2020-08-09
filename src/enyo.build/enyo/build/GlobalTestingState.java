@@ -11,8 +11,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 final class GlobalTestingState {
     /**
-     * Sets up the testing state.  This is suppoed to happen once per
-     * test run.
+     * Sets up the testing state.  This is supposed to happen once per
+     * test run.  Some changes to the virtual machine can be
+     * destructive to it (such as exiting because the test controller
+     * has issued a stop request).
      * @see TestLinkConsumer(TestLink)
      */
     GlobalTestingState(TestLink testLink) throws IOException {
@@ -23,6 +25,10 @@ final class GlobalTestingState {
         this.startedTests = new ScheduledTestSet(parameters.testCount());
         this.resources = new ResourcesManager();
         this.sharedArray = testLink.sharedArray();
+
+        // Launch the daemon thread that waits for test termination
+        // requests.
+        new ExitMonitorThread(this, testLink.lockArray()).start();
     }
 
     ModuleLayer testLayer() {

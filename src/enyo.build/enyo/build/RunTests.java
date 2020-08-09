@@ -199,52 +199,53 @@ public final class RunTests {
     static void testInSeparateVM(DirectoryLayout dirs, List<String> modules,
         SourceFileChanges.Waiter changeWaiter)
         throws IOException {
-        TestLinkController controller;
-        {
-            long nanoStart = System.nanoTime();
-            controller = new TestLinkController(dirs, modules, changeWaiter);
-            long nanoEnd = System.nanoTime();
-            if (controller.parameters().testCount() == 1)
-                System.out.format("info: 1 test prepared (%.3f s)%n",
-                    (nanoEnd - nanoStart) * 1e-9);
-            else
-                System.out.format("info: %d tests prepared (%.3f s)%n",
-                    controller.parameters().testCount(),
-                    (nanoEnd - nanoStart) * 1e-9);
-        }
-
-        try {
-            List<String> testModules =
-                FindTests.onlyTestModules(dirs, modules);
-
-            ArrayList<String> args = new ArrayList<>();
-            args.add(RelaunchVM.defaultLauncher());
-            args.add("--module-path");
-            args.add(dirs.buildGeneration().toString());
-
-            args.addAll(RelaunchVM.mainClassArguments(RunTests.class));
-
-            args.add(MODULAR_ARGUMENT);
-            args.add(dirs.root().toString());
-            args.add(Integer.toString(dirs.generation()));
-
-            ProcessBuilder pb = new ProcessBuilder(args);
-            pb.inheritIO();
-            Process process = pb.start();
-            try {
-                process.waitFor();
-            } finally {
-                process.destroy();
+        long nanoStart = System.nanoTime();
+        try (TestLinkController controller =
+            new TestLinkController(dirs, modules, changeWaiter)) {
+            {
+                long nanoEnd = System.nanoTime();
+                if (controller.parameters().testCount() == 1)
+                    System.out.format("info: 1 test prepared (%.3f s)%n",
+                        (nanoEnd - nanoStart) * 1e-9);
+                else
+                    System.out.format("info: %d tests prepared (%.3f s)%n",
+                        controller.parameters().testCount(),
+                        (nanoEnd - nanoStart) * 1e-9);
             }
-        } catch (Exception e) {
-            e.printStackTrace(System.err);
-            System.err.println(
-                "error: test VM launch failed, nothing tested");
-        }
 
-        if (!controller.errors().isEmpty()) {
-            System.err.println("error: There were non-execution errors.");
-            controller.errors().stream().forEach(System.err::println);
+            try {
+                List<String> testModules =
+                    FindTests.onlyTestModules(dirs, modules);
+
+                ArrayList<String> args = new ArrayList<>();
+                args.add(RelaunchVM.defaultLauncher());
+                args.add("--module-path");
+                args.add(dirs.buildGeneration().toString());
+
+                args.addAll(RelaunchVM.mainClassArguments(RunTests.class));
+
+                args.add(MODULAR_ARGUMENT);
+                args.add(dirs.root().toString());
+                args.add(Integer.toString(dirs.generation()));
+
+                ProcessBuilder pb = new ProcessBuilder(args);
+                pb.inheritIO();
+                Process process = pb.start();
+                try {
+                    process.waitFor();
+                } finally {
+                    process.destroy();
+                }
+            } catch (Exception e) {
+                e.printStackTrace(System.err);
+                System.err.println(
+                    "error: test VM launch failed, nothing tested");
+            }
+
+            if (!controller.errors().isEmpty()) {
+                System.err.println("error: There were non-execution errors.");
+                controller.errors().stream().forEach(System.err::println);
+            }
         }
     }
 

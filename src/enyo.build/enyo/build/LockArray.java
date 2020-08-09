@@ -25,26 +25,34 @@ final class LockArray implements Closeable {
      * The underlying lock file is created, and the file is rewritten
      * as necessary.
      * @param path the path to the lock file
+     * @param toLock locks to acquire
      */
-    public LockArray(Path path) throws IOException {
+    public LockArray(Path path, Lock... toLock) throws IOException {
         lockChannel = createLockFile(path);
 
         try {
-            // The marker object is released lock on the entire file.
-            marker = lockChannel.lock(0, 0, false);
+            // The marker object is a released shared lock for an
+            // otherwise-unused lock file region.
+            marker = lockChannel.lock(Lock.values().length, 1, true);
             marker.release();
 
             // Obtaining the main lock is special because it is used
             // for error-checking the external synchronization.  If it
             // cannot be acquired, it is an error.
-            FileLock lock = tryLock0(Lock.MAIN);
-            if (lock == null)
-                try {
-                    throw new IOException(path + ": Cannot acquire main lock");
-                } finally {
-                    lockChannel.close();
+            {
+                FileLock lock = tryLock0(Lock.MAIN);
+                if (lock == null)
+                    try {
+                        throw new IOException(
+                            path + ": Cannot acquire main lock");
+                    } finally {
+                        lockChannel.close();
                 }
-            locks.put(Lock.MAIN, lock);
+                locks.put(Lock.MAIN, lock);
+            }
+
+            for (Lock lock : toLock)
+                lock(lock);
         } catch (Throwable e) {
             try {
                 throw e;
@@ -74,6 +82,13 @@ final class LockArray implements Closeable {
          * is not destructively modified while tests are running.
          */
         MAIN,
+
+        /**
+         * While this lock cannot be acquired (for a second time), the
+         * tests hould keep running.  The test link consumer can use
+         * this lock to wait for source changes.
+         */
+        TEST_STOP,
         ;
     }
 
@@ -135,7 +150,8 @@ final class LockArray implements Closeable {
         new EnumMap<>(Lock.class));
 
     private static FileChannel createLockFile(Path path) throws IOException {
-        int size = Lock.values().length;
+        // One extra lock for the marker FileLock.
+        int size = Lock.values().length + 1;
 
         FileChannel channel = FileChannel.open(path,
             StandardOpenOption.CREATE,

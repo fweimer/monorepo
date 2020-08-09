@@ -46,7 +46,7 @@ final class TestLink implements Closeable {
                 Files.createDirectory(path);
         }
 
-        return new TestLink(dirs, true);
+        return new TestLink(dirs, true, LockArray.Lock.TEST_STOP);
     }
 
     /**
@@ -78,6 +78,13 @@ final class TestLink implements Closeable {
      */
     SharedArray sharedArray() {
         return sharedArray;
+    }
+
+    /**
+     * Returns the locks used for test link coordination.
+     */
+    LockArray lockArray() {
+        return lockArray;
     }
 
     /**
@@ -189,10 +196,11 @@ final class TestLink implements Closeable {
     private final LockArray lockArray;
     private final SharedArray sharedArray;
 
-    private TestLink(DirectoryLayout dirs, boolean cleanup) throws IOException {
+    private TestLink(DirectoryLayout dirs, boolean cleanup,
+                     LockArray.Lock... toLock) throws IOException {
         this.dirs = dirs;
         Path pathLock = dirs.testLink().resolve("lock");
-        lockArray = new LockArray(pathLock);
+        lockArray = new LockArray(pathLock, toLock);
         boolean good = false;
         try {
             if (cleanup)
