@@ -56,6 +56,18 @@ public interface Examiner<T> {
     public Examiner<T> isNotSame(T other);
 
     /**
+     * Reports an error if the reference is not null.
+     * @return this object
+     */
+    public Examiner<T> isNull();
+
+    /**
+     * Reports an error if the reference is null.
+     * @return this object
+     */
+    public Examiner<T> isNotNull();
+
+    /**
      * Reports an error if the checked object does not have the given
      * class.  It is still a failure if the object's class is a subclass
      * of the given class.

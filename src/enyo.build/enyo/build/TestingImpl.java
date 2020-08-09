@@ -70,13 +70,6 @@ final class TestingImpl implements Testing {
             }
 
             @Override
-            public Examiner<T> isExactClass(Class<? extends T> cls) {
-                if (value.getClass() != cls)
-                    recordFailure(context, "exact class", value, cls);
-                return this;
-            }
-
-            @Override
             public Examiner<T> isNotSame(T other) {
                 if (value == null)
                     recordFailure(context, "not null", value);
@@ -84,6 +77,31 @@ final class TestingImpl implements Testing {
                     recordFailure(context, "not null", other);
                 if (value != null && value == other)
                     recordFailure(context, "!=", value, other);
+                return this;
+            }
+
+            @Override
+            public Examiner<T> isNull() {
+                if (value != null)
+                    recordFailure(context, "null", value);
+                return this;
+            }
+
+            @Override
+            public Examiner<T> isNotNull() {
+                if (value == null)
+                    recordFailure(context, "not null", value);
+                return this;
+            }
+
+            @Override
+            public Examiner<T> isExactClass(Class<? extends T> cls) {
+                if (value == null)
+                    recordFailure(context, "not null", value);
+                if (cls == null)
+                    recordFailure(context, "not null", cls);
+                if (value != null && cls != null && value.getClass() != cls)
+                    recordFailure(context, "exact class", value, cls);
                 return this;
             }
         };
@@ -230,6 +248,7 @@ final class TestingImpl implements Testing {
     }
 
     @Override
+    @Deprecated
     public void assertNull(Object obj) {
         if (obj != null) {
             failed = true;
@@ -239,6 +258,7 @@ final class TestingImpl implements Testing {
     }
 
     @Override
+    @Deprecated
     public void assertNull(String message, Object obj) {
         if (obj != null) {
             failed = true;

@@ -107,6 +107,7 @@ public interface Testing {
      * This function acts as a {@linkplain #fullBarrier() full test barrier}.
      * @param obj the reference to check
      */
+    @Deprecated
     public void assertNull(Object obj);
 
     /**
@@ -116,6 +117,7 @@ public interface Testing {
      * @param message an information string to include in the error message
      * @param obj the reference to check
      */
+    @Deprecated
     public void assertNull(String message, Object obj);
 
     /**
