@@ -158,7 +158,7 @@ public final class TestScheduledTestSet {
         for (Runner r : threads)
             r.join();
         for (Runner r : threads)
-            t.assertNull(r.exception);
+            t.examine(r.exception).isNull();
 
         // Checks that the stream has the expected length and no
         // duplicates.

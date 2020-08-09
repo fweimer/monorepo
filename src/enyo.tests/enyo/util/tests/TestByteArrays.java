@@ -364,7 +364,7 @@ public final class TestByteArrays {
 
                             var sp2 = sp.trySplit();
                             if (toIndex - fromIndex <= 1) {
-                                t.assertNull(sp2);
+                                t.examine(sp2).isNull();
                                 actual.clear();
                                 transfer(t, sp, actual, spAdvance != 0);
                                 t.<List<?>>examine(actual)
