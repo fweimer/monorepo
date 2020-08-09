@@ -29,6 +29,7 @@ final class TestClassDetails {
 
     private final TestResources resources;
     private final double cost;
+    private final boolean exitDuringTest;
 
     // Long.MIN_VALUE + 1 if unknown (to help with negative sorting).
     private final long sourceFileChange;
@@ -61,6 +62,21 @@ final class TestClassDetails {
                 classErrors.add(e.getMessage());
             }
             cost = cost0;
+        }
+
+        {
+            boolean exitDuringTest0 = false;
+            try {
+                exitDuringTest0 = clazz.annotations()
+                    .filter(ann -> ann.descriptor().equals(
+                            Descriptors.ExitDuringTest))
+                    .findFirst()
+                    .map(ExitDuringTestParser::parse)
+                    .orElse(false);
+            } catch (AnnotationParseException | ClassFileException e) {
+                classErrors.add(e.getMessage());
+            }
+            exitDuringTest = exitDuringTest0;
         }
 
         sourceFileChange = guessSourcePath(dirs, module, clazz)

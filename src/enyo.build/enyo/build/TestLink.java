@@ -263,6 +263,7 @@ final class TestLink implements Closeable {
         out.writeInt(test.id());
         writeTestMethodLocator(out, test.locator());
         writeTestResources(out, test.resources());
+        out.writeBoolean(test.exitDuringTest());
     }
 
     private static ScheduledTest readScheduledTest(DataInput in)
@@ -270,7 +271,8 @@ final class TestLink implements Closeable {
         int id = in.readInt();
         TestMethodLocator locator = readTestMethodLocator(in);
         TestResources resources = readTestResources(in);
-        return new ScheduledTest(id, locator, resources);
+        boolean exitDuringTest = in.readBoolean();
+        return new ScheduledTest(id, locator, resources, exitDuringTest);
     }
 
     private static void writeTestResources(DataOutput out,

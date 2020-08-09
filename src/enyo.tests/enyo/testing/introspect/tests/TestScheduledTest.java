@@ -18,7 +18,7 @@ public final class TestScheduledTest {
             "testWithModuleName",
             true);
         TestResources tr = new TestResources(1, 2);
-        ScheduledTest st = new ScheduledTest(17, tml, tr);
+        ScheduledTest st = new ScheduledTest(17, tml, tr, false);
         t.assertEquals(17, st.id());
         t.assertSame(tml, st.locator());
         t.assertSame(tr, st.resources());
@@ -29,14 +29,14 @@ public final class TestScheduledTest {
 
     @Test
     public static void testNullPointerException(Testing t) {
-        t.expect(() -> new ScheduledTest(17, null, TestResources.DEFAULT),
+        t.expect(() -> new ScheduledTest(17, null, TestResources.DEFAULT, false),
             NullPointerException.class);
         TestMethodLocator tml = new TestMethodLocator(
             Optional.of("enyo.tests"),
             TestTestMethodLocator.class.getName(),
             "testWithModuleName",
             true);
-        t.expect(() -> new ScheduledTest(17, tml, null),
+        t.expect(() -> new ScheduledTest(17, tml, null, false),
             NullPointerException.class);
     }
 }

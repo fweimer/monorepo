@@ -15,6 +15,7 @@ final class TestMethodDetails {
     boolean hasTestingArgument;
     TestResources resources;
     double cost;
+    boolean exitDuringTest;
     String error;
 
     TestMethodDetails(TestClassDetails classDetails, Method method) {
@@ -37,6 +38,13 @@ final class TestMethodDetails {
                     else if (ann.descriptor().equals(Descriptors.Cost))
                         try {
                             cost = CostParser.parse(ann);
+                        } catch (AnnotationParseException e) {
+                            error = e.getMessage();
+                        }
+                    else if (ann.descriptor().equals(
+                            Descriptors.ExitDuringTest))
+                        try {
+                            exitDuringTest = ExitDuringTestParser.parse(ann);
                         } catch (AnnotationParseException e) {
                             error = e.getMessage();
                         }

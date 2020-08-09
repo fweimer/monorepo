@@ -186,6 +186,6 @@ public final class TestScheduledTestSet {
             new TestMethodLocator(Optional.empty(),
                 "enyo.tests.TestClass",
                 "m" + id, false),
-            TestResources.DEFAULT);
+            TestResources.DEFAULT, false);
     }
 }

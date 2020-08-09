@@ -114,7 +114,8 @@ final class FindTests {
                     new UnscheduledTest(new ScheduledTest(
                             idSource.getAndIncrement(),
                             method.locator(),
-                            method.resources()),
+                            method.resources(),
+                            method.exitDuringTest),
                         method.classDetails.sourceFileChange(),
                         method.cost)))
             .collect(Result.Collectors.toCollection(

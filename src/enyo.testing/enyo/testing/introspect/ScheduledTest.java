@@ -17,14 +17,17 @@ public final class ScheduledTest implements Serializable {
      * @param id the test ID
      * @param locator information on how to load the test
      * @param resources projected resource use of the test
+     * @param exitDuringTest if the test harness may terminate the
+     *   virtual machine while this test is running
      * @throws NullPointerException if {@code locator} or {@code resources}
      *   is null
      */
     public ScheduledTest(int id, TestMethodLocator locator,
-        TestResources resources) {
+        TestResources resources, boolean exitDuringTest) {
         this.id = id;
         this.locator = Objects.requireNonNull(locator, "locator");
         this.resources = Objects.requireNonNull(resources, "resources");
+        this.exitDuringTest = exitDuringTest;
     }
 
     /**
@@ -52,6 +55,16 @@ public final class ScheduledTest implements Serializable {
         return resources;
     }
 
+    /**
+     * Returns true if an {@link enyo.testing.ExitDuringTest} annotation
+     * with a true value applies to this test.
+     * @return whether the test harness may terminate the virtual machine
+     *   while this test is running
+     */
+    public boolean exitDuringTest() {
+        return exitDuringTest;
+    }
+
     @Override
     public String toString() {
         return String.format("%s [%d] %s", locator, id, resources);
@@ -71,6 +84,11 @@ public final class ScheduledTest implements Serializable {
      * @see #resources()
      */
     private final TestResources resources;
+
+    /**
+     * @see #exitDuringTest()
+     */
+    private final boolean exitDuringTest;
 
     private static final long serialVersionUID = 0x24941f066eba81e5L;
 }
