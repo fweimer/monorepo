@@ -1,0 +1,174 @@
+package enyo.testing;
+
+/**
+ * Wrapper for an object reference that is being examined during a test.
+ *
+ * Examiners provide a more type-safe way to do object comparisons
+ * because the {@link Testing#examine(Object)} function freezes the
+ * type parameter, and the compiler will not infer a common base class
+ * such as {@code Object} on a type mismatch, but rather report an
+ * error.
+ *
+ * @param <T> the type of the object being examined
+ * @see Testing#examine(Object)
+ */
+public interface Examiner<T> {
+    /**
+     * Sets the context string for the following checks.
+     * @param context a message to be included in test failures
+     * @return this object
+     * @throws NullPointerException if {@code context} is null
+     */
+    public Examiner<T> context(String context);
+
+    /**
+     * Reports an error if the two values are not equal according to
+     * {@link java.util.Objects#equals(Object,Object)}.
+     * Errors are also reported if the references are null.
+     * @param other the other value under comparison
+     * @return this object
+     */
+    public Examiner<T> is(T other);
+
+    /**
+     * Reports an error if the two values are equal according to
+     * {@link java.util.Objects#equals(Object,Object)}.
+     * Errors are also reported if the references are null.
+     * @param other the other value under comparison
+     * @return this object
+     */
+    public Examiner<T> isnt(T other);
+
+    /**
+     * Reports an error if the two references are not the same.
+     * Errors are also reported if the references are null.
+     * @param other the other value under comparison
+     * @return this object
+     */
+    public Examiner<T> isSame(T other);
+
+    /**
+     * Reports an error if the two references are the same.
+     * Errors are also reported if the references are null.
+     * @param other the other value under comparison
+     * @return this object
+     */
+    public Examiner<T> isNotSame(T other);
+
+    /**
+     * Reports an error if the checked object does not have the given
+     * class.  It is still a failure if the object's class is a subclass
+     * of the given class.
+     * @param cls the expected class
+     * @return this object
+     */
+    public Examiner<T> isExactClass(Class<? extends T> cls);
+
+    /**
+     * Wrapper for an {@code int} value that is examined during a test.
+     */
+    public interface OfInt {
+        /**
+         * Sets the context string for the following checks.
+         * @param context a message to be included in test failures
+         * @return this object
+         * @throws NullPointerException if {@code context} is null
+         */
+        public OfInt context(String context);
+
+        /**
+         * Reports an error if the two values are not equal.
+         * @param other the other value under comparison
+         * @return this object
+         */
+        public OfInt is(int other);
+
+        /**
+         * Reports an error if the two values are equal.
+         * @param other the other value under comparison
+         * @return this object
+         */
+        public OfInt isnt(int other);
+    }
+
+    /**
+     * Wrapper for a {@code long} value that is examined during a test.
+     */
+    public interface OfLong {
+        /**
+         * Sets the context string for the following checks.
+         * @param context a message to be included in test failures
+         * @return this object
+         * @throws NullPointerException if {@code context} is null
+         */
+        public OfLong context(String context);
+
+        /**
+         * Reports an error if the two values are not equal.
+         * @param other the other value under comparison
+         * @return this object
+         */
+        public OfLong is(long other);
+
+        /**
+         * Reports an error if the two values are equal.
+         * @param other the other value under comparison
+         * @return this object
+         */
+        public OfLong isnt(long other);
+    }
+
+    /**
+     * Wrapper for a {@code double} value that is examined during a test.
+     */
+    public interface OfDouble {
+        /**
+         * Sets the context string for the following checks.
+         * @param context a message to be included in test failures
+         * @return this object
+         * @throws NullPointerException if {@code context} is null
+         */
+        public OfDouble context(String context);
+
+        /**
+         * Reports an error if the two values are not equal.
+         * @param other the other value under comparison
+         * @return this object
+         */
+        public OfDouble is(double other);
+
+        /**
+         * Reports an error if the two values are equal.
+         * @param other the other value under comparison
+         * @return this object
+         */
+        public OfDouble isnt(double other);
+    }
+
+    /**
+     * Wrapper for a {@code char} value that is examined during a test.
+     */
+    public interface OfChar {
+        /**
+         * Sets the context string for the following checks.
+         * @param context a message to be included in test failures
+         * @return this object
+         * @throws NullPointerException if {@code context} is null
+         */
+        public OfChar context(String context);
+
+        /**
+         * Reports an error if the two values are not equal.
+         * @param other the other value under comparison
+         * @return this object
+         */
+        public OfChar is(char other);
+
+        /**
+         * Reports an error if the two values are equal.
+         * @param other the other value under comparison
+         * @return this object
+         */
+        public OfChar isnt(char other);
+    }
+}

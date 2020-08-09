@@ -1,5 +1,6 @@
 package enyo.build;
 
+import enyo.testing.Examiner;
 import enyo.testing.Testing;
 import enyo.testing.TestFailure;
 import enyo.testing.TestAlreadyFailed;
@@ -22,6 +23,178 @@ final class TestingImpl implements Testing {
     public void fullBarrier() {
         if (failed)
             throw new TestAlreadyFailed();
+    }
+
+    @Override
+    public <T> Examiner<T> examine(T value) {
+        return new Examiner<>() {
+            private String context;
+
+            @Override
+            public Examiner<T> context(String context) {
+                context = Objects.requireNonNull(context);
+                return this;
+            }
+
+            @Override
+            public Examiner<T> is(T other) {
+                if (value == null)
+                    recordFailure(context, "not null", value);
+                if (other == null)
+                    recordFailure(context, "not null", other);
+                if (!Objects.equals(value, other))
+                    recordFailure(context, "equals", value, other);
+                return this;
+            }
+
+            @Override
+            public Examiner<T> isnt(T other) {
+                if (value == null)
+                    recordFailure(context, "not null", value);
+                if (other == null)
+                    recordFailure(context, "not null", other);
+                if (Objects.equals(value, other))
+                    recordFailure(context, "not equals", value, other);
+                return this;
+            }
+
+            @Override
+            public Examiner<T> isSame(T other) {
+                if (value == null)
+                    recordFailure(context, "not null", value);
+                if (other == null)
+                    recordFailure(context, "not null", other);
+                if (value != null && value != other)
+                    recordFailure(context, "==", value, other);
+                return this;
+            }
+
+            @Override
+            public Examiner<T> isExactClass(Class<? extends T> cls) {
+                if (value.getClass() != cls)
+                    recordFailure(context, "exact class", value, cls);
+                return this;
+            }
+
+            @Override
+            public Examiner<T> isNotSame(T other) {
+                if (value == null)
+                    recordFailure(context, "not null", value);
+                if (other == null)
+                    recordFailure(context, "not null", other);
+                if (value != null && value == other)
+                    recordFailure(context, "!=", value, other);
+                return this;
+            }
+        };
+    }
+
+    @Override
+    public Examiner.OfInt examine(int value) {
+        return new Examiner.OfInt() {
+            private String context;
+
+            @Override
+            public Examiner.OfInt context(String context) {
+                context = Objects.requireNonNull(context);
+                return this;
+            }
+
+            @Override
+            public Examiner.OfInt is(int other) {
+                if (value != other)
+                    recordFailure(context, "==", value, other);
+                return this;
+            }
+
+            @Override
+            public Examiner.OfInt isnt(int other) {
+                if (value == other)
+                    recordFailure(context, "!=", value, other);
+                return this;
+            }
+        };
+    }
+
+    @Override
+    public Examiner.OfLong examine(long value) {
+        return new Examiner.OfLong() {
+            private String context;
+
+            @Override
+            public Examiner.OfLong context(String context) {
+                context = Objects.requireNonNull(context);
+                return this;
+            }
+
+            @Override
+            public Examiner.OfLong is(long other) {
+                if (value != other)
+                    recordFailure(context, "==", value, other);
+                return this;
+            }
+
+            @Override
+            public Examiner.OfLong isnt(long other) {
+                if (value == other)
+                    recordFailure(context, "!=", value, other);
+                return this;
+            }
+        };
+    }
+
+    @Override
+    public Examiner.OfDouble examine(double value) {
+        return new Examiner.OfDouble() {
+            private String context;
+
+            @Override
+            public Examiner.OfDouble context(String context) {
+                context = Objects.requireNonNull(context);
+                return this;
+            }
+
+            @Override
+            public Examiner.OfDouble is(double other) {
+                if (value != other)
+                    recordFailure(context, "==", value, other);
+                return this;
+            }
+
+            @Override
+            public Examiner.OfDouble isnt(double other) {
+                if (value == other)
+                    recordFailure(context, "!=", value, other);
+                return this;
+            }
+        };
+    }
+
+    @Override
+    public Examiner.OfChar examine(char value) {
+        return new Examiner.OfChar() {
+            private String context;
+
+            @Override
+            public Examiner.OfChar context(String context) {
+                context = Objects.requireNonNull(context);
+                return this;
+            }
+
+            @Override
+            public Examiner.OfChar is(char other) {
+                if (value != other)
+                    recordFailure(context, "==", value, other);
+                return this;
+            }
+
+            @Override
+            public Examiner.OfChar isnt(char other) {
+                if (value == other)
+                    recordFailure(context, "!=", value, other);
+                return this;
+            }
+        };
     }
 
     @Override
@@ -93,6 +266,7 @@ final class TestingImpl implements Testing {
     }
 
     @Override
+    @Deprecated
     public void assertEquals(Object left, Object right) {
         if (!Objects.equals(left, right)) {
             failed = true;
@@ -102,6 +276,7 @@ final class TestingImpl implements Testing {
     }
 
     @Override
+    @Deprecated
     public void assertEquals(String message, Object left, Object right) {
         if (!Objects.equals(left, right)) {
             failed = true;
@@ -111,6 +286,7 @@ final class TestingImpl implements Testing {
     }
 
     @Override
+    @Deprecated
     public void assertNotEquals(Object left, Object right) {
         if (Objects.equals(left, right)) {
             failed = true;
@@ -266,5 +442,27 @@ final class TestingImpl implements Testing {
         failed = true;
         throw new TestFailure("Missing expected exception "
             + exception.getName() + label);
+    }
+
+    private void recordFailure(String context, String check, Object value) {
+        failed = true;
+        synchronized (System.err) {
+            if (context == null)
+                System.err.format("%s: error: failed test: %s%n",
+                    test, check);
+            else
+                System.err.format("%s: error: failed test: %s: %s%n",
+                    test, context, check);
+            StackWalker walker = StackWalker.getInstance();
+            walker.forEach(frame ->
+                System.err.format("\t%s%n", frame));
+        }
+    }
+
+    private void recordFailure(String context, String check, Object left,
+        Object right) {
+        // Object data is not recorded yet, so the two implementations
+        // are the same.
+        recordFailure(context, check, left);
     }
 }

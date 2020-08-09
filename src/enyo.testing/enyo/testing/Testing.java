@@ -14,6 +14,43 @@ public interface Testing {
      */
     public void fullBarrier();
 
+
+    /**
+     * Returns an examiner for the specified object reference.
+     * @param <T> the type of the object being examined
+     * @param object the object reference being examined
+     * @return an examiner for the object
+     */
+    public <T> Examiner<T> examine(T object);
+
+    /**
+     * Returns an examiner for an {@code int} value.
+     * @param value the value that is being examined
+     * @return an examiner for the value
+     */
+    public Examiner.OfInt examine(int value);
+
+    /**
+     * Returns an examiner for an {@code long} value.
+     * @param value the value that is being examined
+     * @return an examiner for the value
+     */
+    public Examiner.OfLong examine(long value);
+
+    /**
+     * Returns an examiner for an {@code double} value.
+     * @param value the value that is being examined
+     * @return an examiner for the value
+     */
+    public Examiner.OfDouble examine(double value);
+
+    /**
+     * Returns an examiner for an {@code char} value.
+     * @param value the value that is being examined
+     * @return an examiner for the value
+     */
+    public Examiner.OfChar examine(char value);
+
     /**
      * Logs a test as unsupported.  Does not act as a barrier, and
      * does not count as a test failure.
@@ -89,6 +126,7 @@ public interface Testing {
      * @param left the first object
      * @param right the second object
      */
+    @Deprecated
     public void assertEquals(Object left, Object right);
 
     /**
@@ -100,6 +138,7 @@ public interface Testing {
      * @param left the first object
      * @param right the second object
      */
+    @Deprecated
     public void assertEquals(String message, Object left, Object right);
 
     /**
@@ -110,6 +149,7 @@ public interface Testing {
      * @param left the first object
      * @param right the second object
      */
+    @Deprecated
     public void assertNotEquals(Object left, Object right);
 
     /**
