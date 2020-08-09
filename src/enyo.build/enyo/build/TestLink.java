@@ -20,8 +20,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
-import java.nio.channels.FileChannel;
-import java.nio.channels.FileLock;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -65,11 +63,7 @@ final class TestLink implements Closeable {
      */
     @Override
     public void close() throws IOException {
-        try {
-            lock.release();
-        } finally {
-            lockChannel.close();
-        }
+        lockArray.close();
     }
 
     /**
@@ -192,21 +186,15 @@ final class TestLink implements Closeable {
     }
 
     private final DirectoryLayout dirs;
+    private final LockArray lockArray;
     private final SharedArray sharedArray;
-    private final FileChannel lockChannel;
-    private final FileLock lock;
 
     private TestLink(DirectoryLayout dirs, boolean cleanup) throws IOException {
         this.dirs = dirs;
         Path pathLock = dirs.testLink().resolve("lock");
-        lockChannel = FileChannel.open(pathLock, StandardOpenOption.CREATE,
-            StandardOpenOption.WRITE);
+        lockArray = new LockArray(pathLock);
         boolean good = false;
         try {
-            lock = lockChannel.tryLock(0, 0, false);
-            if (lock == null)
-                throw new IOException("Cannot lock " + dirs.testLink());
-
             if (cleanup)
                 cleanup(dirs, pathLock);
 
@@ -215,7 +203,7 @@ final class TestLink implements Closeable {
             good = true;
         } finally {
             if (!good)
-                lockChannel.close();
+                lockArray.close();
         }
     }
 
