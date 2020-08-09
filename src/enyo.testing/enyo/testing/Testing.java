@@ -163,7 +163,7 @@ public interface Testing {
      * @param <E> the type of the expected exception
      */
     public <E extends Throwable> void expect(
-        ThrowingAction source, Class<E> exception,
+        ThrowingRunnable source, Class<E> exception,
         Consumer<? super E> consumer);
 
     /**
@@ -173,7 +173,7 @@ public interface Testing {
      * @param <E> the type of the expected exception
      */
     public <E extends Throwable> void expect(
-        ThrowingAction source, Class<E> exception);
+        ThrowingRunnable source, Class<E> exception);
 
     /**
      * Checks that an expected exception is thrown.
@@ -185,7 +185,7 @@ public interface Testing {
      * @param <E> the type of the expected exception
      */
     public <E extends Throwable> void expect(String label,
-        ThrowingAction source, Class<E> exception,
+        ThrowingRunnable source, Class<E> exception,
         Consumer<? super E> consumer);
 
     /**
@@ -196,5 +196,5 @@ public interface Testing {
      * @param <E> the type of the expected exception
      */
     public <E extends Throwable> void expect(String label,
-        ThrowingAction source, Class<E> exception);
+        ThrowingRunnable source, Class<E> exception);
 }

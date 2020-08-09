@@ -3,7 +3,7 @@ package enyo.build;
 import enyo.testing.Testing;
 import enyo.testing.TestFailure;
 import enyo.testing.TestAlreadyFailed;
-import enyo.testing.ThrowingAction;
+import enyo.testing.ThrowingRunnable;
 import enyo.testing.introspect.TestMethodLocator;
 
 import java.util.Arrays;
@@ -216,37 +216,37 @@ final class TestingImpl implements Testing {
 
     @Override
     public <E extends Throwable> void expect(
-        ThrowingAction source, Class<E> exception,
+        ThrowingRunnable source, Class<E> exception,
         Consumer<? super E> consumer) {
         expect0("", source, exception, consumer);
     }
 
     @Override
     public <E extends Throwable> void expect(
-        ThrowingAction source, Class<E> exception) {
+        ThrowingRunnable source, Class<E> exception) {
         expect(source, exception, e -> { });
     }
 
     @Override
     public <E extends Throwable> void expect(String label,
-        ThrowingAction source, Class<E> exception,
+        ThrowingRunnable source, Class<E> exception,
         Consumer<? super E> consumer) {
         expect0(" for: " + label, source, exception, consumer);
     }
 
     @Override
     public <E extends Throwable> void expect(String label,
-        ThrowingAction source, Class<E> exception) {
+        ThrowingRunnable source, Class<E> exception) {
         expect(label, source, exception, e -> { });
     }
 
     private <T, E extends Throwable> void expect0(
-        String label, ThrowingAction source,
+        String label, ThrowingRunnable source,
         Class<E> exception, Consumer<? super E> consumer) {
         Objects.requireNonNull(exception, "exception");
         Objects.requireNonNull(consumer, "consumer");
         try {
-            source.perform();
+            source.run();
         } catch (Throwable t) {
             if (exception.isAssignableFrom(t.getClass()))
                 try {
