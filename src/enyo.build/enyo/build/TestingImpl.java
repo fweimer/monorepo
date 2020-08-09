@@ -48,6 +48,13 @@ final class TestingImpl implements Testing {
             }
 
             @Override
+            public Examiner<T> nullableIs(T other) {
+                if (!Objects.equals(value, other))
+                    recordFailure(context, "equals", value, other);
+                return this;
+            }
+
+            @Override
             public Examiner<T> isnt(T other) {
                 if (value == null)
                     recordFailure(context, "not null", value);

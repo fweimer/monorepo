@@ -24,11 +24,22 @@ public interface Examiner<T> {
     /**
      * Reports an error if the two values are not equal according to
      * {@link java.util.Objects#equals(Object,Object)}.
-     * Errors are also reported if the references are null.
+     * Errors are also reported if the references are null;
+     * {@link #nullableIs(Object)} does not report an error in this case.
      * @param other the other value under comparison
      * @return this object
      */
     public Examiner<T> is(T other);
+
+    /**
+     * Reports an error if the two values are not equal according to
+     * {@link java.util.Objects#equals(Object,Object)}.
+     * No errors are reported if both references are null.
+     * @param other the other value under comparison
+     * @return this object
+     * @see #is(Object)
+     */
+    public Examiner<T> nullableIs(T other);
 
     /**
      * Reports an error if the two values are equal according to
