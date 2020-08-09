@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
  * suppressed objects).
  *
  * @see Throwable
+ * @see ErasedThrowable
  */
 public final class ThrowableErasure implements Serializable {
     /**
