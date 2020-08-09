@@ -19,7 +19,7 @@ public final class TestIOSupplier {
         // Does not actually open anything because there is a default.
         InputStream in = optionalStream.orElseGet(
             IOSupplier.of(() -> Files.newInputStream(path)));
-        t.assertSame(optionalStream.get(), in);
+        t.examine(in).isSame(optionalStream.get());
     }
 
     @Test

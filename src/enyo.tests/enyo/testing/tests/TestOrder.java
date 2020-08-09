@@ -72,7 +72,7 @@ public final class TestOrder {
             .close();
         t.expect(() -> c.check(), Order.ObjectFailure.class, e -> {
                 t.examine(e.failed()).is(Order.Failed.EQUALS_NULL);
-                t.assertSame(item, e.object());
+                t.examine(e.object()).isSame(item);
             });
     }
 
@@ -94,8 +94,8 @@ public final class TestOrder {
         c.add(new EqualsFalse());
         t.expect(() -> c.check(), Order.PairFailure.class, e -> {
                 t.examine(e.failed()).is(Order.FailedPair.EQUALS);
-                t.assertSame(item, e.left());
-                t.assertSame(item, e.right());
+                t.examine(e.left()).isSame(item);
+                t.examine(e.right()).isSame(item);
             });
     }
 
@@ -126,8 +126,8 @@ public final class TestOrder {
             .close();
         t.expect(() -> c.check(), Order.PairFailure.class, e -> {
                 t.examine(e.failed()).is(Order.FailedPair.HASH_CODE);
-                t.assertSame(item1, e.left());
-                t.assertSame(item2, e.right());
+                t.examine(e.left()).isSame(item1);
+                t.examine(e.right()).isSame(item2);
             });
     }
 
@@ -145,8 +145,8 @@ public final class TestOrder {
         c.add(4);
         Consumer<Order.PairFailure> verify = e -> {
             t.examine(e.failed()).is(Order.FailedPair.EQUALS);
-            t.assertSame(item1, e.left());
-            t.assertSame(item2, e.right());
+            t.examine(e.left()).isSame(item1);
+            t.examine(e.right()).isSame(item2);
         };
         t.expect(() -> c.check(), Order.PairFailure.class, verify);
         t.expect(() -> c.checkComparable(Integer.class),
@@ -161,7 +161,7 @@ public final class TestOrder {
         t.expect(() -> c.checkComparable(Integer.class),
             Order.ObjectFailure.class, e -> {
                 t.examine(e.failed()).is(Order.Failed.COMPARABLE);
-                t.assertSame(item, e.object());
+                t.examine(e.object()).isSame(item);
             });
     }
 
@@ -176,8 +176,8 @@ public final class TestOrder {
             Order.PairFailure.class, e -> {
                 t.examine(e.failed()).is(Order.FailedPair.COMPARE_TO);
                 t.examine(e.expectedComparison()).is(-1);
-                t.assertSame(item2, e.left());
-                t.assertSame(item1, e.right());
+                t.examine(e.left()).isSame(item2);
+                t.examine(e.right()).isSame(item1);
             });
     }
 
@@ -197,8 +197,8 @@ public final class TestOrder {
             Order.PairFailure.class, e -> {
                 t.examine(e.failed()).is(Order.FailedPair.COMPARE_TO);
                 t.examine(e.expectedComparison()).is(0);
-                t.assertSame(item1, e.left());
-                t.assertSame(item2, e.right());
+                t.examine(e.left()).isSame(item1);
+                t.examine(e.right()).isSame(item2);
             });
     }
 
@@ -218,8 +218,8 @@ public final class TestOrder {
             Order.PairFailure.class, e -> {
                 t.examine(e.failed()).is(Order.FailedPair.COMPARE_TO);
                 t.examine(e.expectedComparison()).is(-1);
-                t.assertSame(item1, e.left());
-                t.assertSame(item2, e.right());
+                t.examine(e.left()).isSame(item1);
+                t.examine(e.right()).isSame(item2);
             });
     }
 

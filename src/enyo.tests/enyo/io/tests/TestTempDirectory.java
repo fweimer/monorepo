@@ -78,7 +78,7 @@ public class TestTempDirectory {
             if (withThrow)
                 t.assertFail("Marker exception not thrown");
         } catch (Marker m) {
-            t.assertSame(m, thrown);
+            t.examine(thrown).isSame(m);
         }
         t.assertFalse(Files.exists(path));
     }

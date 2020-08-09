@@ -24,9 +24,9 @@ public final class TestFileDigest {
     public void testOf(Testing t) {
         byte[] d = digest(DigestAlgorithm.MD5, "\n");
         FileDigest fd = FileDigest.of(DigestAlgorithm.MD5, 1, d);
-        t.assertSame(DigestAlgorithm.MD5, fd.algorithm());
+        t.examine(fd.algorithm()).isSame(DigestAlgorithm.MD5);
         t.examine(fd.length()).is(1);
-        t.assertNotSame(fd.digest(), d);
+        t.examine(d).isNotSame(fd.digest());
         t.assertByteArrayEquals(d, fd.digest());
         byte[] d1 = fd.digest();
         t.assertByteArrayEquals(d1, fd.digest());
@@ -40,9 +40,9 @@ public final class TestFileDigest {
         String hexDigest = "68b329da9893e34099c7d8ad5cb9c940";
         FileDigest fd = FileDigest.ofHexDigest(
             DigestAlgorithm.MD5, 1, hexDigest);
-        t.assertSame(DigestAlgorithm.MD5, fd.algorithm());
+        t.examine(fd.algorithm()).isSame(DigestAlgorithm.MD5);
         t.examine(fd.length()).is(1);
-        t.assertNotSame(fd.digest(), d);
+        t.examine(d).isNotSame(fd.digest());
         t.assertByteArrayEquals(d, fd.digest());
         t.examine(fd.hexDigest()).is(hexDigest);
         t.examine(fd).is(FileDigest.of(DigestAlgorithm.MD5, 1, d));

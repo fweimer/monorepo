@@ -16,7 +16,7 @@ final class Helpers {
         t.expect(
             () -> callback.doThrow(exception),
             UncheckedIOException.class,
-            e -> t.assertSame(exception, e.getCause()));
+            e -> t.examine(e.getCause()).isSame(exception));
     }
 
     private Helpers() { } // no instances

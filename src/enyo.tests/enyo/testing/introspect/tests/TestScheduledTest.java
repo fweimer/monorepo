@@ -20,8 +20,8 @@ public final class TestScheduledTest {
         TestResources tr = new TestResources(1, 2);
         ScheduledTest st = new ScheduledTest(17, tml, tr, false);
         t.examine(st.id()).is(17);
-        t.assertSame(tml, st.locator());
-        t.assertSame(tr, st.resources());
+        t.examine(st.locator()).isSame(tml);
+        t.examine(st.resources()).isSame(tr);
         t.examine(st.toString())
             .is("enyo.tests/enyo.testing.introspect.tests"
                 + ".TestTestMethodLocator::testWithModuleName"
