@@ -3,7 +3,6 @@ package enyo.build;
 import enyo.testing.Testing;
 import enyo.testing.TestFailure;
 import enyo.testing.TestAlreadyFailed;
-import enyo.testing.ThrowingSupplier;
 import enyo.testing.ThrowingAction;
 import enyo.testing.introspect.TestMethodLocator;
 
@@ -216,32 +215,6 @@ final class TestingImpl implements Testing {
     }
 
     @Override
-    public <T, E extends Throwable> void expect(
-        ThrowingSupplier<T> source,
-        Class<E> exception, Consumer<? super E> consumer) {
-        expect0("", source, exception, consumer);
-    }
-
-    @Override
-    public <T, E extends Throwable> void expect(
-        ThrowingSupplier<T> source, Class<E> exception) {
-        expect(source, exception, e -> { });
-    }
-
-    @Override
-    public <T, E extends Throwable> void expect(
-        String label, ThrowingSupplier<T> source,
-        Class<E> exception, Consumer<? super E> consumer) {
-        expect0(" for: " + label, source, exception, consumer);
-    }
-
-    @Override
-    public <T, E extends Throwable> void expect(
-        String label, ThrowingSupplier<T> source, Class<E> exception) {
-        expect(label, source, exception, e -> { });
-    }
-
-    @Override
     public <E extends Throwable> void expect(
         ThrowingAction source, Class<E> exception,
         Consumer<? super E> consumer) {
@@ -268,12 +241,12 @@ final class TestingImpl implements Testing {
     }
 
     private <T, E extends Throwable> void expect0(
-        String label, ThrowingSupplier<T> source,
+        String label, ThrowingAction source,
         Class<E> exception, Consumer<? super E> consumer) {
         Objects.requireNonNull(exception, "exception");
         Objects.requireNonNull(consumer, "consumer");
         try {
-            source.get();
+            source.perform();
         } catch (Throwable t) {
             if (exception.isAssignableFrom(t.getClass()))
                 try {
@@ -293,14 +266,5 @@ final class TestingImpl implements Testing {
         failed = true;
         throw new TestFailure("Missing expected exception "
             + exception.getName() + label);
-    }
-
-    private <E extends Throwable> void expect0(
-        String label, ThrowingAction source,
-        Class<E> exception, Consumer<? super E> consumer) {
-        expect0(label, () -> {
-                source.perform();
-                return null;
-            }, exception, consumer);
     }
 }

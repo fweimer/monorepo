@@ -160,58 +160,6 @@ public interface Testing {
      * @param exception the type of the expected exception
      * @param consumer a callback which is invoked for further
      *   checks on the exception object
-     * @param <T> the return type of the callback function
-     *   (but an object of this type is never expected to be produced)
-     * @param <E> the type of the expected exception
-     */
-    public <T, E extends Throwable> void expect(
-        ThrowingSupplier<T> source,
-        Class<E> exception, Consumer<? super E> consumer);
-
-    /**
-     * Checks that an expected exception is thrown.
-     * @param source the callback that is expected to throw
-     * @param exception the type of the expected exception
-     * @param <T> the return type of the callback function
-     *   (but an object of this type is never expected to be produced)
-     * @param <E> the type of the expected exception
-     */
-    public <T, E extends Throwable> void expect(
-        ThrowingSupplier<T> source, Class<E> exception);
-
-    /**
-     * Checks that an expected exception is thrown.
-     * @param label an informative string included in failure messages
-     * @param source the callback that is expected to throw
-     * @param exception the type of the expected exception
-     * @param consumer a callback which is invoked for further
-     *   checks on the exception object
-     * @param <T> the return type of the callback function
-     *   (but an object of this type is never expected to be produced)
-     * @param <E> the type of the expected exception
-     */
-    public <T, E extends Throwable> void expect(
-        String label, ThrowingSupplier<T> source,
-        Class<E> exception, Consumer<? super E> consumer);
-
-    /**
-     * Checks that an expected exception is thrown.
-     * @param label an informative string included in failure messages
-     * @param source the callback that is expected to throw
-     * @param exception the type of the expected exception
-     * @param <T> the return type of the callback function
-     *   (but an object of this type is never expected to be produced)
-     * @param <E> the type of the expected exception
-     */
-    public <T, E extends Throwable> void expect(
-        String label, ThrowingSupplier<T> source, Class<E> exception);
-
-    /**
-     * Checks that an expected exception is thrown.
-     * @param source the callback that is expected to throw
-     * @param exception the type of the expected exception
-     * @param consumer a callback which is invoked for further
-     *   checks on the exception object
      * @param <E> the type of the expected exception
      */
     public <E extends Throwable> void expect(
