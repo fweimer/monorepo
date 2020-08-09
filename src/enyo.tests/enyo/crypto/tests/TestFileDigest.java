@@ -25,7 +25,7 @@ public final class TestFileDigest {
         byte[] d = digest(DigestAlgorithm.MD5, "\n");
         FileDigest fd = FileDigest.of(DigestAlgorithm.MD5, 1, d);
         t.assertSame(DigestAlgorithm.MD5, fd.algorithm());
-        t.assertEquals(1L, fd.length());
+        t.examine(fd.length()).is(1);
         t.assertNotSame(fd.digest(), d);
         t.assertByteArrayEquals(d, fd.digest());
         byte[] d1 = fd.digest();
@@ -41,11 +41,11 @@ public final class TestFileDigest {
         FileDigest fd = FileDigest.ofHexDigest(
             DigestAlgorithm.MD5, 1, hexDigest);
         t.assertSame(DigestAlgorithm.MD5, fd.algorithm());
-        t.assertEquals(1L, fd.length());
+        t.examine(fd.length()).is(1);
         t.assertNotSame(fd.digest(), d);
         t.assertByteArrayEquals(d, fd.digest());
-        t.assertEquals(hexDigest, fd.hexDigest());
-        t.assertEquals(FileDigest.of(DigestAlgorithm.MD5, 1, d), fd);
+        t.examine(fd.hexDigest()).is(hexDigest);
+        t.examine(fd).is(FileDigest.of(DigestAlgorithm.MD5, 1, d));
     }
 
     @Test
@@ -54,33 +54,29 @@ public final class TestFileDigest {
             () -> FileDigest.ofHexDigest(DigestAlgorithm.MD5, 1,
                 "68b329da9893e34099c7d8ad5cb9c94"),
             IllegalArgumentException.class,
-            e -> t.assertEquals(
-                "Digest of odd length: 68b329da9893e34099c7d8ad5cb9c94",
-                e.getMessage()));
+            e -> t.examine(e.getMessage())
+            .is("Digest of odd length: 68b329da9893e34099c7d8ad5cb9c94"));
         t.expect(
             () -> FileDigest.ofHexDigest(DigestAlgorithm.MD5, 1,
                 "68b329da9893e34099c7d8ad5cb9c9"),
             IllegalArgumentException.class,
-            e -> t.assertEquals(
-                "Invalid digest length 15 for MD5, should be 16:"
-                + " 68b329da9893e34099c7d8ad5cb9c9",
-                e.getMessage()));
+            e -> t.examine(e.getMessage())
+            .is("Invalid digest length 15 for MD5, should be 16:"
+                + " 68b329da9893e34099c7d8ad5cb9c9"));
         t.expect(
             () -> FileDigest.ofHexDigest(DigestAlgorithm.MD5, 1,
                 "68b329da9893e34099c7d8ad5cb9c94000"),
             IllegalArgumentException.class,
-            e -> t.assertEquals(
-                "Invalid digest length 17 for MD5, should be 16:"
-                + " 68b329da9893e34099c7d8ad5cb9c94000",
-                e.getMessage()));
+            e -> t.examine(e.getMessage())
+            .is("Invalid digest length 17 for MD5, should be 16:"
+                + " 68b329da9893e34099c7d8ad5cb9c94000"));
     }
 
     @Test
     public void testToString(Testing t) {
         byte[] d = digest(DigestAlgorithm.MD5, "\n");
         FileDigest fd = FileDigest.of(DigestAlgorithm.MD5, 1, d);
-        t.assertEquals("MD5/1/68b329da9893e34099c7d8ad5cb9c940",
-            fd.toString());
+        t.examine(fd.toString()).is("MD5/1/68b329da9893e34099c7d8ad5cb9c940");
     }
 
     @Test

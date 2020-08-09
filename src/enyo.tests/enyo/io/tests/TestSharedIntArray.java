@@ -28,27 +28,27 @@ public final class TestSharedIntArray {
             SharedIntArray array = SharedIntArray.open(tmp.path(), 1,
                 StandardOpenOption.CREATE, StandardOpenOption.READ,
                 StandardOpenOption.WRITE);
-            t.assertEquals(4L, Files.size(tmp.path()));
-            t.assertSame(tmp.path(), array.path());
-            t.assertEquals(1, array.buffer().capacity());
-            t.assertEquals(ByteOrder.nativeOrder(), array.buffer().order());
-            t.assertEquals(1, array.size());
-            t.assertEquals(0, array.get(0));
+            t.examine(Files.size(tmp.path())).is(4);
+            t.examine(array.path()).isSame(tmp.path());
+            t.examine(array.buffer().capacity()).is(1);
+            t.examine(array.buffer().order()).is(ByteOrder.nativeOrder());
+            t.examine(array.size()).is(1);
+            t.examine(array.get(0)).is(0);
             array.set(0, 1);
-            t.assertEquals(1, array.get(0));
+            t.examine(array.get(0)).is(1);
 
             // Check that updates are propagated across different
             // array objects.
             SharedIntArray array2 = SharedIntArray.open(tmp.path(), 1,
                 StandardOpenOption.READ, StandardOpenOption.WRITE);
-            t.assertSame(tmp.path(), array2.path());
-            t.assertEquals(1, array2.buffer().capacity());
-            t.assertEquals(1, array2.size());
-            t.assertEquals(1, array2.get(0));
+            t.examine(array2.path()).isSame(tmp.path());
+            t.examine(array2.buffer().capacity()).is(1);
+            t.examine(array2.size()).is(1);
+            t.examine(array2.get(0)).is(1);
             array2.set(0, 2);
-            t.assertEquals(2, array.buffer().get());
+            t.examine(array.buffer().get()).is(2);
             array.buffer().put(3);
-            t.assertEquals(3, array2.get(0));
+            t.examine(array2.get(0)).is(3);
 
             t.expect(() -> array.get(-1), IndexOutOfBoundsException.class);
             t.expect(() -> array.set(-1, -1), IndexOutOfBoundsException.class);
@@ -65,15 +65,15 @@ public final class TestSharedIntArray {
             t.expect(() -> SharedIntArray.open(path, 1,
                     StandardOpenOption.READ, StandardOpenOption.WRITE),
                 NoSuchFileException.class,
-                e -> t.assertEquals(path.toString(), e.getMessage()));
+                e -> t.examine(e.getMessage()).is(path.toString()));
             t.expect(() -> SharedIntArray.open(tmp.path(), 1,
                     StandardOpenOption.READ, StandardOpenOption.WRITE),
                 FileSystemException.class,
                 e -> {
-                    t.assertEquals(tmp.path() + ": Is a directory",
-                        e.getMessage());
-                    t.assertEquals(tmp.path().toString(), e.getFile());
-                    t.assertEquals("Is a directory", e.getReason());
+                    t.examine(e.getMessage())
+                        .is(tmp.path() + ": Is a directory");
+                    t.examine(e.getFile()).is(tmp.path().toString());
+                    t.examine(e.getReason()).is("Is a directory");
                 });
         }
     }
@@ -105,15 +105,15 @@ public final class TestSharedIntArray {
             SharedIntArray array = SharedIntArray.open(tmp.path(), 1,
                 StandardOpenOption.READ);
             IntBuffer buffer = array.buffer();
-            t.assertNotSame(buffer, array.buffer());
-            t.assertEquals(value, buffer.get());
+            t.examine(array.buffer()).isNotSame(buffer);
+            t.examine(buffer.get()).is(value);
             buffer.clear();
             t.expect(() -> buffer.put(0), ReadOnlyBufferException.class);
-            t.assertEquals(value, array.get(0));
+            t.examine(array.get(0)).is(value);
             t.expect(() -> array.set(0, 0),
                 UnsupportedOperationException.class,
-                e -> t.assertEquals(ReadOnlyBufferException.class,
-                    e.getCause().getClass()));
+                e -> t.examine(e.getCause())
+                .isExactClass(ReadOnlyBufferException.class));
         }
     }
 
@@ -126,9 +126,9 @@ public final class TestSharedIntArray {
             SharedIntArray array = SharedIntArray.open(tmp.path(), 2,
                 StandardOpenOption.CREATE, StandardOpenOption.READ,
                 StandardOpenOption.WRITE);
-            t.assertEquals(8L, Files.size(tmp.path()));
-            t.assertEquals(2, array.buffer().capacity());
-            t.assertEquals(2, array.size());
+            t.examine(Files.size(tmp.path())).is(8);
+            t.examine(array.buffer().capacity()).is(2);
+            t.examine(array.size()).is(2);
             array.set(0, 1);
             array.set(1, 2);
             ProcessBuilder pb = RelaunchVM.processBuilder(
@@ -141,13 +141,13 @@ public final class TestSharedIntArray {
                 if (value == 2)
                     continue;
                 else {
-                    t.assertEquals(4, value);
+                    t.examine(value).is(4);
                     break;
                 }
             }
             array.set(0, 3);
-            t.assertEquals(0, process.waitFor());
-            t.assertEquals(6, array.get(1));
+            t.examine(process.waitFor()).is(0);
+            t.examine(array.get(1)).is(6);
         }
     }
 

@@ -42,15 +42,15 @@ public final class TestScheduledTestSet {
             .filter(i -> set.contains(test(i)))
             .boxed()
             .collect(Collectors.toList());
-        t.assertEquals(List.of(), makeList.get());
+        t.examine(makeList.get()).is(List.of());
         t.assertTrue(set.add(test(1)));
-        t.assertEquals(List.of(1), makeList.get());
+        t.examine(makeList.get()).is(List.of(1));
         t.assertTrue(set.add(test(3)));
-        t.assertEquals(List.of(1, 3), makeList.get());
+        t.examine(makeList.get()).is(List.of(1, 3));
         t.assertTrue(set.add(test(2)));
-        t.assertEquals(List.of(1, 2, 3), makeList.get());
+        t.examine(makeList.get()).is(List.of(1, 2, 3));
         t.assertFalse(set.add(test(2)));
-        t.assertEquals(List.of(1, 2, 3), makeList.get());
+        t.examine(makeList.get()).is(List.of(1, 2, 3));
     }
 
     @Test
@@ -58,15 +58,15 @@ public final class TestScheduledTestSet {
         ScheduledTestSet set = new ScheduledTestSet(4);
         Supplier<List<Integer>> makeList = () ->
             set.stream().boxed().collect(Collectors.toList());
-        t.assertEquals(List.of(), makeList.get());
+        t.examine(makeList.get()).is(List.of());
         t.assertTrue(set.add(test(1)));
-        t.assertEquals(List.of(1), makeList.get());
+        t.examine(makeList.get()).is(List.of(1));
         t.assertTrue(set.add(test(3)));
-        t.assertEquals(List.of(1, 3), makeList.get());
+        t.examine(makeList.get()).is(List.of(1, 3));
         t.assertTrue(set.add(test(2)));
-        t.assertEquals(List.of(1, 2, 3), makeList.get());
+        t.examine(makeList.get()).is(List.of(1, 2, 3));
         t.assertFalse(set.add(test(2)));
-        t.assertEquals(List.of(1, 2, 3), makeList.get());
+        t.examine(makeList.get()).is(List.of(1, 2, 3));
     }
 
     @Test
@@ -75,7 +75,7 @@ public final class TestScheduledTestSet {
             ScheduledTestSet set = new ScheduledTestSet(10);
             present.chars()
             .forEach(ch -> t.assertTrue(set.add(test(ch - '0'))));
-            t.assertEquals(expected, set.toString());
+            t.examine(set.toString()).is(expected);
         };
 
         check.accept("", "{}");
@@ -152,7 +152,7 @@ public final class TestScheduledTestSet {
             new Runner(tests),
             new Runner(testsShuffled),
             new Runner(testsReversed));
-        t.assertEquals(threadCount, threads.size());
+        t.examine(threads.size()).is(threadCount);
         for (Runner r : threads)
             r.start();
         for (Runner r : threads)
@@ -164,10 +164,10 @@ public final class TestScheduledTestSet {
         // duplicates.
         Consumer<Supplier<IntStream>> checkStream = supplier -> {
             IntSummaryStatistics stats = supplier.get().summaryStatistics();
-            t.assertEquals(0, stats.getMin());
-            t.assertEquals(count - 1, stats.getMax());
-            t.assertEquals((long) count, stats.getCount());
-            t.assertEquals((long) count, supplier.get().distinct().count());
+            t.examine(stats.getMin()).is(0);
+            t.examine(stats.getMax()).is(count - 1);
+            t.examine(stats.getCount()).is(count);
+            t.examine(supplier.get().distinct().count()).is(count);
         };
 
         // The separate streams captured by the threads.

@@ -109,17 +109,17 @@ public final class TestObjectSequences {
 
     @Test
     public static void testReadObject(Testing t) throws IOException {
-        checkRead(t, "\1\0\0\0\2", in ->
-            t.assertEquals(Optional.of(2),
-                ObjectSequences.readObject(in, in1 -> in1.readInt())));
+        checkRead(t, "\1\0\0\0\2", in -> t.examine(
+                ObjectSequences.readObject(in, in1 -> in1.readInt()))
+            .is(Optional.of(2)));
     }
 
     @Test
     public static void testReadObjectEmpty(Testing t) throws IOException {
-        checkRead(t, "\0", in ->
-            t.assertEquals(Optional.empty(),
+        checkRead(t, "\0", in -> t.examine(
                 ObjectSequences.readObject(
-                    in, in1 -> t.assertFail("non-existing object read"))));
+                    in, in1 -> t.assertFail("non-existing object read")))
+            .is(Optional.empty()));
     }
 
     @Test
@@ -133,32 +133,31 @@ public final class TestObjectSequences {
 
     @Test
     public static void testReadListEmpty(Testing t) throws IOException {
-        checkRead(t, "\0", in ->
-            t.assertEquals(List.of(),
+        checkRead(t, "\0", in -> t.examine(
                 ObjectSequences.readList(
-                    in, in1 -> t.assertFail("object read despite EOF"))));
-
+                    in, in1 -> t.assertFail("object read despite EOF")))
+            .is(List.of()));
     }
 
     @Test
     public static void testReadList1(Testing t) throws IOException {
-        checkRead(t, "\1\0\0\0\1\0", in ->
-            t.assertEquals(List.of(1),
-                ObjectSequences.readList(in, in1 -> in.readInt())));
+        checkRead(t, "\1\0\0\0\1\0", in -> t.examine(
+                ObjectSequences.readList(in, in1 -> in.readInt()))
+            .is(List.of(1)));
     }
 
     @Test
     public static void testReadList2(Testing t) throws IOException {
-        checkRead(t, "\1\0\0\0\1\1\0\0\0\2\0", in ->
-            t.assertEquals(List.of(1, 2),
-                ObjectSequences.readList(in, in1 -> in.readInt())));
+        checkRead(t, "\1\0\0\0\1\1\0\0\0\2\0", in -> t.examine(
+                ObjectSequences.readList(in, in1 -> in.readInt()))
+            .is(List.of(1, 2)));
     }
 
     @Test
     public static void testReadList3(Testing t) throws IOException {
-        checkRead(t, "\1\0\0\0\1\1\0\0\0\2\1\0\0\0\3\0", in ->
-            t.assertEquals(List.of(1, 2, 3),
-                ObjectSequences.readList(in, in1 -> in.readInt())));
+        checkRead(t, "\1\0\0\0\1\1\0\0\0\2\1\0\0\0\3\0", in -> t.examine(
+                ObjectSequences.readList(in, in1 -> in.readInt()))
+            .is(List.of(1, 2, 3)));
     }
 
     @Test
@@ -222,10 +221,12 @@ public final class TestObjectSequences {
     @Cost(0.2)
     public static void testReadString(Testing t) throws IOException {
         // The null character is special.
-        checkRead(t, "\0\0\0\1\0", in ->
-            t.assertEquals("\0", ObjectSequences.readString(in)));
-        checkRead(t, "\0\0\0\3[\0]", in ->
-            t.assertEquals("[\0]", ObjectSequences.readString(in)));
+        checkRead(t, "\0\0\0\1\0", in -> t.examine(
+                ObjectSequences.readString(in))
+            .is("\0"));
+        checkRead(t, "\0\0\0\3[\0]", in -> t.examine(
+                ObjectSequences.readString(in))
+            .is("[\0]"));
 
         // Other inputs are similar to what
         // DataOutputStream.writeUTF() produces.
@@ -235,9 +236,8 @@ public final class TestObjectSequences {
             ByteArrayInputStream in = new ByteArrayInputStream(
                 out.toBytesPlatform(expected));
             DataInputStream dataIn = new DataInputStream(in);
-            String actual = ObjectSequences.readString(dataIn);
-            t.assertEquals(expected, actual);
-            t.assertEquals(-1, in.read());
+            t.examine(ObjectSequences.readString(dataIn)).is(expected);
+            t.examine(in.read()).is(-1);
         }
 
         // Similar test with three characters.
@@ -246,8 +246,8 @@ public final class TestObjectSequences {
             ByteArrayInputStream in = new ByteArrayInputStream(
                 out.toBytesPlatform(expected));
             DataInputStream dataIn = new DataInputStream(in);
-            t.assertEquals(expected, ObjectSequences.readString(dataIn));
-            t.assertEquals(-1, in.read());
+            t.examine(ObjectSequences.readString(dataIn)).is(expected);
+            t.examine(in.read()).is(-1);
         }
     }
 
@@ -322,7 +322,8 @@ public final class TestObjectSequences {
         ByteArrayInputStream in = new ByteArrayInputStream(
             input.getBytes(StandardCharsets.ISO_8859_1));
         reader.accept(new DataInputStream(in));
-        t.assertEquals("Unread data in input", -1, in.read());
+        t.examine(in.read())
+            .context("Unread data in input").is(-1);
     }
 
     private static final class WriteStringOutput {

@@ -20,8 +20,9 @@ import java.util.List;
 public final class TestUTF8SCharset {
     @Test
     public static void testForName(Testing t) {
-        t.assertSame(ExtendedCharsets.UTF_8S, Charset.forName("UTF-8S"));
-        t.assertSame(ExtendedCharsets.UTF_8S, Charset.forName("UTF-8b"));
+        t.examine(ExtendedCharsets.UTF_8S)
+            .isSame(Charset.forName("UTF-8S"))
+            .isSame(Charset.forName("UTF-8b"));
     }
 
     @Test
@@ -40,9 +41,9 @@ public final class TestUTF8SCharset {
                 array[1] = ch2;
 
                 var encoder = ExtendedCharsets.UTF_8S.newEncoder();
-                t.assertEquals(CoderResult.UNDERFLOW,
-                    encoder.encode(in, out, true));
-                t.assertEquals(4, out.position());
+                t.examine(encoder.encode(in, out, true))
+                    .is(CoderResult.UNDERFLOW);
+                t.examine(out.position()).is(4);
                 byte[] expected = String.valueOf(array).getBytes(
                     StandardCharsets.UTF_8);
                 out.flip();
@@ -56,16 +57,16 @@ public final class TestUTF8SCharset {
                 out.clear();
                 Arrays.fill(out.array(), (byte) 0);
                 in.limit(1);
-                t.assertEquals(CoderResult.UNDERFLOW,
-                    encoder.encode(in, out, false));
+                t.examine(encoder.encode(in, out, false))
+                    .is(CoderResult.UNDERFLOW);
                 // The position should not have advanced.
-                t.assertEquals(0, in.position());
-                t.assertEquals(0, out.position());
+                t.examine(in.position()).is(0);
+                t.examine(out.position()).is(0);
                 // Feed both characters.
                 in.limit(2);
-                t.assertEquals(CoderResult.UNDERFLOW,
-                    encoder.encode(in, out, true));
-                t.assertEquals(4, out.position());
+                t.examine(encoder.encode(in, out, true))
+                    .is(CoderResult.UNDERFLOW);
+                t.examine(out.position()).is(4);
                 out.flip();
                 out.get(actual);
                 t.assertByteArrayEquals(expected, actual);
@@ -74,10 +75,10 @@ public final class TestUTF8SCharset {
 
     @Test
     public static void testEscape(Testing t) {
-        t.assertEquals('\udc80', escape((byte) 0x80));
-        t.assertEquals('\udc81', escape((byte) 0x81));
-        t.assertEquals('\udcfe', escape((byte) 0xfe));
-        t.assertEquals('\udcff', escape((byte) 0xff));
+        t.examine(escape((byte) 0x80)).is('\udc80');
+        t.examine(escape((byte) 0x81)).is('\udc81');
+        t.examine(escape((byte) 0xfe)).is('\udcfe');
+        t.examine(escape((byte) 0xff)).is('\udcff');
     }
 
     static char escape(byte b) {
@@ -114,19 +115,19 @@ public final class TestUTF8SCharset {
                 CoderResult result = decoder.decode(in, out, end);
                 if (result == CoderResult.UNDERFLOW)
                     break;
-                t.assertEquals(CoderResult.OVERFLOW, result);
+                t.examine(result).is(CoderResult.OVERFLOW);
                 out.limit(out.limit()
                     + outComposition.get(outCompositionIndex));
                 ++outCompositionIndex;
                 t.assertTrue(out.limit() <= outLimit);
             }
         }
-        t.assertEquals(0, in.remaining());
+        t.examine(in.remaining()).is(0);
         while (true) {
             CoderResult result = decoder.flush(out);
             if (result == CoderResult.UNDERFLOW)
                 break;
-            t.assertEquals(CoderResult.OVERFLOW, result);
+            t.examine(result).is(CoderResult.OVERFLOW);
             out.limit(out.limit()
                 + outComposition.get(outCompositionIndex));
             ++outCompositionIndex;
@@ -164,9 +165,9 @@ public final class TestUTF8SCharset {
                 out.clear();
                 feedComposition(t, in, out, StandardCharsets.UTF_8.newDecoder(),
                     inComposition, outComposition);
-                t.assertEquals(0, out.remaining());
+                t.examine(out.remaining()).is(0);
                 out.clear();
-                t.assertEquals(expected, out.toString());
+                t.examine(out.toString()).is(expected);
             }
     }
 
@@ -214,20 +215,21 @@ public final class TestUTF8SCharset {
     public static void testCompositions(Testing t) {
         t.expect(() -> compositions(-1),
             IllegalArgumentException.class);
-        t.assertEquals(List.of(List.of(0)), compositions(0));
-        t.assertEquals(List.of(List.of(1)), compositions(1));
-        t.assertEquals(List.of(List.of(1, 1), List.of(2)), compositions(2));
-        t.assertEquals(List.of(List.of(1, 1, 1), List.of(1, 2), List.of(2, 1),
-                List.of(3)), compositions(3));
-        t.assertEquals(List.of(
-                List.of(1, 1, 1, 1),
-                List.of(1, 1, 2),
-                List.of(1, 2, 1),
-                List.of(1, 3),
-                List.of(2, 1, 1),
-                List.of(2, 2),
-                List.of(3, 1),
-                List.of(4)),
-            compositions(4));
+        t.examine(compositions(0)).is(List.of(List.of(0)));
+        t.examine(compositions(1)).is(List.of(List.of(1)));
+        t.examine(compositions(2)).is(List.of(List.of(1, 1), List.of(2)));
+        t.examine(compositions(3))
+            .is(List.of(List.of(1, 1, 1), List.of(1, 2),
+                    List.of(2, 1), List.of(3)));
+        t.examine(compositions(4))
+            .is(List.of(
+                    List.of(1, 1, 1, 1),
+                    List.of(1, 1, 2),
+                    List.of(1, 2, 1),
+                    List.of(1, 3),
+                    List.of(2, 1, 1),
+                    List.of(2, 2),
+                    List.of(3, 1),
+                    List.of(4)));
     }
 }

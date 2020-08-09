@@ -19,15 +19,15 @@ public final class TestResultCollectors {
             Result.ofError("two"),
             Result.of(2),
             Result.of(3));
-        t.assertEquals(
-            new Result.Collected<>(List.of(1, 2, 2, 3), List.of("one", "two")),
-            input.stream()
+        t.<Result.Collected<List<Integer>, List<String>>>examine(input.stream()
             .collect(Result.Collectors.toCollection(
-                    ArrayList::new, ArrayList::new)));
-        t.assertEquals(
-            new Result.Collected<>(Set.of(1, 2, 3), List.of("one", "two")),
-            input.stream()
+                    ArrayList::new, ArrayList::new)))
+            .is(new Result.Collected<>(List.of(1, 2, 2, 3),
+                    List.of("one", "two")));
+        t.<Result.Collected<Set<Integer>, List<String>>>examine(input.stream()
             .collect(Result.Collectors.toCollection(
-                    HashSet::new, ArrayList::new)));
+                    HashSet::new, ArrayList::new)))
+            .is(new Result.Collected<>(Set.of(1, 2, 3), List.of("one", "two")));
+
     }
 }

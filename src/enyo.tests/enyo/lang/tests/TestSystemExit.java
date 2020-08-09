@@ -37,7 +37,8 @@ public final class TestSystemExit {
         } finally {
             process.destroy();
         }
-        t.assertEquals(expectedStatus, actual);
+        t.examine(actual)
+            .is(expectedStatus);
     }
 
     /**

@@ -19,12 +19,13 @@ public final class TestScheduledTest {
             true);
         TestResources tr = new TestResources(1, 2);
         ScheduledTest st = new ScheduledTest(17, tml, tr, false);
-        t.assertEquals(17, st.id());
+        t.examine(st.id()).is(17);
         t.assertSame(tml, st.locator());
         t.assertSame(tr, st.resources());
-        t.assertEquals("enyo.tests/enyo.testing.introspect.tests"
-            + ".TestTestMethodLocator::testWithModuleName"
-            + "(enyo.testing.Testing) [17] threads=1 memory=2", st.toString());
+        t.examine(st.toString())
+            .is("enyo.tests/enyo.testing.introspect.tests"
+                + ".TestTestMethodLocator::testWithModuleName"
+                + "(enyo.testing.Testing) [17] threads=1 memory=2");
     }
 
     @Test

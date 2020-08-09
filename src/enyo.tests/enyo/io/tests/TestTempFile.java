@@ -18,7 +18,7 @@ public final class TestTempFile {
     public static void testOf(Testing t) throws IOException {
         Path path = Files.createTempFile("enyo-TestTempFile-", ".tmp");
         try (TempFile file = TempFile.of(path)) {
-            t.assertEquals(path, file.path());
+            t.examine(file.path()).is(path);
             t.assertTrue(path.toString(), Files.exists(path));
         }
         t.assertFalse(path.toString(), Files.exists(path));
@@ -28,7 +28,7 @@ public final class TestTempFile {
     public static void testEquals(Testing t) throws IOException {
         try (TempFile file1 = TempFile.create("enyo-TestTempFile-", ".tmp");
             TempFile file2 = TempFile.of(file1.path())) {
-            t.assertNotEquals(file1, file2);
+            t.examine(file1).isnt(file2);
         }
     }
 
@@ -111,9 +111,8 @@ public final class TestTempFile {
                 Files.setPosixFilePermissions(tempDir, Set.of());
                 t.assertFalse(Files.exists(path));
                 t.expect(() -> file.close(),
-                    AccessDeniedException.class, e -> {
-                        t.assertEquals(path.toString(), e.getMessage());
-                    });
+                    AccessDeniedException.class,
+                    e -> t.examine(e.getMessage()).is(path.toString()));
             } finally {
                 Files.setPosixFilePermissions(tempDir, perms);
                 t.assertTrue(Files.exists(path));
@@ -141,7 +140,7 @@ public final class TestTempFile {
                     String fileName = file.path().getFileName().toString();
                     t.assertTrue(file.toString(), fileName.startsWith(prefix));
                     t.assertTrue(file.toString(), fileName.endsWith(suffix));
-                    t.assertEquals(file.path(), tempDir.resolve(fileName));
+                    t.examine(tempDir.resolve(fileName)).is(file.path());
                 }
             } finally {
                 Files.delete(tempDir);

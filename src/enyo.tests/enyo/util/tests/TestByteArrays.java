@@ -22,46 +22,47 @@ public final class TestByteArrays {
 
     @Test
     public static void testQuoteEmpty(Testing t) {
-        t.assertEquals("", ByteArrays.quote(new byte[0]));
+        t.examine(ByteArrays.quote(new byte[0])).is("");
     }
 
     @Test
     public static void testQuoteOneByte(Testing t) {
         for (int i = 0; i < 256; ++i)
-            t.assertEquals(ONE_BYTE.get(i),
-                ByteArrays.quote(new byte[] { (byte) i }));
+            t.examine(ByteArrays.quote(new byte[] { (byte) i }))
+                .is(ONE_BYTE.get(i));
     }
 
     @Test
     public static void testQuoteTwoBytes(Testing t) {
         for (int i = 0; i < 256; ++i)
             for (int j = 0; j < 256; ++j)
-                t.assertEquals(ONE_BYTE.get(i) + ONE_BYTE.get(j),
-                    ByteArrays.quote(new byte[] { (byte) i, (byte) j }));
+                t.examine(ByteArrays.quote(new byte[] { (byte) i, (byte) j }))
+                    .is(ONE_BYTE.get(i) + ONE_BYTE.get(j));
     }
 
     @Test
     public static void testQuoteThreeBytes(Testing t) {
         for (int i = 0; i < 256; ++i)
             for (int j = 0; j < 256; ++j)
-                t.assertEquals('@' + ONE_BYTE.get(i) + ONE_BYTE.get(j),
-                    ByteArrays.quote(new byte[] { '@', (byte) i, (byte) j }));
+                t.examine(ByteArrays.quote(
+                        new byte[] { '@', (byte) i, (byte) j }))
+                    .is('@' + ONE_BYTE.get(i) + ONE_BYTE.get(j));
     }
 
     @Test
     public static void testQuoteFourBytes(Testing t) {
         for (int i = 0; i < 256; ++i)
             for (int j = 0; j < 256; ++j)
-                t.assertEquals('@' + ONE_BYTE.get(i) + ONE_BYTE.get(j) + '!',
-                    ByteArrays.quote(
-                        new byte[] { '@', (byte) i, (byte) j, '!' }));
+                t.examine(ByteArrays.quote(
+                        new byte[] { '@', (byte) i, (byte) j, '!' }))
+                    .is('@' + ONE_BYTE.get(i) + ONE_BYTE.get(j) + '!');
     }
 
     @Test
     public static void testQuoteRangeEmpty(Testing t) {
-        t.assertEquals("", ByteArrays.quote(new byte[0], 0, 0));
-        t.assertEquals("", ByteArrays.quote(new byte[1], 0, 0));
-        t.assertEquals("", ByteArrays.quote(new byte[1], 1, 1));
+        t.examine(ByteArrays.quote(new byte[0], 0, 0)).is("");
+        t.examine(ByteArrays.quote(new byte[1], 0, 0)).is("");
+        t.examine(ByteArrays.quote(new byte[1], 1, 1)).is("");
     }
 
     @Test
@@ -71,8 +72,8 @@ public final class TestByteArrays {
             Arrays.fill(array, (byte) '.');
             for (int i = 0; i < 256; ++i) {
                 array[shift] = (byte) i;
-                t.assertEquals(ONE_BYTE.get(i),
-                    ByteArrays.quote(array, shift, shift + 1));
+                t.examine(ByteArrays.quote(array, shift, shift + 1))
+                    .is(ONE_BYTE.get(i));
             }
         }
     }
@@ -86,8 +87,8 @@ public final class TestByteArrays {
                 array[shift] = (byte) i;
                 for (int j = 0; j < 256; ++j) {
                     array[shift + 1] = (byte) j;
-                    t.assertEquals(ONE_BYTE.get(i) + ONE_BYTE.get(j),
-                        ByteArrays.quote(array, shift, shift + 2));
+                    t.examine(ByteArrays.quote(array, shift, shift + 2))
+                        .is(ONE_BYTE.get(i) + ONE_BYTE.get(j));
                 }
             }
         }
@@ -103,8 +104,8 @@ public final class TestByteArrays {
                 array[shift + 1] = (byte) i;
                 for (int j = 0; j < 256; ++j) {
                     array[shift + 2] = (byte) j;
-                    t.assertEquals('@' + ONE_BYTE.get(i) + ONE_BYTE.get(j),
-                        ByteArrays.quote(array, shift, shift + 3));
+                    t.examine(ByteArrays.quote(array, shift, shift + 3))
+                        .is('@' + ONE_BYTE.get(i) + ONE_BYTE.get(j));
                 }
             }
         }
@@ -121,8 +122,8 @@ public final class TestByteArrays {
                 array[shift + 1] = (byte) i;
                 for (int j = 0; j < 256; ++j) {
                     array[shift + 2] = (byte) j;
-                    t.assertEquals('@' + ONE_BYTE.get(i) + ONE_BYTE.get(j) + '!',
-                        ByteArrays.quote(array, shift, shift + 4));
+                    t.examine(ByteArrays.quote(array, shift, shift + 4))
+                        .is('@' + ONE_BYTE.get(i) + ONE_BYTE.get(j) + '!');
                 }
             }
         }
@@ -132,18 +133,19 @@ public final class TestByteArrays {
     public static void testSignedStream(Testing t) {
         t.expect(() -> ByteArrays.signedStream(null),
             NullPointerException.class);
-        t.assertEquals(0L, ByteArrays.signedStream(new byte[0]).count());
+        t.examine(ByteArrays.signedStream(new byte[0]).count()).is(0);
         for (int i = -128; i <= 127; ++i) {
-            t.assertEquals(List.of(i),
+            t.examine(
                 ByteArrays.signedStream(new byte[] { (byte) i })
                 .boxed()
-                .collect(Collectors.toList()));
+                .collect(Collectors.toList()))
+                .is(List.of(i));
             for (int j = -128; j <= 127; ++j)
-                t.assertEquals(List.of(i, j),
-                    ByteArrays.signedStream(new byte[] {
+                t.examine(ByteArrays.signedStream(new byte[] {
                             (byte) i, (byte) j })
                     .boxed()
-                    .collect(Collectors.toList()));
+                    .collect(Collectors.toList()))
+                    .is(List.of(i, j));
         }
         var expected = IntStream.range(0, 256)
             .map(b -> (byte) b)
@@ -152,25 +154,26 @@ public final class TestByteArrays {
         var bytes = new byte[256];
         for (int i = 0; i < 256; ++i)
             bytes[i] = (byte) i;
-        t.assertEquals(expected, ByteArrays.signedStream(bytes)
+        t.examine(ByteArrays.signedStream(bytes)
             .boxed()
-            .collect(Collectors.toList()));
+            .collect(Collectors.toList()))
+            .is(expected);
     }
 
     @Test
     public static void testSignedStream3(Testing t) {
         for (int i = -128; i <= 127; ++i) {
-            t.assertEquals(List.of(i),
-                ByteArrays.signedStream(new byte[] {
+            t.examine(ByteArrays.signedStream(new byte[] {
                         (byte) (i - 1), (byte) i, 0 }, 1, 2)
                 .boxed()
-                .collect(Collectors.toList()));
+                .collect(Collectors.toList()))
+                .is(List.of(i));
             for (int j = -128; j <= 127; ++j)
-                t.assertEquals(List.of(i, j),
-                    ByteArrays.signedStream(new byte[] {
+                t.examine(ByteArrays.signedStream(new byte[] {
                             (byte) (i + 1), (byte) i, (byte) j, -1, -2 }, 1, 3)
                     .boxed()
-                    .collect(Collectors.toList()));
+                    .collect(Collectors.toList()))
+                    .is(List.of(i, j));
         }
         var expected = IntStream.range(0, 256)
             .map(b -> (byte) b)
@@ -193,18 +196,18 @@ public final class TestByteArrays {
     public static void testUnsignedStream(Testing t) {
         t.expect(() -> ByteArrays.unsignedStream(null),
             NullPointerException.class);
-        t.assertEquals(0L, ByteArrays.unsignedStream(new byte[0]).count());
+        t.examine(ByteArrays.unsignedStream(new byte[0]).count()).is(0);
         for (int i = 0; i <= 255; ++i) {
-            t.assertEquals(List.of(i),
-                ByteArrays.unsignedStream(new byte[] { (byte) i })
+            t.examine(ByteArrays.unsignedStream(new byte[] { (byte) i })
                 .boxed()
-                .collect(Collectors.toList()));
+                .collect(Collectors.toList()))
+                .is(List.of(i));
             for (int j = 0; j <= 255; ++j)
-                t.assertEquals(List.of(i, j),
-                    ByteArrays.unsignedStream(new byte[] {
+                t.examine(ByteArrays.unsignedStream(new byte[] {
                             (byte) i, (byte) j })
                     .boxed()
-                    .collect(Collectors.toList()));
+                    .collect(Collectors.toList()))
+                    .is(List.of(i, j));
         }
         var expected = IntStream.range(0, 256)
             .boxed()
@@ -212,25 +215,26 @@ public final class TestByteArrays {
         var bytes = new byte[256];
         for (int i = 0; i < 256; ++i)
             bytes[i] = (byte) i;
-        t.assertEquals(expected, ByteArrays.unsignedStream(bytes)
+        t.examine(ByteArrays.unsignedStream(bytes)
             .boxed()
-            .collect(Collectors.toList()));
+            .collect(Collectors.toList()))
+            .is(expected);
     }
 
     @Test
     public static void testUnsignedStream3(Testing t) {
         for (int i = 0; i <= 255; ++i) {
-            t.assertEquals(List.of(i),
-                ByteArrays.unsignedStream(new byte[] {
+            t.examine(ByteArrays.unsignedStream(new byte[] {
                         (byte) (i - 1), (byte) i, 0 }, 1, 2)
                 .boxed()
-                .collect(Collectors.toList()));
+                .collect(Collectors.toList()))
+                .is(List.of(i));
             for (int j = 0; j <= 255; ++j)
-                t.assertEquals(List.of(i, j),
-                    ByteArrays.unsignedStream(new byte[] {
+                t.examine(ByteArrays.unsignedStream(new byte[] {
                             (byte) (i + 1), (byte) i, (byte) j, -1, -2 }, 1, 3)
                     .boxed()
-                    .collect(Collectors.toList()));
+                    .collect(Collectors.toList()))
+                    .is(List.of(i, j));
         }
         var expected = IntStream.range(0, 256)
             .boxed()
@@ -272,7 +276,7 @@ public final class TestByteArrays {
         for (int i = 0; i <= 3; ++i) {
             IntStream  stream = mk.apply(new byte[i], 0, 0);
             t.assertFalse(stream.isParallel());
-            t.assertEquals(0L, stream.count());
+            t.examine(stream.count()).is(0);
         }
 
         var bytes = new byte[256];
@@ -282,9 +286,9 @@ public final class TestByteArrays {
             for (int toIndex = fromIndex; toIndex < 256; ++toIndex) {
                 IntStream stream = mk.apply(bytes, fromIndex, toIndex);
                 t.assertFalse(stream.isParallel());
-                t.assertEquals(expected.subList(fromIndex, toIndex),
-                    stream.boxed()
-                    .collect(Collectors.toList()));
+                t.examine(stream.boxed()
+                    .collect(Collectors.toList()))
+                    .is(expected.subList(fromIndex, toIndex));
             }
     }
 
@@ -320,8 +324,8 @@ public final class TestByteArrays {
 
         for (int i = 0; i <= 3; ++i) {
             var sp = ByteArrays.signedSpliterator(new byte[i], 0, 0);
-            t.assertEquals(0L, sp.estimateSize());
-            t.assertEquals(0L, sp.getExactSizeIfKnown());
+            t.examine(sp.estimateSize()).is(0);
+            t.examine(sp.getExactSizeIfKnown()).is(0);
             t.assertTrue(sp.hasCharacteristics(
                     Spliterator.SIZED | Spliterator.SUBSIZED));
             sp.forEachRemaining((int b) -> {
@@ -346,24 +350,25 @@ public final class TestByteArrays {
                             Spliterator.SIZED | Spliterator.SUBSIZED));
                     actual.clear();
                     transfer(t, sp, actual, spAdvance != 0);
-                    t.assertEquals(expected.subList(fromIndex, toIndex), actual);
+                    t.<List<?>>examine(actual).is(
+                        expected.subList(fromIndex, toIndex));
 
                     for (int sp2First = 0; sp2First < 2; ++sp2First)
                         for (int sp2Advance = 0; sp2Advance < 2;
                              ++sp2Advance) {
                             sp = mk.apply(bytes, fromIndex, toIndex);
-                            t.assertEquals((long) toIndex - fromIndex,
-                                sp.estimateSize());
-                            t.assertEquals((long) toIndex - fromIndex,
-                                sp.getExactSizeIfKnown());
+                            t.examine(sp.estimateSize())
+                                .is(toIndex - fromIndex);
+                            t.examine(sp.getExactSizeIfKnown())
+                                .is(toIndex - fromIndex);
 
                             var sp2 = sp.trySplit();
                             if (toIndex - fromIndex <= 1) {
                                 t.assertNull(sp2);
                                 actual.clear();
                                 transfer(t, sp, actual, spAdvance != 0);
-                                t.assertEquals(expected.subList(
-                                        fromIndex, toIndex), actual);
+                                t.<List<?>>examine(actual)
+                                    .is(expected.subList(fromIndex, toIndex));
                                 continue;
                             }
 
@@ -373,11 +378,11 @@ public final class TestByteArrays {
                                 < toIndex - fromIndex);
                             t.assertTrue(sp.getExactSizeIfKnown()
                                 < toIndex - fromIndex);
-                            t.assertEquals((long) toIndex - fromIndex,
-                                sp.estimateSize() + sp2.estimateSize());
-                            t.assertEquals((long) toIndex - fromIndex,
-                                sp.getExactSizeIfKnown()
-                                + sp2.getExactSizeIfKnown());
+                            t.examine(sp.estimateSize() + sp2.estimateSize())
+                                .is(toIndex - fromIndex);
+                            t.examine(sp.getExactSizeIfKnown()
+                                + sp2.getExactSizeIfKnown())
+                                .is(toIndex - fromIndex);
 
                             actual.clear();
                             if (sp2First != 0) {
@@ -390,8 +395,8 @@ public final class TestByteArrays {
                                 actual.addAll(actual2);
                             }
 
-                            t.assertEquals(expected.subList(fromIndex, toIndex),
-                                actual);
+                            t.<List<?>>examine(actual)
+                                .is(expected.subList(fromIndex, toIndex));
                         }
             }
     }
@@ -403,9 +408,9 @@ public final class TestByteArrays {
             int count = 0;
             while (sp.tryAdvance((int b) -> target.add(b))) {
                 ++count;
-                t.assertEquals(initialTargetSize + count, target.size());
+                t.examine(target.size()).is(initialTargetSize + count);
             }
-            t.assertEquals(initialTargetSize + count, target.size());
+            t.examine(target.size()).is(initialTargetSize + count);
         } else
             sp.forEachRemaining((int b) -> target.add(b));
 

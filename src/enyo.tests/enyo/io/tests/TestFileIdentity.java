@@ -42,10 +42,10 @@ public final class TestFileIdentity {
 
             t.expect(() -> FileIdentity.of(attrs),
                 IllegalArgumentException.class,
-                e -> t.assertEquals("Symbolic link: " + attrs, e.getMessage()));
+                e -> t.examine(e.getMessage()).is("Symbolic link: " + attrs));
             t.expect(() -> FileIdentity.of(link),
                 IllegalArgumentException.class,
-                e -> t.assertEquals("Symbolic link: " + link, e.getMessage()));
+                e -> t.examine(e.getMessage()).is("Symbolic link: " + link));
         }
     }
 
@@ -56,14 +56,14 @@ public final class TestFileIdentity {
 
             Files.write(file, new byte[0]);
             var initial = FileIdentity.of(file);
-            t.assertEquals(0L, initial.size());
-            t.assertEquals(FileIdentity.of(file), initial);
+            t.examine(initial.size()).is(0);
+            t.examine(initial).is(FileIdentity.of(file));
 
             Files.write(file, new byte[1]);
             var size1 = FileIdentity.of(file);
-            t.assertEquals(1L, size1.size());
-            t.assertNotEquals(initial, size1);
-            t.assertEquals(initial.fileKey(), size1.fileKey());
+            t.examine(size1.size()).is(1);
+            t.examine(size1).isnt(initial);
+            t.examine(size1.fileKey()).is(initial.fileKey());
         }
     }
 
@@ -81,10 +81,10 @@ public final class TestFileIdentity {
     @Test
     public void testToString(Testing t) {
         List.of(false, true).stream().forEach(directory ->
-            t.assertEquals("6789/2020-01-06T20:50:13Z/12345",
-                FileIdentity.of(new Attributes(directory, 12345,
+            t.examine(FileIdentity.of(new Attributes(directory, 12345,
                         FileTime.from(1578343813, TimeUnit.SECONDS), 6789))
-                .toString()));
+                .toString())
+            .is("6789/2020-01-06T20:50:13Z/12345"));
     }
 
     @Test
@@ -96,8 +96,8 @@ public final class TestFileIdentity {
 
             Files.write(file, new byte[0]);
             var initial = FileIdentity.of(file);
-            t.assertEquals(0L, initial.size());
-            t.assertEquals(FileIdentity.of(file), initial);
+            t.examine(initial.size()).is(0);
+            t.examine(initial).is(FileIdentity.of(file));
 
             // Check that a change in the file modification time
             // changes the file identity.  Assume at least 2 second
@@ -106,11 +106,11 @@ public final class TestFileIdentity {
             do {
                 Files.write(file, new byte[0]);
                 var id = FileIdentity.of(file);
-                t.assertEquals(0L, id.size());
-                t.assertEquals(initial.fileKey(), id.fileKey());
+                t.examine(id.size()).is(0);
+                t.examine(id.fileKey()).is(initial.fileKey());
                 if (!id.lastModifiedTime().equals(
                         initial.lastModifiedTime())) {
-                    t.assertNotEquals(id, initial);
+                    t.examine(id).isnt(initial);
                     return;
                 }
                 Thread.sleep(100);
@@ -167,9 +167,9 @@ public final class TestFileIdentity {
         var list1 = List.of(2);
         var list2 = List.of(2, 2).subList(0, 1);
         var list3 = List.of(2);
-        t.assertEquals(list1, list2);
-        t.assertNotEquals(list1.getClass(), list2.getClass());
-        t.assertNotSame(list1, list3);
+        t.examine(list1).is(list2);
+        t.<Class<?>>examine(list1.getClass()).isnt(list2.getClass());
+        t.examine(list1).isNotSame(list3);
         order.group()
             .add(new Attributes(false, list1, FileTime.fromMillis(1001), 2))
             .add(new Attributes(false, list2, FileTime.fromMillis(1001), 2))
@@ -219,13 +219,12 @@ public final class TestFileIdentity {
 
                         t.expect(() -> FileIdentity.of(attrs),
                             IllegalArgumentException.class,
-                            e -> t.assertEquals(
-                                "File without identity: " + attrs,
-                                e.getMessage()));
+                            e -> t.examine(e.getMessage())
+                            .is("File without identity: " + attrs));
                         t.expect(() -> FileIdentity.of(path),
                             IllegalArgumentException.class,
-                            e -> t.assertEquals("File without identity: " + path,
-                                e.getMessage()));
+                            e -> t.examine(e.getMessage())
+                            .is("File without identity: " + path));
                     }));
     }
 
@@ -237,7 +236,7 @@ public final class TestFileIdentity {
                     dir.resolve("subdirectory").resolve("file")))
                 t.expect(() -> FileIdentity.of(path),
                     NoSuchFileException.class,
-                    e -> t.assertEquals(path.toString(), e.getMessage()));
+                    e -> t.examine(e.getMessage()).is(path.toString()));
         }
     }
 

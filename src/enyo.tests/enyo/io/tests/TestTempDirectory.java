@@ -18,7 +18,7 @@ public class TestTempDirectory {
                 "test-tempdir-")) {
             path = dir.path();
             t.assertTrue(Files.exists(path));
-            t.assertEquals(dir.toString(), path.toString());
+            t.examine(path.toString()).is(dir.toString());
         }
         t.assertFalse(Files.exists(path));
     }

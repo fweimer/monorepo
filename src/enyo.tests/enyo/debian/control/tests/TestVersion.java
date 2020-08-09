@@ -72,7 +72,7 @@ public final class TestVersion {
                     .map(Version::of)
                     .collect(Collectors.toList())))) {
             List<Integer> fromPython = pythonAptCheck(list);
-            t.assertEquals(fromPython.size(), list.size() - 1);
+            t.examine(list.size() - 1).is(fromPython.size());
             int i = 0;
             Version last = null;
             for (Version ver : list) {

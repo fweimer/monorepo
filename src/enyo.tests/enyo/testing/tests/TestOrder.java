@@ -47,10 +47,9 @@ public final class TestOrder {
         Order<Double> c1 = c.map(Integer::doubleValue);
         c1.check();
         c1.checkComparable(Double.class);
-        t.assertEquals(
-            c.values().stream().map(Integer::doubleValue).collect(
-                Collectors.toList()),
-            c1.values().stream().collect(Collectors.toList()));
+        t.examine(c.values().stream().map(Integer::doubleValue).collect(
+                Collectors.toList()))
+            .is(c1.values().stream().collect(Collectors.toList()));
     }
 
     @Test
@@ -72,7 +71,7 @@ public final class TestOrder {
             .add(new EqualsNull())
             .close();
         t.expect(() -> c.check(), Order.ObjectFailure.class, e -> {
-                t.assertEquals(Order.Failed.EQUALS_NULL, e.failed());
+                t.examine(e.failed()).is(Order.Failed.EQUALS_NULL);
                 t.assertSame(item, e.object());
             });
     }
@@ -94,7 +93,7 @@ public final class TestOrder {
         c.add(item);
         c.add(new EqualsFalse());
         t.expect(() -> c.check(), Order.PairFailure.class, e -> {
-                t.assertEquals(Order.FailedPair.EQUALS, e.failed());
+                t.examine(e.failed()).is(Order.FailedPair.EQUALS);
                 t.assertSame(item, e.left());
                 t.assertSame(item, e.right());
             });
@@ -126,7 +125,7 @@ public final class TestOrder {
             .add(item2)
             .close();
         t.expect(() -> c.check(), Order.PairFailure.class, e -> {
-                t.assertEquals(Order.FailedPair.HASH_CODE, e.failed());
+                t.examine(e.failed()).is(Order.FailedPair.HASH_CODE);
                 t.assertSame(item1, e.left());
                 t.assertSame(item2, e.right());
             });
@@ -145,7 +144,7 @@ public final class TestOrder {
         c.add(3);
         c.add(4);
         Consumer<Order.PairFailure> verify = e -> {
-            t.assertEquals(Order.FailedPair.EQUALS, e.failed());
+            t.examine(e.failed()).is(Order.FailedPair.EQUALS);
             t.assertSame(item1, e.left());
             t.assertSame(item2, e.right());
         };
@@ -161,7 +160,7 @@ public final class TestOrder {
         c.add(item);
         t.expect(() -> c.checkComparable(Integer.class),
             Order.ObjectFailure.class, e -> {
-                t.assertEquals(Order.Failed.COMPARABLE, e.failed());
+                t.examine(e.failed()).is(Order.Failed.COMPARABLE);
                 t.assertSame(item, e.object());
             });
     }
@@ -175,8 +174,8 @@ public final class TestOrder {
         c.add(item1);
         t.expect(() -> c.checkComparable(Integer.class),
             Order.PairFailure.class, e -> {
-                t.assertEquals(Order.FailedPair.COMPARE_TO, e.failed());
-                t.assertEquals(-1, e.expectedComparison());
+                t.examine(e.failed()).is(Order.FailedPair.COMPARE_TO);
+                t.examine(e.expectedComparison()).is(-1);
                 t.assertSame(item2, e.left());
                 t.assertSame(item1, e.right());
             });
@@ -196,8 +195,8 @@ public final class TestOrder {
         c.check();              // Equality implementation is not buggy.
         t.expect(() -> c.checkComparable(BrokenCompareTo.class),
             Order.PairFailure.class, e -> {
-                t.assertEquals(Order.FailedPair.COMPARE_TO, e.failed());
-                t.assertEquals(0, e.expectedComparison());
+                t.examine(e.failed()).is(Order.FailedPair.COMPARE_TO);
+                t.examine(e.expectedComparison()).is(0);
                 t.assertSame(item1, e.left());
                 t.assertSame(item2, e.right());
             });
@@ -217,8 +216,8 @@ public final class TestOrder {
         c.check();              // Equality implementation is not buggy.
         t.expect(() -> c.checkComparable(BrokenCompareTo.class),
             Order.PairFailure.class, e -> {
-                t.assertEquals(Order.FailedPair.COMPARE_TO, e.failed());
-                t.assertEquals(-1, e.expectedComparison());
+                t.examine(e.failed()).is(Order.FailedPair.COMPARE_TO);
+                t.examine(e.expectedComparison()).is(-1);
                 t.assertSame(item1, e.left());
                 t.assertSame(item2, e.right());
             });

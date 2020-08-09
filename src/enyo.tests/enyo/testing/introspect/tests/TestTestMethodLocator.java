@@ -15,13 +15,14 @@ public final class TestTestMethodLocator {
             TestTestMethodLocator.class.getName(),
             "testWithModuleName",
             true);
-        t.assertEquals(Optional.of("enyo.tests"), tml.moduleName());
-        t.assertEquals(TestTestMethodLocator.class.getName(), tml.className());
-        t.assertEquals("testWithModuleName", tml.methodName());
+        t.examine(tml.moduleName()).is(Optional.of("enyo.tests"));
+        t.examine(tml.className()).is(TestTestMethodLocator.class.getName());
+        t.examine(tml.methodName()).is("testWithModuleName");
         t.assertTrue(tml.hasTestingArgument());
-        t.assertEquals("enyo.tests/enyo.testing.introspect.tests"
-            + ".TestTestMethodLocator::testWithModuleName"
-            + "(enyo.testing.Testing)", tml.toString());
+        t.examine(tml.toString())
+            .is("enyo.tests/enyo.testing.introspect.tests"
+                + ".TestTestMethodLocator::testWithModuleName"
+                + "(enyo.testing.Testing)");
     }
 
     @Test
@@ -31,12 +32,13 @@ public final class TestTestMethodLocator {
             TestTestMethodLocator.class.getName(),
             "testOrder",
             false);
-        t.assertEquals(Optional.empty(), tml.moduleName());
-        t.assertEquals(TestTestMethodLocator.class.getName(), tml.className());
-        t.assertEquals("testOrder", tml.methodName());
+        t.examine(tml.moduleName()).is(Optional.empty());
+        t.examine(tml.className()).is(TestTestMethodLocator.class.getName());
+        t.examine(tml.methodName()).is("testOrder");
         t.assertFalse(tml.hasTestingArgument());
-        t.assertEquals("enyo.testing.introspect.tests"
-            + ".TestTestMethodLocator::testOrder()", tml.toString());
+        t.examine(tml.toString())
+            .is("enyo.testing.introspect.tests"
+                + ".TestTestMethodLocator::testOrder()");
     }
 
     @Test

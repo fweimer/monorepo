@@ -8,9 +8,9 @@ public final class TestTestResources {
     @Test
     public static void test(Testing t) {
         TestResources tr = new TestResources(1, 2);
-        t.assertEquals(1, tr.threads());
-        t.assertEquals(2, tr.memory());
-        t.assertEquals("threads=1 memory=2", tr.toString());
+        t.examine(tr.threads()).is(1);
+        t.examine(tr.memory()).is(2);
+        t.examine(tr.toString()).is("threads=1 memory=2");
     }
 
     @Test

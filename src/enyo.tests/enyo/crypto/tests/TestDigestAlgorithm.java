@@ -13,19 +13,19 @@ public final class TestDigestAlgorithm {
     @Test
     public void testNewDigest(Testing t) {
         for (DigestAlgorithm algo : DigestAlgorithm.values()) {
-            t.assertEquals(algo.newDigest().digest().length,
-                algo.lengthInBytes());
+            t.examine(algo.lengthInBytes())
+                .is(algo.newDigest().digest().length);
         }
     }
 
     @Test
     public void testAlgorithmsDistinct(Testing t) {
-        t.assertEquals((long) DigestAlgorithm.values().length,
-            Arrays.stream(DigestAlgorithm.values()).distinct().count());
-        t.assertEquals((long) DigestAlgorithm.values().length,
-            Arrays.stream(DigestAlgorithm.values())
+        t.examine(Arrays.stream(DigestAlgorithm.values()).distinct().count())
+            .is(DigestAlgorithm.values().length);
+        t.examine(Arrays.stream(DigestAlgorithm.values())
             .map(algo -> algo.newDigest().getAlgorithm())
-            .distinct().count());
+            .distinct().count())
+            .is(DigestAlgorithm.values().length);
     }
 
     @Test
@@ -55,7 +55,7 @@ public final class TestDigestAlgorithm {
             t.assertByteArrayEquals(expected, actual);
         }
 
-        t.assertEquals(emptyDigests.size(), DigestAlgorithm.values().length);
+        t.examine(DigestAlgorithm.values().length).is(emptyDigests.size());
     }
 
     @Test
@@ -68,11 +68,11 @@ public final class TestDigestAlgorithm {
             digest2.update((byte) 2);
             byte[] one = digest1.digest();
             byte[] two = digest2.digest();
-            t.assertEquals(3L,
-                Stream.of(empty, one, two)
+            t.examine(Stream.of(empty, one, two)
                 .map(ByteBuffer::wrap)
                 .distinct()
-                .count());
+                .count())
+                .is(3);
 
             byte[] oneIsolated = algo.newDigest().digest(new byte[] { 1 });
             byte[] twoIsolated = algo.newDigest().digest(new byte[] { 2 });

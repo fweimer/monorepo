@@ -19,34 +19,37 @@ public final class TestResult {
     @Test
     public static void testPresent(Testing t) {
         Result<Integer, String> r = Result.of(1);
-        t.assertEquals(2.0, r.compute(
+        t.examine(r.compute(
                 value -> value + 1.0,
-                error -> t.assertFail("Unreachable")));
-        t.assertEquals(Optional.empty(), r.error());
+                error -> t.assertFail("Unreachable")))
+            .is(2.0);
+        t.examine(r.error()).is(Optional.empty());
         {
             Result<Long, String> r2 = Result.of(2L);
             Flag flag = new Flag(t);
             // FIXME: Should really be the same object.
-            t.assertEquals(r2, r.flatMap(value -> {
-                        t.assertEquals(1, value);
+            t.examine(r.flatMap(value -> {
+                        t.examine(value).is(1);
                         flag.setOnce();
                         return r2;
-                    }));
+                    }))
+                .is(r2);
             flag.assertSet();
             Result<Long, String> r3 = Result.ofError("3");
             flag.clear();
             // FIXME: Should really be the same object.
-            t.assertEquals(r3, r.flatMap(value -> {
-                        t.assertEquals(1, value);
+            t.examine(r.flatMap(value -> {
+                        t.examine(value).is(1);
                         flag.setOnce();
                         return r3;
-                    }));
+                    }))
+                .is(r3);
             flag.assertSet();
         }
         {
             Flag flag = new Flag(t);
             r.ifPresent(value -> {
-                    t.assertEquals(1, value);
+                    t.examine(value).is(1);
                     flag.setOnce();
                 });
             flag.assertSet();
@@ -54,7 +57,7 @@ public final class TestResult {
         {
             Flag flag = new Flag(t);
             r.ifPresentOrElse(value -> {
-                    t.assertEquals(1, value);
+                    t.examine(value).is(1);
                     flag.setOnce();
                 }, error -> t.assertFail("Unreachable"));
             flag.assertSet();
@@ -63,30 +66,33 @@ public final class TestResult {
         t.assertTrue(r.isPresent());
         {
             Flag flag = new Flag(t);
-            t.assertEquals(Result.of(2), r.map(
+            t.examine(r.map(
                     i -> {
                         flag.setOnce();
                         return i + 1;
-                    }));
+                    }))
+                .is(Result.of(2));
             flag.assertSet();
         }
         {
             Flag flag = new Flag(t);
-            t.assertEquals(Result.of(2), r.map(
+            t.examine(r.map(
                     i -> {
                         flag.setOnce();
                         return i + 1;
                     },
-                    e -> t.assertFail("Unreachable")));
+                    e -> t.assertFail("Unreachable")))
+                .is(Result.of(2));
             flag.assertSet();
         }
-        t.assertSame(r, r.mapError(e -> t.assertFail("Unreachable")));
-        t.assertEquals(Optional.of(1), r.value());
-        t.assertEquals(1, r.orElse(2));
-        t.assertEquals(1, r.orElseGet(() -> t.assertFail("Unreachable")));
-        t.assertEquals(1, r.orElseThrow());
-        t.assertEquals(List.of(1), r.stream().collect(Collectors.toList()));
-        t.assertEquals("Result.of(1)", r.toString());
+        t.<Result<?, ?>>examine(r.mapError(e -> t.assertFail("Unreachable")))
+            .isSame(r);
+        t.examine(r.value()).is(Optional.of(1));
+        t.examine(r.orElse(2)).is(1);
+        t.examine(r.orElseGet(() -> t.assertFail("Unreachable"))).is(1);
+        t.examine(r.orElseThrow()).is(1);
+        t.examine(r.stream().collect(Collectors.toList())).is(List.of(1));
+        t.examine(r.toString()).is("Result.of(1)");
 
         // The type of the error does not matter.
         Result<Integer, Void> r1 = Result.of(1);
@@ -95,57 +101,63 @@ public final class TestResult {
     @Test
     public static void testError(Testing t) {
         Result<String, Integer> r = Result.ofError(1);
-        t.assertEquals(2.0, r.compute(
+        t.examine(r.compute(
                 value -> t.assertFail("Unreachable"),
-                error -> error + 1.0));
-        t.assertEquals(Optional.of(1), r.error());
-        t.assertSame(r, r.flatMap(value -> t.assertFail("Unreachable")));
+                error -> error + 1.0))
+            .is(2.0);
+        t.examine(r.error()).is(Optional.of(1));
+        t.<Result<?, ?>>examine(r.flatMap(value -> t.assertFail("Unreachable")))
+            .is(r);
         r.ifPresent(value -> t.assertFail("Unreachable"));
         {
             Flag flag = new Flag(t);
             r.ifPresentOrElse(value -> t.assertFail("Unreachable"),
                 error -> {
-                    t.assertEquals(1, error);
+                    t.examine(error).is(1);
                     flag.setOnce();
                 });
             flag.assertSet();
         }
         t.assertTrue(r.isError());
         t.assertFalse(r.isPresent());
-        t.assertSame(r, r.map(value -> t.assertFail("Unreachable")));
+        t.<Result<?, ?>>examine(r.map(value -> t.assertFail("Unreachable")))
+            .is(r);
         {
             Flag flag = new Flag(t);
-            t.assertEquals(Result.ofError(2), r.map(
+            t.examine(r.map(
                     value -> t.assertFail("Unreachable"),
                     i -> {
                         flag.setOnce();
                         return i + 1;
-                    }));
+                    }))
+                .is(Result.ofError(2));
             flag.assertSet();
         }
         {
             Flag flag = new Flag(t);
-            t.assertEquals(Result.ofError(2), r.mapError(
+            t.examine(r.mapError(
                     i -> {
                         flag.setOnce();
                         return i + 1;
-                    }));
+                    }))
+                .is(Result.ofError(2));
             flag.assertSet();
         }
-        t.assertEquals(Optional.empty(), r.value());
-        t.assertEquals("2", r.orElse("2"));
+        t.examine(r.value()).is(Optional.empty());
+        t.examine(r.orElse("2")).is("2");
         {
             Flag flag = new Flag(t);
-            t.assertEquals("2", r.orElseGet(() -> {
+            t.examine(r.orElseGet(() -> {
                         flag.setOnce();
                         return "2";
-                    }));
+                    }))
+                .is("2");
             flag.assertSet();
         }
         t.expect(() -> r.orElseThrow(),
-            ResultException.class, e -> t.assertEquals("1", e.getMessage()));
-        t.assertEquals(List.of(), r.stream().collect(Collectors.toList()));
-        t.assertEquals("Result.ofError(1)", r.toString());
+            ResultException.class, e -> t.examine(e.getMessage()).is("1"));
+        t.examine(r.stream().collect(Collectors.toList())).is(List.of());
+        t.examine(r.toString()).is("Result.ofError(1)");
 
         // The type of the value does not matter.
         Result<Void, Integer> r1 = Result.ofError(1);
@@ -254,7 +266,7 @@ public final class TestResult {
                         return i - 10;
                     }))
             .collect(Collectors.toList());
-        t.assertEquals(expected, actual);
+        t.examine(actual).is(expected);
     }
 
 

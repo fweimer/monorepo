@@ -43,12 +43,12 @@ public final class TestUTF8SCharsetMapDecoder {
     public static void testMapDecoder(Testing t) {
         MapDecoder mapDecoder = MapDecoder.get();
 
-        t.assertEquals("", mapDecoder.decode(new byte[0]));
-        t.assertEquals("A", mapDecoder.decode("A".getBytes()));
-        t.assertEquals("\udc80", mapDecoder.decode(new byte[] { (byte) 0x80 }));
-        t.assertEquals("\udc81", mapDecoder.decode(new byte[] { (byte) 0x81 }));
-        t.assertEquals("\udcfe", mapDecoder.decode(new byte[] { (byte) 0xfe }));
-        t.assertEquals("\udcff", mapDecoder.decode(new byte[] { (byte) 0xff }));
+        t.examine(mapDecoder.decode(new byte[0])).is("");
+        t.examine(mapDecoder.decode("A".getBytes())).is("A");
+        t.examine(mapDecoder.decode(new byte[] { (byte) 0x80 })).is("\udc80");
+        t.examine(mapDecoder.decode(new byte[] { (byte) 0x81 })).is("\udc81");
+        t.examine(mapDecoder.decode(new byte[] { (byte) 0xfe })).is("\udcfe");
+        t.examine(mapDecoder.decode(new byte[] { (byte) 0xff })).is("\udcff");
     }
 
     @Test
@@ -64,18 +64,17 @@ public final class TestUTF8SCharsetMapDecoder {
             array[0] = (byte) b1;
 
             var decoder = ExtendedCharsets.UTF_8S.newDecoder();
-            t.assertEquals(CoderResult.UNDERFLOW,
-                decoder.decode(in, out, true));
+            t.examine(decoder.decode(in, out, true)).is(CoderResult.UNDERFLOW);
             t.assertFalse(in.hasRemaining());
-            t.assertEquals(CoderResult.UNDERFLOW, decoder.flush(out));
-            t.assertEquals(1, out.position());
+            t.examine(decoder.flush(out)).is(CoderResult.UNDERFLOW);
+            t.examine(out.position()).is(1);
 
             in.position(0);
             var expected = mapDecoder.decode(in);
             out.flip();
             var actual = out.toString();
-            t.assertEquals(expected.charAt(0), actual.charAt(0));
-            t.assertEquals(expected, actual);
+            t.examine(actual.charAt(0)).is(expected.charAt(0));
+            t.examine(actual).is(expected);
             t.assertByteArrayEquals(array,
                 expected.getBytes(ExtendedCharsets.UTF_8S));
         }
@@ -96,17 +95,17 @@ public final class TestUTF8SCharsetMapDecoder {
                 array[1] = (byte) b2;
 
                 var decoder = ExtendedCharsets.UTF_8S.newDecoder();
-                t.assertEquals(CoderResult.UNDERFLOW,
-                    decoder.decode(in, out, true));
+                t.examine(decoder.decode(in, out, true))
+                    .is(CoderResult.UNDERFLOW);
                 t.assertFalse(in.hasRemaining());
-                t.assertEquals(CoderResult.UNDERFLOW, decoder.flush(out));
+                t.examine(decoder.flush(out)).is(CoderResult.UNDERFLOW);
 
                 in.position(0);
                 var expected = mapDecoder.decode(in);
                 out.flip();
                 var actual = out.toString();
-                t.assertEquals(expected.charAt(0), actual.charAt(0));
-                t.assertEquals(expected, actual);
+                t.examine(actual.charAt(0)).is(expected.charAt(0));
+                t.examine(actual).is(expected);
                 t.assertByteArrayEquals(array,
                     expected.getBytes(ExtendedCharsets.UTF_8S));
 
@@ -115,23 +114,24 @@ public final class TestUTF8SCharsetMapDecoder {
                 in.limit(1);
                 out.clear();
                 decoder = ExtendedCharsets.UTF_8S.newDecoder();
-                t.assertEquals(CoderResult.UNDERFLOW,
-                    decoder.decode(in, out, false));
+                t.examine(decoder.decode(in, out, false))
+                    .is(CoderResult.UNDERFLOW);
                 // The decoder must always consume all bytes (to
                 // support escaping pending bytes on flush).
-                t.assertEquals(0, in.remaining());
+                t.examine(in.remaining()).is(0);
                 in.position(1);
                 in.limit(2);
-                t.assertEquals(CoderResult.UNDERFLOW,
-                    decoder.decode(in, out, true));
-                t.assertEquals(0, in.remaining());
-                t.assertEquals(CoderResult.UNDERFLOW, decoder.flush(out));
+                t.examine(decoder.decode(in, out, true))
+                    .is(CoderResult.UNDERFLOW);
+                t.examine(in.remaining()).is(0);
+                t.examine(decoder.flush(out))
+                    .is(CoderResult.UNDERFLOW);
                 out.flip();
                 actual = out.toString();
-                t.assertEquals(expected.charAt(0), actual.charAt(0));
+                t.examine(actual.charAt(0)).is(expected.charAt(0));
                 if (expected.length() >= 2 && actual.length() >= 2)
-                    t.assertEquals(expected.charAt(1), actual.charAt(1));
-                t.assertEquals(expected, actual);
+                    t.examine(actual.charAt(1)).is(expected.charAt(1));
+                t.examine(actual) .is(expected);
             }
     }
 
@@ -154,18 +154,17 @@ public final class TestUTF8SCharsetMapDecoder {
                         array[2] = (byte) b3;
 
                         var decoder = ExtendedCharsets.UTF_8S.newDecoder();
-                        t.assertEquals(CoderResult.UNDERFLOW,
-                            decoder.decode(in, out, true));
+                        t.examine(decoder.decode(in, out, true))
+                            .is(CoderResult.UNDERFLOW);
                         t.assertFalse(in.hasRemaining());
-                        t.assertEquals(CoderResult.UNDERFLOW,
-                            decoder.flush(out));
+                        t.examine(decoder.flush(out)).is(CoderResult.UNDERFLOW);
 
                         in.position(0);
                         var expected = mapDecoder.decode(in);
                         out.flip();
                         var actual = out.toString();
-                        t.assertEquals(expected.charAt(0), actual.charAt(0));
-                        t.assertEquals(expected, actual);
+                        t.examine(actual.charAt(0)).is(expected.charAt(0));
+                        t.examine(actual).is(expected);
                         t.assertByteArrayEquals(array,
                             expected.getBytes(ExtendedCharsets.UTF_8S));
                     } catch (AssertionError e) {
@@ -202,9 +201,8 @@ public final class TestUTF8SCharsetMapDecoder {
                             var expected = mapDecoder.decode(in);
                             out.flip();
                             var actual = out.toString();
-                            t.assertEquals(expected.charAt(0),
-                                actual.charAt(0));
-                            t.assertEquals(expected, actual);
+                            t.examine(actual.charAt(0)).is(expected.charAt(0));
+                            t.examine(actual).is(expected);
                         }
     }
 
@@ -227,18 +225,17 @@ public final class TestUTF8SCharsetMapDecoder {
                         array[3] = b4;
 
                         var decoder = ExtendedCharsets.UTF_8S.newDecoder();
-                        t.assertEquals(CoderResult.UNDERFLOW,
-                            decoder.decode(in, out, true));
+                        t.examine(decoder.decode(in, out, true))
+                            .is(CoderResult.UNDERFLOW);
                         t.assertFalse(in.hasRemaining());
-                        t.assertEquals(CoderResult.UNDERFLOW,
-                            decoder.flush(out));
+                        t.examine(decoder.flush(out)).is(CoderResult.UNDERFLOW);
 
                         in.position(0);
                         var expected = mapDecoder.decode(in);
                         out.flip();
                         var actual = out.toString();
-                        t.assertEquals(expected.charAt(0), actual.charAt(0));
-                        t.assertEquals(expected, actual);
+                        t.examine(actual.charAt(0)).is(expected.charAt(0));
+                        t.examine(actual).is(expected);
                         t.assertByteArrayEquals(array,
                             expected.getBytes(ExtendedCharsets.UTF_8S));
                     }
@@ -273,9 +270,9 @@ public final class TestUTF8SCharsetMapDecoder {
                                 var expected = mapDecoder.decode(in);
                                 out.flip();
                                 var actual = out.toString();
-                                t.assertEquals(expected.charAt(0),
-                                    actual.charAt(0));
-                                t.assertEquals(expected, actual);
+                                t.examine(actual.charAt(0))
+                                    .is(expected.charAt(0));
+                                t.examine(actual).is(expected);
                             }
     }
 
@@ -302,19 +299,18 @@ public final class TestUTF8SCharsetMapDecoder {
 
                             var decoder =
                                 ExtendedCharsets.UTF_8S.newDecoder();
-                            t.assertEquals(CoderResult.UNDERFLOW,
-                                decoder.decode(in, out, true));
+                            t.examine(decoder.decode(in, out, true))
+                                .is(CoderResult.UNDERFLOW);
                             t.assertFalse(in.hasRemaining());
-                            t.assertEquals(CoderResult.UNDERFLOW,
-                                decoder.flush(out));
+                            t.examine(decoder.flush(out))
+                                .is(CoderResult.UNDERFLOW);
 
                             in.position(0);
                             var expected = mapDecoder.decode(in);
                             out.flip();
                             var actual = out.toString();
-                            t.assertEquals(expected.charAt(0),
-                                actual.charAt(0));
-                            t.assertEquals(expected, actual);
+                            t.examine(actual.charAt(0)).is(expected.charAt(0));
+                            t.examine(actual).is(expected);
                             t.assertByteArrayEquals(array,
                                 expected.getBytes(
                                     ExtendedCharsets.UTF_8S));
@@ -365,7 +361,7 @@ public final class TestUTF8SCharsetMapDecoder {
         out.flip();
         var actual = out.toString();
 
-        t.assertEquals(actual, expected);
+        t.examine(actual).is(expected);
     }
 
     @Test
@@ -380,9 +376,9 @@ public final class TestUTF8SCharsetMapDecoder {
 
                 try {
                     var encoder = ExtendedCharsets.UTF_8S.newEncoder();
-                    t.assertEquals(CoderResult.UNDERFLOW,
-                        encoder.encode(in, out, true));
-                    t.assertEquals(CoderResult.UNDERFLOW, encoder.flush(out));
+                    t.examine(encoder.encode(in, out, true))
+                        .is(CoderResult.UNDERFLOW);
+                    t.examine(encoder.flush(out)).is(CoderResult.UNDERFLOW);
                     byte[] expected = String.valueOf(array)
                         .getBytes(StandardCharsets.UTF_8);
                     out.flip();
@@ -402,9 +398,9 @@ public final class TestUTF8SCharsetMapDecoder {
 
                 try {
                     var encoder = ExtendedCharsets.UTF_8S.newEncoder();
-                    t.assertEquals(CoderResult.UNDERFLOW,
-                        encoder.encode(in, out, true));
-                    t.assertEquals(CoderResult.UNDERFLOW, encoder.flush(out));
+                    t.examine(encoder.encode(in, out, true))
+                        .is(CoderResult.UNDERFLOW);
+                    t.examine(encoder.flush(out)).is(CoderResult.UNDERFLOW);
                     byte[] expected = new byte[] { (byte) (ch - 0xDD00) };
                     out.flip();
                     byte[] actual = new byte[out.remaining()];

@@ -17,7 +17,7 @@ public final class TestIOFunction {
         List<byte[]> fileContents = files.stream()
             .map(IOFunction.of(Files::readAllBytes))
             .collect(Collectors.toList());
-        t.assertEquals(1, fileContents.size());
+        t.examine(fileContents.size()).is(1);
         t.assertTrue(fileContents.get(0).length > 0);
     }
 

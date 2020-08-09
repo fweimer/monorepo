@@ -61,25 +61,22 @@ public final class TestClassFile {
     public void testThisClass(Testing t) throws IOException {
         ClassFile cf = classFile(TestClassFile.class);
         String className = getClass().getName().replace('.', '/');
-        t.assertEquals(className, cf.className());
-        t.assertEquals(Constants.ACC_PUBLIC
+        t.examine(cf.className()).is(className);
+        t.examine(cf.accessFlags()).is(Constants.ACC_PUBLIC
             | Constants.ACC_FINAL
-            | Constants.ACC_SUPER,
-            cf.accessFlags());
+            | Constants.ACC_SUPER);
 
-        {
-            Set<String> methods = cf.methods()
-                .map(Method::name)
-                .filter(name -> name.indexOf('$') < 0)
-                .filter(name -> name.indexOf('<') < 0)
-                .collect(Collectors.toSet());
-            t.assertEquals(Set.of("testThisClass", "testEnum",
+        t.examine(cf.methods()
+            .map(Method::name)
+            .filter(name -> name.indexOf('$') < 0)
+            .filter(name -> name.indexOf('<') < 0)
+            .collect(Collectors.toSet()))
+            .is(Set.of("testThisClass", "testEnum",
                     "testInterface", "testAllClasses",
                     "testAnnotationB", "testAnnotationDefault",
                     "testElementValueAs", "latestBuild", "classFile",
                     "findAnnotationB", "elementValueType",
-                    "elementValueTypeCheck"), methods);
-        }
+                    "elementValueTypeCheck"));
 
         String classFileName = Descriptor.descriptor(ClassFile.class);
         String testName = Descriptor.descriptor(Test.class);
@@ -91,33 +88,32 @@ public final class TestClassFile {
                     && field.descriptor().equals("(Lenyo/testing/Testing;)V"))
                 .findFirst()
                 .get();
-            t.assertEquals(Constants.ACC_PUBLIC, method.accessFlags());
-            t.assertEquals(Set.of(testName, aName),
-                method.annotations()
+            t.examine(method.accessFlags()).is(Constants.ACC_PUBLIC);
+            t.examine(method.annotations()
                 .map(Annotation::descriptor)
-                .collect(Collectors.toSet()));
+                .collect(Collectors.toSet()))
+                .is(Set.of(testName, aName));
             {
                 Annotation test = method.annotations()
                     .filter(ann -> ann.descriptor().equals(testName))
                     .findFirst()
                     .get();
-                t.assertEquals("Annotation Lenyo/testing/Test;",
-                    test.toString());
-                t.assertEquals(List.of(),
-                    test.values().collect(Collectors.toList()));
+                t.examine(test.toString()).is("Annotation Lenyo/testing/Test;");
+                t.examine(test.values().collect(Collectors.toList()))
+                    .is(List.of());
             }
             {
                 Annotation a = method.annotations()
                     .filter(ann -> ann.descriptor().equals(aName))
                     .findFirst()
                     .get();
-                t.assertEquals("Annotation " + aName, a.toString());
-                t.assertEquals(List.of("value=argument"),
-                    a.values()
+                t.examine(a.toString()).is("Annotation " + aName);
+                t.examine(a.values()
                     .map(NamedElementValue::toString)
-                    .collect(Collectors.toList()));
+                    .collect(Collectors.toList()))
+                    .is(List.of("value=argument"));
                 NamedElementValue nev = a.values().findFirst().get();
-                t.assertEquals("value", nev.name());
+                t.examine(nev.name()).is("value");
             }
         }
 
@@ -139,19 +135,19 @@ public final class TestClassFile {
     @Test
     public static void testEnum(Testing t) throws IOException {
         ClassFile cf = classFile(E.class);
-        t.assertEquals(Constants.ACC_FINAL
-            | Constants.ACC_SUPER
-            | Constants.ACC_ENUM,
-            cf.accessFlags());
+        t.examine(cf.accessFlags())
+            .is(Constants.ACC_FINAL
+                | Constants.ACC_SUPER
+                | Constants.ACC_ENUM);
     }
 
     @Test
     public static void testInterface(Testing t) throws IOException {
         ClassFile cf = classFile(IOFunction.class);
-        t.assertEquals(Constants.ACC_PUBLIC
-            | Constants.ACC_ABSTRACT
-            | Constants.ACC_INTERFACE,
-            cf.accessFlags());
+        t.examine(cf.accessFlags())
+            .is(Constants.ACC_PUBLIC
+                | Constants.ACC_ABSTRACT
+                | Constants.ACC_INTERFACE);
     }
 
     @Test
@@ -207,7 +203,7 @@ public final class TestClassFile {
             .forEach(cf -> {
                     String name = cf.className();
                     t.assertTrue(name.length() > 0);
-                    t.assertEquals(0, cf.accessFlags() & ~classAccessFlags);
+                    t.examine(cf.accessFlags() & ~classAccessFlags).is(0);
                     try {
                         t.assertTrue(cf.utf8Strings().count() > 0);
                         t.assertTrue(cf.attributes().count() > 0);
@@ -216,14 +212,16 @@ public final class TestClassFile {
                         t.assertTrue(cf.annotations().count() >= 0);
                         cf.methods().forEach(
                             method -> {
-                                t.assertEquals(0,
-                                    method.accessFlags() & ~methodAccessFlags);
+                                t.examine(method.accessFlags()
+                                    & ~methodAccessFlags)
+                                    .is(0);
                                 t.assertTrue(method.name().length() > 0);
                             });
                         cf.fields().forEach(
                             field -> {
-                                t.assertEquals(0,
-                                    field.accessFlags() & ~fieldAccessFlags);
+                                t.examine(field.accessFlags()
+                                    & ~fieldAccessFlags)
+                                    .is(0);
                                 t.assertTrue(field.name().length() > 0);
                             });
                         Stream.of(
@@ -261,56 +259,56 @@ public final class TestClassFile {
             ElementValue ev = e.getValue();
             switch (e.getKey()) {
             case "byteValue":
-                t.assertEquals((byte) 100, ev.asByte());
-                t.assertEquals("byte", elementValueType(t, ev));
+                t.examine(ev.asByte()).is((byte) 100);
+                t.examine(elementValueType(t, ev)).is("byte");
                 break;
             case "charValue":
-                t.assertEquals('@', ev.asChar());
-                t.assertEquals("char", elementValueType(t, ev));
+                t.examine(ev.asChar()).is('@');
+                t.examine(elementValueType(t, ev)).is("char");
                 break;
             case "doubleValue":
-                t.assertEquals(101.0, ev.asDouble());
-                t.assertEquals("double", elementValueType(t, ev));
+                t.examine(ev.asDouble()).is(101.0);
+                t.examine(elementValueType(t, ev)).is("double");
                 break;
             case "floatValue":
-                t.assertEquals(102.0f, ev.asFloat());
-                t.assertEquals("float", elementValueType(t, ev));
+                t.examine(ev.asFloat()).is(102.0f);
+                t.examine(elementValueType(t, ev)).is("float");
                 break;
             case "intValue":
-                t.assertEquals(103, ev.asInt());
-                t.assertEquals("int", elementValueType(t, ev));
+                t.examine(ev.asInt()).is(103);
+                t.examine(elementValueType(t, ev)).is("int");
                 break;
             case "longValue":
-                t.assertEquals(104L, ev.asLong());
-                t.assertEquals("long", elementValueType(t, ev));
+                t.examine(ev.asLong()).is(104L);
+                t.examine(elementValueType(t, ev)).is("long");
                 break;
             case "shortValue":
-                t.assertEquals((short) 105, ev.asShort());
-                t.assertEquals("short", elementValueType(t, ev));
+                t.examine(ev.asShort()).is((short) 105);
+                t.examine(elementValueType(t, ev)).is("short");
                 break;
             case "booleanValue":
-                t.assertEquals(false, ev.asBoolean());
-                t.assertEquals("boolean", elementValueType(t, ev));
+                t.examine(ev.asBoolean()).is(false);
+                t.examine(elementValueType(t, ev)).is("boolean");
                 break;
             case "stringValue":
-                t.assertEquals("six'", ev.asString());
-                t.assertEquals("String", elementValueType(t, ev));
+                t.examine(ev.asString()).is("six'");
+                t.examine(elementValueType(t, ev)).is("String");
                 break;
             case "enumValue":
                 EnumConstant ec = ev.asEnum();
-                t.assertEquals(Descriptor.descriptor(E.class), ec.type());
-                t.assertEquals("Y", ec.name());
-                t.assertEquals("enum", elementValueType(t, ev));
+                t.examine(ec.type()).is(Descriptor.descriptor(E.class));
+                t.examine(ec.name()).is("Y");
+                t.examine(elementValueType(t, ev)).is("enum");
                 break;
             case "classValue":
-                t.assertEquals(Descriptor.descriptor(ClassFile.class),
-                    ev.asClass());
-                t.assertEquals("class", elementValueType(t, ev));
+                t.examine(ev.asClass())
+                    .is(Descriptor.descriptor(ClassFile.class));
+                t.examine(elementValueType(t, ev)).is("class");
                 break;
             case "annotationValue":
                 Annotation a = ev.asAnnotation();
-                t.assertEquals(Descriptor.descriptor(A.class), a.descriptor());
-                t.assertEquals("annotation", elementValueType(t, ev));
+                t.examine(a.descriptor()).is(Descriptor.descriptor(A.class));
+                t.examine(elementValueType(t, ev)).is("annotation");
                 break;
             default:
                 t.assertFail("Unknown value: " + e.getKey());
@@ -375,9 +373,13 @@ public final class TestClassFile {
     private void testAnnotationB(Testing t,
         Function<NamedElementValue, Object> object) throws IOException {
         Annotation b = findAnnotationB();
-        t.assertEquals("Annotation " + Descriptor.descriptor(B.class),
-            b.toString());
-        t.assertEquals(List.of(
+        t.examine(b.toString())
+            .is("Annotation " + Descriptor.descriptor(B.class));
+        t.examine(b.values()
+            .sorted(Comparator.comparing(NamedElementValue::name))
+            .map(NamedElementValue::toString)
+            .collect(Collectors.toList()))
+            .is(List.of(
                 "annotationValue=@" + Descriptor.descriptor(A.class),
                 "booleanValue=false",
                 "byteValue=100",
@@ -389,43 +391,39 @@ public final class TestClassFile {
                 "intValue=103",
                 "longValue=104",
                 "shortValue=105",
-                "stringValue=six'"),
-            b.values()
-            .sorted(Comparator.comparing(NamedElementValue::name))
-            .map(NamedElementValue::toString)
-            .collect(Collectors.toList()));
+                "stringValue=six'"));
         Map<String, Object> map = b.values()
             .collect(Collectors.toMap(NamedElementValue::name, object));
-        t.assertEquals(Descriptor.descriptor(A.class),
-            ((Annotation) map.get("annotationValue")).descriptor());
-        t.assertEquals(Map.of("value", "seven'"),
-            ((Annotation) map.get("annotationValue")).values()
+        t.examine(((Annotation) map.get("annotationValue")).descriptor())
+            .is(Descriptor.descriptor(A.class));
+        t.examine(((Annotation) map.get("annotationValue")).values()
             .collect(Collectors.toMap(NamedElementValue::name,
-                    nev -> nev.value().object())));
-        t.assertEquals(false, map.get("booleanValue"));
-        t.assertEquals((byte) 100, map.get("byteValue"));
-        t.assertEquals('@', map.get("charValue"));
-        t.assertEquals(Descriptor.of(ClassFile.class), map.get("classValue"));
-        t.assertEquals(101.0, map.get("doubleValue"));
-        t.assertEquals(Descriptor.descriptor(E.class),
-            ((EnumConstant) map.get("enumValue")).type());
-        t.assertEquals("Y", ((EnumConstant) map.get("enumValue")).name());
-        t.assertEquals(102.0f, map.get("floatValue"));
-        t.assertEquals(103, map.get("intValue"));
-        t.assertEquals(104L, map.get("longValue"));
-        t.assertEquals((short) 105, map.get("shortValue"));
-        t.assertEquals("six'", map.get("stringValue"));
-        t.assertEquals(12, map.size());
+                    nev -> nev.value().object())))
+            .is(Map.of("value", "seven'"));
+        t.examine(map.get("booleanValue")).is(false);
+        t.examine(map.get("byteValue")).is((byte) 100);
+        t.examine(map.get("charValue")).is('@');
+        t.examine(map.get("classValue")).is(Descriptor.of(ClassFile.class));
+        t.examine(map.get("doubleValue")).is(101.0);
+        t.examine(((EnumConstant) map.get("enumValue")).type())
+            .is(Descriptor.descriptor(E.class));
+        t.examine(((EnumConstant) map.get("enumValue")).name()).is("Y");
+        t.examine(map.get("floatValue")).is(102.0f);
+        t.examine(map.get("intValue")).is(103);
+        t.examine(map.get("longValue")).is(104L);
+        t.examine(map.get("shortValue")).is((short) 105);
+        t.examine(map.get("stringValue")).is("six'");
+        t.examine(map.size()).is(12);
     }
 
     private static void testAnnotationDefault(Testing t,
         Function<AnnotationDefaultAttribute, Object> object)
         throws IOException {
         ClassFile cf = classFile(B.class);
-        t.assertEquals(Constants.ACC_INTERFACE
-            | Constants.ACC_ABSTRACT
-            | Constants.ACC_ANNOTATION,
-            cf.accessFlags());
+        t.examine(cf.accessFlags())
+            .is(Constants.ACC_INTERFACE
+                | Constants.ACC_ABSTRACT
+                | Constants.ACC_ANNOTATION);
         Map<String, Object> map = cf.methods()
             .collect(Collectors.toMap(Method::name,
                     method -> method.attributes()
@@ -435,31 +433,29 @@ public final class TestClassFile {
                     .map(object)
                     .findFirst()
                     .get()));
-        t.assertEquals(Descriptor.descriptor(A.class),
-            ((Annotation) map.get("annotationValue")).descriptor());
-        t.assertEquals(Map.of("value", "seven"),
-            ((Annotation) map.get("annotationValue")).values()
+        t.examine(((Annotation) map.get("annotationValue")).descriptor())
+            .is(Descriptor.descriptor(A.class));
+        t.examine(((Annotation) map.get("annotationValue")).values()
             .collect(Collectors.toMap(NamedElementValue::name,
-                    nev -> nev.value().object())));
-        t.assertEquals(true, map.get("booleanValue"));
-        t.assertEquals((byte) 0, map.get("byteValue"));
-        t.assertEquals('0', map.get("charValue"));
-        t.assertEquals(Descriptor.of(TestClassFile.class),
-            map.get("classValue"));
-        t.assertEquals(1.0, map.get("doubleValue"));
-        t.assertEquals(Descriptor.descriptor(E.class),
-            ((EnumConstant) map.get("enumValue")).type());
-        t.assertEquals("X",
-            ((EnumConstant) map.get("enumValue")).name());
-        t.assertEquals(2.0f, map.get("floatValue"));
-        t.assertEquals(3, map.get("intValue"));
-        t.assertEquals(4L, map.get("longValue"));
-        t.assertEquals((short) 5, map.get("shortValue"));
-        t.assertEquals("six", map.get("stringValue"));
-        t.assertEquals(Object[].class, map.get("arrayType").getClass());
+                    nev -> nev.value().object())))
+            .is(Map.of("value", "seven"));
+        t.examine(map.get("booleanValue")).is(true);
+        t.examine(map.get("byteValue")).is((byte) 0);
+        t.examine(map.get("charValue")).is('0');
+        t.examine(map.get("classValue")).is(Descriptor.of(TestClassFile.class));
+        t.examine(map.get("doubleValue")).is(1.0);
+        t.examine(((EnumConstant) map.get("enumValue")).type())
+            .is(Descriptor.descriptor(E.class));
+        t.examine(((EnumConstant) map.get("enumValue")).name()).is("X");
+        t.examine(map.get("floatValue")).is(2.0f);
+        t.examine(map.get("intValue")).is(3);
+        t.examine(map.get("longValue")).is(4L);
+        t.examine(map.get("shortValue")).is((short) 5);
+        t.examine(map.get("stringValue")).is("six");
+        t.examine(map.get("arrayType")).isExactClass(Object[].class);
         t.assertArrayEquals(new Object[] { 8, 9 },
             ((Object[]) map.get("arrayType")));
-        t.assertEquals(13, map.size());
+        t.examine(map.size()).is(13);
     }
 
 
@@ -480,7 +476,7 @@ public final class TestClassFile {
         elementValueTypeCheck(result, ev, ElementValue::asLong, "long");
         elementValueTypeCheck(result, ev, ElementValue::asShort, "short");
         elementValueTypeCheck(result, ev, ElementValue::asString, "String");
-        t.assertEquals(1, result.size());
+        t.examine(result.size()).is(1);
         return result.get(0);
     }
 

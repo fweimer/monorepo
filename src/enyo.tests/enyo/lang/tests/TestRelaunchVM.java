@@ -47,7 +47,7 @@ public final class TestRelaunchVM {
         String actual = new String(output);
         t.assertTrue(actual,
             actual.indexOf("Hello, world!\n0: zero\n1: one\n2: two\n") >= 0);
-        t.assertEquals(17, status);
+        t.examine(status).is(17);
     }
 
     @Test
@@ -58,9 +58,8 @@ public final class TestRelaunchVM {
                 "--module", "enyo.tests/enyo.lang.tests.TestRelaunchVM");
         else
             expected = List.of("enyo.lang.tests.TestRelaunchVM");
-        t.assertEquals(
-            expected,
-            RelaunchVM.mainClassArguments(TestRelaunchVM.class));
+        t.examine(RelaunchVM.mainClassArguments(TestRelaunchVM.class))
+            .is(expected);
     }
 
     @Test
@@ -82,7 +81,7 @@ public final class TestRelaunchVM {
         String actual = new String(output);
         t.assertTrue(actual,
             actual.indexOf("Hello, world!\n0: zero\n1: one\n2: two\n") >= 0);
-        t.assertEquals(17, status);
+        t.examine(status).is(17);
     }
 
     @Test
@@ -108,7 +107,7 @@ public final class TestRelaunchVM {
             actual.indexOf("Hello, world!\n"
                 + setting + '\n'
                 + "0: zero\n1: one\n2: two\n") >= 0);
-        t.assertEquals(17, status);
+        t.examine(status).is(17);
     }
 
     /**
@@ -147,31 +146,31 @@ public final class TestRelaunchVM {
         String defaultVersion = getVersion(t, RelaunchVM.defaultLauncher());
         String currentVersion = getVersion(t,
             RelaunchVM.currentLauncher().toString(), "-Xlog:disable");
-        t.assertEquals(defaultVersion, currentVersion);
+        t.examine(currentVersion).is(defaultVersion);
     }
 
     @Test
     public static void testOnlyVMArgumentsJAR(Testing t) throws Throwable {
-        t.assertEquals(List.of(),
-            RelaunchVM.onlyVMArguments(
+        t.examine(RelaunchVM.onlyVMArguments(
                 List.of("java", "-Xlog:gc",
                     "-jar", "build/bootstrap.jar"),
-                true));
-        t.assertEquals(List.of("-Xlog:gc"),
-            RelaunchVM.onlyVMArguments(
+                true))
+            .is(List.of());
+        t.examine(RelaunchVM.onlyVMArguments(
                 List.of("java", "-Xlog:gc",
                     "-jar", "build/bootstrap.jar"),
-                false));
+                false))
+            .is(List.of("-Xlog:gc"));
     }
 
     @Test
     public static void testOnlyVMArgumentsModules(Testing t) throws Throwable {
         for (boolean minimum : List.of(true, false))
-            t.assertEquals(List.of("--module-path", "build/bootstrap"),
-                RelaunchVM.onlyVMArguments(
+            t.examine(RelaunchVM.onlyVMArguments(
                     List.of("java", "--module-path", "build/bootstrap",
                         "-m", "enyo/enyo.lang.BuildDaemon"),
-                    minimum));
+                    minimum))
+                .is(List.of("--module-path", "build/bootstrap"));
     }
 
     /**
@@ -216,7 +215,7 @@ public final class TestRelaunchVM {
                 new InputStreamReader(process.getInputStream()))
                 .lines()
                 .collect(Collectors.toUnmodifiableList());
-            t.assertEquals(0, process.waitFor());
+            t.examine(process.waitFor()).is(0);
             return result;
         } finally {
             process.destroy();
@@ -234,7 +233,9 @@ public final class TestRelaunchVM {
         try {
             process.getOutputStream().close();
             output = new String(process.getInputStream().readAllBytes());
-            t.assertEquals(output, 0, process.waitFor());
+            t.examine(process.waitFor())
+                .context(output)
+                .is(0);
         } finally {
             process.destroy();
         }
