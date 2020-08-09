@@ -104,6 +104,10 @@ final class TestClassDetails {
         return cost;
     }
 
+    boolean exitDuringTest() {
+        return exitDuringTest;
+    }
+
     Stream<TestMethodDetails> tests() {
         return clazz.methods()
             .map(method -> new TestMethodDetails(this, method))

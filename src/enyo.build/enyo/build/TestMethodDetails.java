@@ -24,6 +24,7 @@ final class TestMethodDetails {
         this.method = Objects.requireNonNull(method, "method");
         resources = classDetails.resources();
         cost = classDetails.cost();
+        exitDuringTest = classDetails.exitDuringTest();
 
         method.annotations()
             .forEach(ann -> {

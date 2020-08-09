@@ -25,7 +25,7 @@ final class ExitDuringTestParser {
         ann.values().forEach(this::parse);
     }
 
-    private boolean flag;
+    private boolean flag = true;
 
     private void parse(NamedElementValue nev) {
         switch (nev.name()) {
