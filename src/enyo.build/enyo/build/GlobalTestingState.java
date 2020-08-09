@@ -4,6 +4,7 @@ import enyo.testing.introspect.ResourcesManager;
 import enyo.testing.introspect.ScheduledTestSet;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * This class collects global state related to test execution.
@@ -53,6 +54,54 @@ final class GlobalTestingState {
     }
 
     /**
+     * Adds another running test that acts as an exit inhibitor.
+     * The caller must check that a {@linkplain #stopRequested() stop request}
+     * has not arrived after this method has returned and before the
+     * test actually starts. Another thread may be in the process
+     * of acting on the stop request, so execution of an exit-inhibiting
+     * test may not commence.
+     *
+     * <p>After the test completes, {@link #removeExitInhibitor()}
+     * must be called.
+     */
+    void addExitInhibitor() {
+        if (exitInhibitors.incrementAndGet() <= 0)
+            throw new InternalError("Inhibitor count overflow");
+    }
+
+    /**
+     * Undoes the effect of a previous {@link #addExitInhibitor()} call.
+     * This may terminate the virtual machine if this test
+     * was the last running exit-inhibiting test, and there is a
+     * pending {@linkplain #stopRequested() stop request}.
+     */
+    void removeExitInhibitor() {
+        int newCount = exitInhibitors.decrementAndGet();
+        if (newCount < 0)
+            throw new InternalError("Inhibitor count overflow");
+        if (newCount == 0 && stopRequested())
+            RunTests.exitDuringTest();
+    }
+
+    /**
+     * Check for an exit requests that can be acted upon.
+     * If there is a pending stop request eand there are exit inhibitors,
+     * the stop request has to be ignored for time being.
+     * @return whether there is a pending stop request (which had to be
+     *   ignored due to exit inhibitors)
+     * @see #stopRequested()
+     * @see #addExitInhibitor()
+     */
+    boolean probeForExit() {
+        if (stopRequested()) {
+            if (exitInhibitors.get() == 0)
+                RunTests.exitDuringTest();
+            return true;
+        } else
+            return false;
+    }
+
+    /**
      * Called to signal the completion of one test.
      */
     void oneTestCompleted() {
@@ -65,4 +114,5 @@ final class GlobalTestingState {
     private final ScheduledTestSet startedTests;
     private final ResourcesManager resources;
     private final SharedArray sharedArray;
+    private final AtomicInteger exitInhibitors = new AtomicInteger();
 }

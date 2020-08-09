@@ -53,15 +53,20 @@ final class QueueProcessor extends Thread {
     }
 
     private void process0(ScheduledTest test) throws IOException {
-        // TODO: Inhibit VM exit if requested by test here.
+        if (!test.exitDuringTest())
+            global.addExitInhibitor();
 
         boolean exitRequested = false;
 
         // Invoke the tests.  TODO: Only one test per scheduling group
         // at present.
         {
-            if (global.stopRequested())
+            // Retest after inhibition.
+            if (global.stopRequested()) {
+                if (!test.exitDuringTest())
+                    global.removeExitInhibitor();
                 return;
+            }
 
             currentTest = test;
 
@@ -75,6 +80,10 @@ final class QueueProcessor extends Thread {
         }
 
 
-        // TODO: Remove VM exit inhibitor here (see above).
+        if (test.exitDuringTest())
+            global.probeForExit();
+        else
+            // The probe for exit is implicit
+            global.removeExitInhibitor();
     }
 }

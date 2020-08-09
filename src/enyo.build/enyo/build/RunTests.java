@@ -377,5 +377,18 @@ public final class RunTests {
             return false;
         }
     }
+
+    /**
+     * Invoked to termiante the virtual machine in case a stop request
+     * is detected that can be acted upon.
+     */
+    static void exitDuringTest() {
+        synchronized (System.err) {
+            System.err.println(
+                "warning: testing terminated due to source code change");
+            System.exit(2);
+        }
+    }
+
     private RunTests() { } // No instances.
 }
