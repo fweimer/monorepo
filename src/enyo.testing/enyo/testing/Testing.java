@@ -182,6 +182,7 @@ public interface Testing {
      * @param left the first object
      * @param right the second object
      */
+    @Deprecated
     public void assertSame(Object left, Object right);
 
     /**
@@ -192,6 +193,7 @@ public interface Testing {
      * @param left the first object
      * @param right the second object
      */
+    @Deprecated
     public void assertNotSame(Object left, Object right);
 
     /**

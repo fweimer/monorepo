@@ -349,6 +349,7 @@ final class TestingImpl implements Testing {
 
 
     @Override
+    @Deprecated
     public void assertSame(Object left, Object right) {
         if (left == null && right == null) {
             failed = true;
@@ -370,6 +371,7 @@ final class TestingImpl implements Testing {
     }
 
     @Override
+    @Deprecated
     public void assertNotSame(Object left, Object right) {
         if (left == null && right == null) {
             failed = true;
