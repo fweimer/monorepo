@@ -2,6 +2,7 @@ package enyo.io.tests;
 
 import enyo.io.ExtendedCharsets;
 import enyo.testing.Cost;
+import enyo.testing.ExitDuringTest;
 import enyo.testing.Resources;
 import enyo.testing.Test;
 import enyo.testing.Testing;
@@ -32,6 +33,7 @@ import java.util.stream.IntStream;
 @Resources(memory=400)
 // Account for the creation of the map decoder.
 @Cost(0.5)
+@ExitDuringTest
 public final class TestUTF8SCharsetMapDecoder {
     // Some of these tests should probably reduced in scope, to speed
     // them up.  Increased coverage may be possible if we can run

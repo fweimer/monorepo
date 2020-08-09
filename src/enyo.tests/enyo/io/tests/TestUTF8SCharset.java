@@ -2,6 +2,7 @@ package enyo.io.tests;
 
 import enyo.io.ExtendedCharsets;
 import enyo.testing.Cost;
+import enyo.testing.ExitDuringTest;
 import enyo.testing.Test;
 import enyo.testing.Testing;
 
@@ -15,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+@ExitDuringTest
 public final class TestUTF8SCharset {
     @Test
     public static void testForName(Testing t) {

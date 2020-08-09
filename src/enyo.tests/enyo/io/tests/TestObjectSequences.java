@@ -3,6 +3,7 @@ package enyo.io.tests;
 import enyo.io.ObjectSequences;
 import enyo.io.function.IOConsumer;
 import enyo.testing.Cost;
+import enyo.testing.ExitDuringTest;
 import enyo.testing.Test;
 import enyo.testing.Testing;
 import enyo.util.ByteArrays;
@@ -21,6 +22,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@ExitDuringTest
 public final class TestObjectSequences {
     @Test
     public static void testWriteInSequence(Testing t) throws IOException {

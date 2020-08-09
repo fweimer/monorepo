@@ -1,6 +1,7 @@
 package enyo.util.tests;
 
 import enyo.testing.Cost;
+import enyo.testing.ExitDuringTest;
 import enyo.testing.Test;
 import enyo.testing.Testing;
 import enyo.util.ByteArrays;
@@ -12,6 +13,7 @@ import java.util.Spliterator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+@ExitDuringTest
 public final class TestByteArrays {
     @FunctionalInterface
     interface TerFunction<T, U, V, R> {
