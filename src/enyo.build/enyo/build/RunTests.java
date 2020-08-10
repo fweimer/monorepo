@@ -7,6 +7,9 @@ import enyo.testing.introspect.ScheduledTest;
 import enyo.testing.introspect.TestMethodLocator;
 
 import java.io.IOException;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.module.Configuration;
 import java.lang.module.ModuleFinder;
 import java.lang.reflect.Constructor;
@@ -14,8 +17,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -376,6 +379,24 @@ public final class RunTests {
                 e1.printStackTrace(System.err);
             }
             return false;
+        }
+    }
+
+    // Used for pruning stack traces in tests invoked from runTest().
+    // Define these variables here, so that we can validate that the
+    // referenced method does in fact exist up front, and not
+    // implicitly when tests start running (or even later, during
+    // failure).
+    static String RUN_TEST_METHOD = "runTest";
+    static MethodType RUN_TEST_METHOD_TYPE = MethodType.methodType(
+        Boolean.TYPE, ModuleLayer.class, TestMethodLocator.class);
+    static {
+        MethodHandles.Lookup lookup = MethodHandles.lookup();
+        try {
+            MethodHandle ignored = lookup.findStatic(
+                RunTests.class, RUN_TEST_METHOD, RUN_TEST_METHOD_TYPE);
+        } catch (NoSuchMethodException | IllegalAccessException e) {
+            throw new InternalError(e);
         }
     }
 

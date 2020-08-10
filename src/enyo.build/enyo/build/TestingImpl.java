@@ -7,7 +7,9 @@ import enyo.testing.TestAlreadyFailed;
 import enyo.testing.ThrowingRunnable;
 import enyo.testing.introspect.TestMethodLocator;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
@@ -482,10 +484,58 @@ final class TestingImpl implements Testing {
             else
                 System.err.format("%s: error: failed test: %s: %s%n",
                     test, context, check);
-            StackWalker walker = StackWalker.getInstance();
-            walker.forEach(frame ->
-                System.err.format("\t%s%n", frame));
+            captureBacktrace().stream()
+                .forEach(frame -> System.err.format("\t%s%n", frame));
         }
+    }
+
+    // Returns a list of interesting stack frames, ignoring classes in
+    // this package and below the RunTests.runTest() method.
+    private static List<StackWalker.StackFrame> captureBacktrace() {
+        Backtrace backtrace = new Backtrace();
+        StackWalker walker = StackWalker.getInstance(
+            StackWalker.Option.RETAIN_CLASS_REFERENCE);
+        walker.forEach(backtrace);
+        return List.copyOf(backtrace.frames);
+    }
+
+    // For use with StackWalker.forEach().
+    private static class Backtrace implements Consumer<StackWalker.StackFrame> {
+        @Override
+        public void accept(StackWalker.StackFrame frame) {
+            switch (state) {
+            case 0:
+                // Start capturing frames until we leave this package.
+                if (frame.getDeclaringClass().getPackage() == PACKAGE)
+                    return;
+                state = 1;
+                frames.add(frame);
+                break;
+            case 1:
+                // Capture stack frames until we encounter test
+                // invocation method.
+                if (frame.getDeclaringClass() == RunTests.class
+                    && RunTests.RUN_TEST_METHOD.equals(frame.getMethodName())
+                    && RunTests.RUN_TEST_METHOD_TYPE.equals(
+                        frame.getMethodType()))
+                    state = 2;
+                else
+                    frames.add(frame);
+                break;
+            case 2:
+                // Ignore remaining frames.  There should not be a lot
+                // of them, so using forEach() does not hurt much.
+                break;
+            default:
+                throw new InternalError("Invalid state: " +  state);
+            }
+        }
+
+        private final ArrayList<StackWalker.StackFrame> frames =
+            new ArrayList<>();
+        private int state;
+
+        private static Package PACKAGE = Backtrace.class.getPackage();
     }
 
     private void recordFailure(String context, String check, Object left,
