@@ -2,6 +2,9 @@ package enyo.lang.classfile;
 
 import enyo.util.StringFilter;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.util.Objects;
@@ -340,7 +343,40 @@ public final class ClassFile implements Annotated {
 
     ByteBuffer bufferSlice(int fromIndex, int toIndex) {
         Objects.checkFromToIndex(fromIndex, toIndex, buffer.limit());
-        return buffer.slice(fromIndex, toIndex - fromIndex);
+        return SLICER.apply(buffer, fromIndex, toIndex - fromIndex);
+    }
+
+    // OpenJDK 11 does not support slicing directly, so use the method
+    // only if it is available.
+    interface Slicer {
+        ByteBuffer apply(ByteBuffer buffer, int offset, int length);
+    }
+    private static final Slicer SLICER;
+    static {
+        Slicer slicer;
+        try {
+            MethodHandle slice = MethodHandles.publicLookup().findVirtual(
+                ByteBuffer.class, "slice", MethodType.methodType(
+                    ByteBuffer.class, Integer.TYPE, Integer.TYPE));
+            slicer = (ByteBuffer buffer, int offset, int length) -> {
+                try {
+                    return (ByteBuffer) slice.invoke(buffer, offset, length);
+                } catch (RuntimeException | Error e) {
+                    throw e;
+                } catch (Throwable e) {
+                    throw new InternalError(e);
+                }
+            };
+        } catch (NoSuchMethodException | IllegalAccessException e) {
+            slicer = (buffer, offset, length) -> {
+                return buffer.duplicate()
+                .clear()
+                .position(offset)
+                .limit(offset + length)
+                .slice();
+            };
+        }
+        SLICER = slicer;
     }
 
     byte byteAt(int offset) {
