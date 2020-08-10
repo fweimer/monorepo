@@ -7,7 +7,7 @@ import java.util.concurrent.Semaphore;
  *
  * The manager determines the available system resources when created,
  * and then tries to avoid overscheduling by limiting parallel
- * resource consumption in {@link #withResources(Resources,Action)}.
+ * resource consumption in {@link #withResources(TestResources,Action)}.
  *
  * @see TestResources
  */
@@ -25,7 +25,7 @@ public final class ResourcesManager {
 
     /**
      * Callback functional interface used by
-     * {@link #withResources(Resources,Action)}.
+     * {@link #withResources(TestResources,Action)}.
      *
      * @param <E> the type of exceptions raised by
      * the {@linkplain #action() action}
@@ -33,7 +33,7 @@ public final class ResourcesManager {
     @FunctionalInterface
     public interface Action<E extends Throwable> {
         /**
-         * Called by {@link #withResources(Resources,Action)} to
+         * Called by {@link #withResources(TestResources,Action)} to
          * perform an action.
          * @throws E if an error occurred
          */
