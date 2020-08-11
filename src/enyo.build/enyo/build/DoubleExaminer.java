@@ -41,4 +41,9 @@ class DoubleExaminer extends ExaminerBase implements Examiner.OfDouble {
             failure("!=", value, other);
         return this;
     }
+
+    @Override
+    public Examiner<Double> boxed() {
+        return transfer(new ObjectExaminer<>(t, value));
+    }
 }

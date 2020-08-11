@@ -126,6 +126,12 @@ public interface Examiner<T> {
          * @return this object
          */
         public OfInt isnt(int other);
+
+        /**
+         * Returns an examiner for the boxed value.
+         * @return a reference-based examiner
+         */
+        public Examiner<Integer> boxed();
     }
 
     /**
@@ -160,6 +166,12 @@ public interface Examiner<T> {
          * @return this object
          */
         public OfLong isnt(long other);
+
+        /**
+         * Returns an examiner for the boxed value.
+         * @return a reference-based examiner
+         */
+        public Examiner<Long> boxed();
     }
 
     /**
@@ -194,6 +206,12 @@ public interface Examiner<T> {
          * @return this object
          */
         public OfDouble isnt(double other);
+
+        /**
+         * Returns an examiner for the boxed value.
+         * @return a reference-based examiner
+         */
+        public Examiner<Double> boxed();
     }
 
     /**
@@ -228,5 +246,11 @@ public interface Examiner<T> {
          * @return this object
          */
         public OfChar isnt(char other);
+
+        /**
+         * Returns an examiner for the boxed value.
+         * @return a reference-based examiner
+         */
+        public Examiner<Character> boxed();
     }
 }

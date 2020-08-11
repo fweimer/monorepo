@@ -41,4 +41,9 @@ class IntExaminer extends ExaminerBase implements Examiner.OfInt {
             failure("!=", value, other);
         return this;
     }
+
+    @Override
+    public Examiner<Integer> boxed() {
+        return transfer(new ObjectExaminer<>(t, value));
+    }
 }

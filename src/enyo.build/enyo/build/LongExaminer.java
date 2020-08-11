@@ -41,4 +41,9 @@ class LongExaminer extends ExaminerBase implements Examiner.OfLong {
             failure("!=", value, other);
         return this;
     }
+
+    @Override
+    public Examiner<Long> boxed() {
+        return transfer(new ObjectExaminer<>(t, value));
+    }
 }

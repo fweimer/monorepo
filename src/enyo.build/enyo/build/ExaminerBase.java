@@ -16,6 +16,17 @@ abstract class ExaminerBase {
         barrier = barrier || failed;
     }
 
+    /**
+     * Applies non-value state from this examiner to the other examiner.
+     */
+    <T extends ExaminerBase> T transfer(T other) {
+        other.context = context;
+        other.barrier = barrier;
+        other.barrierRequested = barrierRequested;
+        other.failed = failed;
+        return other;
+    }
+
     void failure(String check, Object value) {
         failed = true;
         if (barrierRequested)

@@ -41,4 +41,9 @@ class CharExaminer extends ExaminerBase implements Examiner.OfChar {
             failure("!=", value, other);
         return this;
     }
+
+    @Override
+    public Examiner<Character> boxed() {
+        return transfer(new ObjectExaminer<>(t, value));
+    }
 }
