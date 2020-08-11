@@ -27,284 +27,29 @@ final class TestingImpl implements Testing {
             throw new TestAlreadyFailed();
     }
 
-    private class ExaminerBase {
-        String context;
-        boolean barrier;
-        boolean barrierRequested;
-        boolean failed;
-
-        void barrierBase() {
-            barrierRequested = true;
-            barrier = barrier || failed;
-        }
-
-        void failure(String check, Object value) {
-            failed = true;
-            if (barrierRequested)
-                barrier = true;
-            recordFailure(context, check, value);
-        }
-
-        void failure(String check, Object left, Object right) {
-            failed = true;
-            if (barrierRequested)
-                barrier = true;
-            recordFailure(context, check, left, right);
-        }
-    }
-
     @Override
     public <T> Examiner<T> examine(T value) {
-        class ObjExaminer extends ExaminerBase implements Examiner<T> {
-            @Override
-            public Examiner<T> context(String context) {
-                context = Objects.requireNonNull(context);
-                return this;
-            }
-
-            @Override
-            public Examiner<T> barrier() {
-                barrierBase();
-                return this;
-            }
-
-            @Override
-            public Examiner<T> is(T other) {
-                if (barrier)
-                    return this;
-                if (value == null)
-                    failure("not null", value);
-                if (other == null)
-                    failure("not null", other);
-                if (!Objects.equals(value, other))
-                    failure("equals", value, other);
-                return this;
-            }
-
-            @Override
-            public Examiner<T> nullableIs(T other) {
-                if (barrier)
-                    return this;
-                if (!Objects.equals(value, other))
-                    failure("equals", value, other);
-                return this;
-            }
-
-            @Override
-            public Examiner<T> isnt(T other) {
-                if (barrier)
-                    return this;
-                if (value == null)
-                    failure("not null", value);
-                if (other == null)
-                    failure("not null", other);
-                if (Objects.equals(value, other))
-                    failure("not equals", value, other);
-                return this;
-            }
-
-            @Override
-            public Examiner<T> isSame(T other) {
-                if (barrier)
-                    return this;
-                if (value == null)
-                    failure("not null", value);
-                if (other == null)
-                    failure("not null", other);
-                if (value != null && value != other)
-                    failure("==", value, other);
-                return this;
-            }
-
-            @Override
-            public Examiner<T> isNotSame(T other) {
-                if (barrier)
-                    return this;
-                if (value == null)
-                    failure("not null", value);
-                if (other == null)
-                    failure("not null", other);
-                if (value != null && value == other)
-                    failure("!=", value, other);
-                return this;
-            }
-
-            @Override
-            public Examiner<T> isNull() {
-                if (barrier)
-                    return this;
-                if (value != null)
-                    failure("null", value);
-                return this;
-            }
-
-            @Override
-            public Examiner<T> isNotNull() {
-                if (barrier)
-                    return this;
-                if (value == null)
-                    failure("not null", value);
-                return this;
-            }
-
-            @Override
-            public Examiner<T> isExactClass(Class<? extends T> cls) {
-                if (barrier)
-                    return this;
-                if (value == null)
-                    failure("not null", value);
-                if (cls == null)
-                    failure("not null", cls);
-                if (value != null && cls != null && value.getClass() != cls)
-                    failure("exact class", value, cls);
-                return this;
-            }
-        }
-        return new ObjExaminer();
+        return new ObjectExaminer<>(this, value);
     }
 
     @Override
     public Examiner.OfInt examine(int value) {
-        class IntExaminer extends ExaminerBase implements Examiner.OfInt {
-            @Override
-            public Examiner.OfInt context(String context) {
-                context = Objects.requireNonNull(context);
-                return this;
-            }
-
-            @Override
-            public Examiner.OfInt barrier() {
-                barrierBase();
-                return this;
-            }
-
-            @Override
-            public Examiner.OfInt is(int other) {
-                if (barrier)
-                    return this;
-                if (value != other)
-                    failure("==", value, other);
-                return this;
-            }
-
-            @Override
-            public Examiner.OfInt isnt(int other) {
-                if (barrier)
-                    return this;
-                if (value == other)
-                    failure("!=", value, other);
-                return this;
-            }
-        }
-        return new IntExaminer();
+        return new IntExaminer(this, value);
     }
 
     @Override
     public Examiner.OfLong examine(long value) {
-        class LongExaminer extends ExaminerBase implements Examiner.OfLong {
-            @Override
-            public Examiner.OfLong context(String context) {
-                context = Objects.requireNonNull(context);
-                return this;
-            }
-
-            @Override
-            public Examiner.OfLong barrier() {
-                barrierBase();
-                return this;
-            }
-
-            @Override
-            public Examiner.OfLong is(long other) {
-                if (barrier)
-                    return this;
-                if (value != other)
-                    failure("==", value, other);
-                return this;
-            }
-
-            @Override
-            public Examiner.OfLong isnt(long other) {
-                if (barrier)
-                    return this;
-                if (value == other)
-                    failure("!=", value, other);
-                return this;
-            }
-        }
-        return new LongExaminer();
+        return new LongExaminer(this, value);
     }
 
     @Override
     public Examiner.OfDouble examine(double value) {
-        class DoubleExaminer extends ExaminerBase implements Examiner.OfDouble {
-            @Override
-            public Examiner.OfDouble context(String context) {
-                context = Objects.requireNonNull(context);
-                return this;
-            }
-
-            @Override
-            public Examiner.OfDouble barrier() {
-                if (barrier)
-                    return this;
-                barrierBase();
-                return this;
-            }
-
-            @Override
-            public Examiner.OfDouble is(double other) {
-                if (value != other)
-                    failure("==", value, other);
-                return this;
-            }
-
-            @Override
-            public Examiner.OfDouble isnt(double other) {
-                if (barrier)
-                    return this;
-                if (value == other)
-                    failure("!=", value, other);
-                return this;
-            }
-        }
-        return new DoubleExaminer();
+        return new DoubleExaminer(this, value);
     }
 
     @Override
     public Examiner.OfChar examine(char value) {
-        class CharExaminer extends ExaminerBase implements Examiner.OfChar {
-            @Override
-            public Examiner.OfChar context(String context) {
-                context = Objects.requireNonNull(context);
-                return this;
-            }
-
-            @Override
-            public Examiner.OfChar barrier() {
-                barrierBase();
-                return this;
-            }
-
-            @Override
-            public Examiner.OfChar is(char other) {
-                if (barrier)
-                    return this;
-                if (value != other)
-                    failure("==", value, other);
-                return this;
-            }
-
-            @Override
-            public Examiner.OfChar isnt(char other) {
-                if (barrier)
-                    return this;
-                if (value == other)
-                    failure("!=", value, other);
-                return this;
-            }
-        }
-        return new CharExaminer();
+        return new CharExaminer(this, value);
     }
 
     @Override
@@ -558,7 +303,7 @@ final class TestingImpl implements Testing {
             + exception.getName() + label);
     }
 
-    private void recordFailure(String context, String check, Object value) {
+    void recordFailure(String context, String check, Object value) {
         failed = true;
         synchronized (System.err) {
             if (context == null)
@@ -621,7 +366,7 @@ final class TestingImpl implements Testing {
         private static Package PACKAGE = Backtrace.class.getPackage();
     }
 
-    private void recordFailure(String context, String check, Object left,
+    void recordFailure(String context, String check, Object left,
         Object right) {
         // Object data is not recorded yet, so the two implementations
         // are the same.
