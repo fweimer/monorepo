@@ -27,11 +27,35 @@ final class TestingImpl implements Testing {
             throw new TestAlreadyFailed();
     }
 
+    private class ExaminerBase {
+        String context;
+        boolean barrier;
+        boolean barrierRequested;
+        boolean failed;
+
+        void barrierBase() {
+            barrierRequested = true;
+            barrier = barrier || failed;
+        }
+
+        void failure(String check, Object value) {
+            failed = true;
+            if (barrierRequested)
+                barrier = true;
+            recordFailure(context, check, value);
+        }
+
+        void failure(String check, Object left, Object right) {
+            failed = true;
+            if (barrierRequested)
+                barrier = true;
+            recordFailure(context, check, left, right);
+        }
+    }
+
     @Override
     public <T> Examiner<T> examine(T value) {
-        return new Examiner<>() {
-            private String context;
-
+        class ObjExaminer extends ExaminerBase implements Examiner<T> {
             @Override
             public Examiner<T> context(String context) {
                 context = Objects.requireNonNull(context);
@@ -39,88 +63,109 @@ final class TestingImpl implements Testing {
             }
 
             @Override
+            public Examiner<T> barrier() {
+                barrierBase();
+                return this;
+            }
+
+            @Override
             public Examiner<T> is(T other) {
+                if (barrier)
+                    return this;
                 if (value == null)
-                    recordFailure(context, "not null", value);
+                    failure("not null", value);
                 if (other == null)
-                    recordFailure(context, "not null", other);
+                    failure("not null", other);
                 if (!Objects.equals(value, other))
-                    recordFailure(context, "equals", value, other);
+                    failure("equals", value, other);
                 return this;
             }
 
             @Override
             public Examiner<T> nullableIs(T other) {
+                if (barrier)
+                    return this;
                 if (!Objects.equals(value, other))
-                    recordFailure(context, "equals", value, other);
+                    failure("equals", value, other);
                 return this;
             }
 
             @Override
             public Examiner<T> isnt(T other) {
+                if (barrier)
+                    return this;
                 if (value == null)
-                    recordFailure(context, "not null", value);
+                    failure("not null", value);
                 if (other == null)
-                    recordFailure(context, "not null", other);
+                    failure("not null", other);
                 if (Objects.equals(value, other))
-                    recordFailure(context, "not equals", value, other);
+                    failure("not equals", value, other);
                 return this;
             }
 
             @Override
             public Examiner<T> isSame(T other) {
+                if (barrier)
+                    return this;
                 if (value == null)
-                    recordFailure(context, "not null", value);
+                    failure("not null", value);
                 if (other == null)
-                    recordFailure(context, "not null", other);
+                    failure("not null", other);
                 if (value != null && value != other)
-                    recordFailure(context, "==", value, other);
+                    failure("==", value, other);
                 return this;
             }
 
             @Override
             public Examiner<T> isNotSame(T other) {
+                if (barrier)
+                    return this;
                 if (value == null)
-                    recordFailure(context, "not null", value);
+                    failure("not null", value);
                 if (other == null)
-                    recordFailure(context, "not null", other);
+                    failure("not null", other);
                 if (value != null && value == other)
-                    recordFailure(context, "!=", value, other);
+                    failure("!=", value, other);
                 return this;
             }
 
             @Override
             public Examiner<T> isNull() {
+                if (barrier)
+                    return this;
                 if (value != null)
-                    recordFailure(context, "null", value);
+                    failure("null", value);
                 return this;
             }
 
             @Override
             public Examiner<T> isNotNull() {
+                if (barrier)
+                    return this;
                 if (value == null)
-                    recordFailure(context, "not null", value);
+                    failure("not null", value);
                 return this;
             }
 
             @Override
             public Examiner<T> isExactClass(Class<? extends T> cls) {
+                if (barrier)
+                    return this;
                 if (value == null)
-                    recordFailure(context, "not null", value);
+                    failure("not null", value);
                 if (cls == null)
-                    recordFailure(context, "not null", cls);
+                    failure("not null", cls);
                 if (value != null && cls != null && value.getClass() != cls)
-                    recordFailure(context, "exact class", value, cls);
+                    failure("exact class", value, cls);
                 return this;
             }
-        };
+        }
+        return new ObjExaminer();
     }
 
     @Override
     public Examiner.OfInt examine(int value) {
-        return new Examiner.OfInt() {
-            private String context;
-
+        class IntExaminer extends ExaminerBase implements Examiner.OfInt {
             @Override
             public Examiner.OfInt context(String context) {
                 context = Objects.requireNonNull(context);
@@ -128,26 +173,35 @@ final class TestingImpl implements Testing {
             }
 
             @Override
+            public Examiner.OfInt barrier() {
+                barrierBase();
+                return this;
+            }
+
+            @Override
             public Examiner.OfInt is(int other) {
+                if (barrier)
+                    return this;
                 if (value != other)
-                    recordFailure(context, "==", value, other);
+                    failure("==", value, other);
                 return this;
             }
 
             @Override
             public Examiner.OfInt isnt(int other) {
+                if (barrier)
+                    return this;
                 if (value == other)
-                    recordFailure(context, "!=", value, other);
+                    failure("!=", value, other);
                 return this;
             }
-        };
+        }
+        return new IntExaminer();
     }
 
     @Override
     public Examiner.OfLong examine(long value) {
-        return new Examiner.OfLong() {
-            private String context;
-
+        class LongExaminer extends ExaminerBase implements Examiner.OfLong {
             @Override
             public Examiner.OfLong context(String context) {
                 context = Objects.requireNonNull(context);
@@ -155,26 +209,35 @@ final class TestingImpl implements Testing {
             }
 
             @Override
+            public Examiner.OfLong barrier() {
+                barrierBase();
+                return this;
+            }
+
+            @Override
             public Examiner.OfLong is(long other) {
+                if (barrier)
+                    return this;
                 if (value != other)
-                    recordFailure(context, "==", value, other);
+                    failure("==", value, other);
                 return this;
             }
 
             @Override
             public Examiner.OfLong isnt(long other) {
+                if (barrier)
+                    return this;
                 if (value == other)
-                    recordFailure(context, "!=", value, other);
+                    failure("!=", value, other);
                 return this;
             }
-        };
+        }
+        return new LongExaminer();
     }
 
     @Override
     public Examiner.OfDouble examine(double value) {
-        return new Examiner.OfDouble() {
-            private String context;
-
+        class DoubleExaminer extends ExaminerBase implements Examiner.OfDouble {
             @Override
             public Examiner.OfDouble context(String context) {
                 context = Objects.requireNonNull(context);
@@ -182,26 +245,35 @@ final class TestingImpl implements Testing {
             }
 
             @Override
+            public Examiner.OfDouble barrier() {
+                if (barrier)
+                    return this;
+                barrierBase();
+                return this;
+            }
+
+            @Override
             public Examiner.OfDouble is(double other) {
                 if (value != other)
-                    recordFailure(context, "==", value, other);
+                    failure("==", value, other);
                 return this;
             }
 
             @Override
             public Examiner.OfDouble isnt(double other) {
+                if (barrier)
+                    return this;
                 if (value == other)
-                    recordFailure(context, "!=", value, other);
+                    failure("!=", value, other);
                 return this;
             }
-        };
+        }
+        return new DoubleExaminer();
     }
 
     @Override
     public Examiner.OfChar examine(char value) {
-        return new Examiner.OfChar() {
-            private String context;
-
+        class CharExaminer extends ExaminerBase implements Examiner.OfChar {
             @Override
             public Examiner.OfChar context(String context) {
                 context = Objects.requireNonNull(context);
@@ -209,19 +281,30 @@ final class TestingImpl implements Testing {
             }
 
             @Override
+            public Examiner.OfChar barrier() {
+                barrierBase();
+                return this;
+            }
+
+            @Override
             public Examiner.OfChar is(char other) {
+                if (barrier)
+                    return this;
                 if (value != other)
-                    recordFailure(context, "==", value, other);
+                    failure("==", value, other);
                 return this;
             }
 
             @Override
             public Examiner.OfChar isnt(char other) {
+                if (barrier)
+                    return this;
                 if (value == other)
-                    recordFailure(context, "!=", value, other);
+                    failure("!=", value, other);
                 return this;
             }
-        };
+        }
+        return new CharExaminer();
     }
 
     @Override

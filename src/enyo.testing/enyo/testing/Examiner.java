@@ -22,6 +22,13 @@ public interface Examiner<T> {
     public Examiner<T> context(String context);
 
     /**
+     * Issues a barrier.  If this examiner has recorded any test
+     * failures, no further tests are performed through it.
+     * @return this object
+     */
+    public Examiner<T> barrier();
+
+    /**
      * Reports an error if the two values are not equal according to
      * {@link java.util.Objects#equals(Object,Object)}.
      * Errors are also reported if the references are null;
@@ -100,6 +107,13 @@ public interface Examiner<T> {
         public OfInt context(String context);
 
         /**
+         * Issues a barrier.  If this examiner has recorded any test
+         * failures, no further tests are performed through it.
+         * @return this object
+         */
+        public OfInt barrier();
+
+        /**
          * Reports an error if the two values are not equal.
          * @param other the other value under comparison
          * @return this object
@@ -125,6 +139,13 @@ public interface Examiner<T> {
          * @throws NullPointerException if {@code context} is null
          */
         public OfLong context(String context);
+
+        /**
+         * Issues a barrier.  If this examiner has recorded any test
+         * failures, no further tests are performed through it.
+         * @return this object
+         */
+        public OfLong barrier();
 
         /**
          * Reports an error if the two values are not equal.
@@ -154,6 +175,13 @@ public interface Examiner<T> {
         public OfDouble context(String context);
 
         /**
+         * Issues a barrier.  If this examiner has recorded any test
+         * failures, no further tests are performed through it.
+         * @return this object
+         */
+        public OfDouble barrier();
+
+        /**
          * Reports an error if the two values are not equal.
          * @param other the other value under comparison
          * @return this object
@@ -179,6 +207,13 @@ public interface Examiner<T> {
          * @throws NullPointerException if {@code context} is null
          */
         public OfChar context(String context);
+
+        /**
+         * Issues a barrier.  If this examiner has recorded any test
+         * failures, no further tests are performed through it.
+         * @return this object
+         */
+        public OfChar barrier();
 
         /**
          * Reports an error if the two values are not equal.
