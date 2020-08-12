@@ -1,7 +1,6 @@
-package enyo.build;
+package enyo.testing.runtime;
 
 import enyo.testing.Examiner;
-import enyo.testing.Testing;
 import enyo.testing.TestFailure;
 import enyo.testing.TestAlreadyFailed;
 import enyo.testing.ThrowingRunnable;
@@ -13,11 +12,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-final class TestingImpl implements Testing {
+final class Testing implements enyo.testing.Testing {
     private final TestMethodLocator test;
     volatile boolean failed;
 
-    TestingImpl(TestMethodLocator test) {
+    public Testing(TestMethodLocator test) {
         this.test = Objects.requireNonNull(test);
     }
 
@@ -342,9 +341,10 @@ final class TestingImpl implements Testing {
             case 1:
                 // Capture stack frames until we encounter test
                 // invocation method.
-                if (frame.getDeclaringClass() == RunTests.class
-                    && RunTests.RUN_TEST_METHOD.equals(frame.getMethodName())
-                    && RunTests.RUN_TEST_METHOD_TYPE.equals(
+                if (frame.getDeclaringClass() == InvokeTest.class
+                    && InvokeTest.INVOKE_TEST_METHOD.equals(
+                        frame.getMethodName())
+                    && InvokeTest.INVOKE_TEST_METHOD_TYPE.equals(
                         frame.getMethodType()))
                     state = 2;
                 else

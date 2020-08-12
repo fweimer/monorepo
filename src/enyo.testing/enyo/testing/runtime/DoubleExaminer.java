@@ -1,4 +1,4 @@
-package enyo.build;
+package enyo.testing.runtime;
 
 import enyo.testing.Examiner;
 
@@ -7,7 +7,7 @@ import java.util.Objects;
 class DoubleExaminer extends ExaminerBase implements Examiner.OfDouble {
     final double value;
 
-    DoubleExaminer(TestingImpl t, double value) {
+    DoubleExaminer(Testing t, double value) {
         super(t);
         this.value = value;
     }

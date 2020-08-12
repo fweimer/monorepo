@@ -1,4 +1,4 @@
-package enyo.build;
+package enyo.testing.runtime;
 
 import enyo.testing.Examiner;
 
@@ -7,7 +7,7 @@ import java.util.Objects;
 class ObjectExaminer<T> extends ExaminerBase implements Examiner<T> {
     final T value;
 
-    ObjectExaminer(TestingImpl t, T value) {
+    ObjectExaminer(Testing t, T value) {
         super(t);
         this.value = value;
     }

@@ -1,13 +1,13 @@
-package enyo.build;
+package enyo.testing.runtime;
 
 abstract class ExaminerBase {
-    final TestingImpl t;
+    final Testing t;
     String context;
     boolean barrier;
     boolean barrierRequested;
     boolean failed;
 
-    ExaminerBase(TestingImpl t) {
+    ExaminerBase(Testing t) {
         this.t = t;
     }
 

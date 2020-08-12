@@ -2,17 +2,14 @@ package enyo.build;
 
 import enyo.io.function.IOFunction;
 import enyo.lang.RelaunchVM;
-import enyo.testing.Testing;
 import enyo.testing.introspect.ScheduledTest;
 import enyo.testing.introspect.TestMethodLocator;
+import enyo.testing.runtime.InvokeTest;
 
 import java.io.IOException;
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.module.Configuration;
 import java.lang.module.ModuleFinder;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -127,7 +124,7 @@ public final class RunTests {
                             method.error);
                     else {
                         TestMethodLocator test = method.locator();
-                        if (!runTest(testLayer, test))
+                        if (!InvokeTest.invokeTest(testLayer, test))
                             errors.incrementAndGet();
                     }
                 });
@@ -297,7 +294,7 @@ public final class RunTests {
     }
 
     private static void runOneTest(TestMethodLocator test) {
-        if (runTest(ModuleLayer.boot(), test))
+        if (InvokeTest.invokeTest(ModuleLayer.boot(), test))
             System.exit(0);
         else
             System.exit(1);
@@ -322,82 +319,6 @@ public final class RunTests {
         throws ClassNotFoundException {
         return testLayer.findLoader(clazz.getModule().getName())
             .loadClass(clazz.getName());
-    }
-
-    /**
-     * Run a single test.
-     * @return true if the test succeed, false if it could not be located
-     *   or if it failed
-     */
-    static boolean runTest(ModuleLayer testLayer, TestMethodLocator test) {
-        Class<?> testClass;
-        Method testMethod;
-        Constructor<?> constructor;
-        try {
-            ClassLoader loader = test.moduleName()
-                .map(testLayer::findLoader)
-                .orElse(RunTests.class.getClassLoader());
-            testClass = loader.loadClass(test.className());
-            if (test.hasTestingArgument())
-                testMethod = testClass.getMethod(test.methodName(),
-                    Testing.class);
-            else
-                testMethod = testClass.getMethod(test.methodName());
-            if ((testMethod.getModifiers() & Modifier.STATIC) == 0)
-                constructor = testClass.getConstructor();
-            else
-                constructor = null;
-        } catch (ClassNotFoundException | NoSuchMethodException e) {
-            System.err.format("%s: cannot find test: %s%n",
-                test, e.getMessage());
-            return false;
-        }
-        try {
-            Object obj;
-            if (constructor != null)
-                obj = constructor.newInstance();
-            else
-                obj = null;
-
-            if (test.hasTestingArgument()) {
-                TestingImpl t = new TestingImpl(test);
-                testMethod.invoke(obj, t);
-                return !t.failed;
-            } else {
-                testMethod.invoke(obj);
-                return true;
-            }
-        } catch (InstantiationException | InvocationTargetException
-            | IllegalAccessException e) {
-            synchronized (System.err) {
-                System.err.format("FAIL: %s%n", test);
-                Throwable e1;
-                if (e instanceof InvocationTargetException)
-                    e1 = e.getCause();
-                else
-                    e1 = e;
-                e1.printStackTrace(System.err);
-            }
-            return false;
-        }
-    }
-
-    // Used for pruning stack traces in tests invoked from runTest().
-    // Define these variables here, so that we can validate that the
-    // referenced method does in fact exist up front, and not
-    // implicitly when tests start running (or even later, during
-    // failure).
-    static String RUN_TEST_METHOD = "runTest";
-    static MethodType RUN_TEST_METHOD_TYPE = MethodType.methodType(
-        Boolean.TYPE, ModuleLayer.class, TestMethodLocator.class);
-    static {
-        MethodHandles.Lookup lookup = MethodHandles.lookup();
-        try {
-            MethodHandle ignored = lookup.findStatic(
-                RunTests.class, RUN_TEST_METHOD, RUN_TEST_METHOD_TYPE);
-        } catch (NoSuchMethodException | IllegalAccessException e) {
-            throw new InternalError(e);
-        }
     }
 
     /**

@@ -1,4 +1,4 @@
-package enyo.build;
+package enyo.testing.runtime;
 
 import enyo.testing.Examiner;
 
@@ -7,7 +7,7 @@ import java.util.Objects;
 class LongExaminer extends ExaminerBase implements Examiner.OfLong {
     final long value;
 
-    LongExaminer(TestingImpl t, long value) {
+    LongExaminer(Testing t, long value) {
         super(t);
         this.value = value;
     }

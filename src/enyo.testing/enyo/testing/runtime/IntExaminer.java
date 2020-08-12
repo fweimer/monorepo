@@ -1,31 +1,31 @@
-package enyo.build;
+package enyo.testing.runtime;
 
 import enyo.testing.Examiner;
 
 import java.util.Objects;
 
-class CharExaminer extends ExaminerBase implements Examiner.OfChar {
-    final char value;
+class IntExaminer extends ExaminerBase implements Examiner.OfInt {
+    final int value;
 
-    CharExaminer(TestingImpl t, char value) {
+    IntExaminer(Testing t, int value) {
         super(t);
         this.value = value;
     }
 
     @Override
-    public Examiner.OfChar context(String context) {
+    public Examiner.OfInt context(String context) {
         context = Objects.requireNonNull(context);
         return this;
     }
 
     @Override
-    public Examiner.OfChar barrier() {
+    public Examiner.OfInt barrier() {
         barrierBase();
         return this;
     }
 
     @Override
-    public Examiner.OfChar is(char other) {
+    public Examiner.OfInt is(int other) {
         if (barrier)
             return this;
         if (value != other)
@@ -34,7 +34,7 @@ class CharExaminer extends ExaminerBase implements Examiner.OfChar {
     }
 
     @Override
-    public Examiner.OfChar isnt(char other) {
+    public Examiner.OfInt isnt(int other) {
         if (barrier)
             return this;
         if (value == other)
@@ -43,7 +43,7 @@ class CharExaminer extends ExaminerBase implements Examiner.OfChar {
     }
 
     @Override
-    public Examiner<Character> boxed() {
+    public Examiner<Integer> boxed() {
         return transfer(new ObjectExaminer<>(t, value));
     }
 }
