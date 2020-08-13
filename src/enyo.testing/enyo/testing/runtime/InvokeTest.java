@@ -23,13 +23,18 @@ public final class InvokeTest {
     public static boolean invokeTest(ModuleLayer testLayer, Testing t) {
         Class<?> testClass;
         TestMethodLocator test = t.test;
-        Method testMethod;
         Constructor<?> constructor;
         try {
             ClassLoader loader = test.moduleName()
                 .map(testLayer::findLoader)
                 .orElse(InvokeTest.class.getClassLoader());
             testClass = loader.loadClass(test.className());
+        } catch (ClassNotFoundException e) {
+            t.recordFailure(ExceptionPhase.CLASS_LOOKUP, null, preferCause(e));
+            return false;
+        }
+        Method testMethod;
+        try {
             if (test.hasTestingArgument())
                 testMethod = testClass.getMethod(test.methodName(),
                     // NB: Tests reference the interface, not the
@@ -41,36 +46,49 @@ public final class InvokeTest {
                 constructor = testClass.getConstructor();
             else
                 constructor = null;
-        } catch (ClassNotFoundException | NoSuchMethodException e) {
-            System.err.format("%s: cannot find test: %s%n",
-                test, e.getMessage());
+        } catch (NoSuchMethodException e) {
+            t.recordFailure(ExceptionPhase.METHOD_LOOKUP, null, preferCause(e));
             return false;
         }
-        try {
-            Object obj;
-            if (constructor != null)
-                obj = constructor.newInstance();
-            else
-                obj = null;
 
+        Object obj;
+        if (constructor != null)
+            try {
+                obj = constructor.newInstance();
+            } catch (IllegalAccessException | InstantiationException e) {
+                // Neither should happen because the test framework
+                // should ensure that there is a public no-argument
+                // constructor.
+                t.recordFailure(ExceptionPhase.SETUP, null, e);
+                return false;
+            } catch (InvocationTargetException e) {
+                t.recordFailure(ExceptionPhase.SETUP, null, preferCause(e));
+                return false;
+            }
+        else
+            obj = null;
+
+        try {
             if (test.hasTestingArgument())
                 testMethod.invoke(obj, t);
             else
                 testMethod.invoke(obj);
             return !t.failed;
-        } catch (InstantiationException | InvocationTargetException
-            | IllegalAccessException e) {
-            synchronized (System.err) {
-                System.err.format("FAIL: %s%n", test);
-                Throwable e1;
-                if (e instanceof InvocationTargetException)
-                    e1 = e.getCause();
-                else
-                    e1 = e;
-                e1.printStackTrace(System.err);
-            }
+        } catch (IllegalAccessException e) {
+            t.recordFailure(ExceptionPhase.METHOD_LOOKUP, "invoke", e);
+            return false;
+        } catch (InvocationTargetException e) {
+            t.recordFailure(ExceptionPhase.EXECUTION, null, preferCause(e));
             return false;
         }
+    }
+
+    private static Throwable preferCause(Throwable e) {
+        Throwable cause = e.getCause();
+        if (cause == null)
+            return e;
+        else
+            return cause;
     }
 
     // Used for pruning stack traces in tests invoked from invokeTest().

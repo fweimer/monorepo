@@ -285,21 +285,16 @@ public final class Testing implements enyo.testing.Testing {
             if (exception.isAssignableFrom(t.getClass()))
                 try {
                     consumer.accept(exception.cast(t));
-                } catch (Throwable e1) {
-                    if (e1.getCause() == null)
-                        e1.initCause(t);
-                    throw e1;
+                } catch (Throwable e) {
+                    e.addSuppressed(t);
+                    throw e;
                 }
-            else {
-                failed = true;
-                throw new TestFailure(
-                    "Expected exception " + exception.getName() + label, t);
-            }
+            else
+                recordFailure(ExceptionPhase.EXCEPTION_TEST,
+                    label, t, exception);
             return;
         }
-        failed = true;
-        throw new TestFailure("Missing expected exception "
-            + exception.getName() + label);
+        recordFailure(label, "missing exception", exception);
     }
 
     void recordFailure(String context, String check, Object value) {
@@ -371,5 +366,34 @@ public final class Testing implements enyo.testing.Testing {
         // Object data is not recorded yet, so the two implementations
         // are the same.
         recordFailure(context, check, left);
+    }
+
+    void recordFailure(ExceptionPhase phase, String context,
+        Throwable exception) {
+        failed = true;
+        synchronized (System.err) {
+            if (context == null)
+                System.err.format("%s: error: failed test%n", test);
+            else
+                System.err.format("%s: error: failed test: %s%n",
+                    test, context);
+            exception.printStackTrace(System.err);
+        }
+    }
+
+    void recordFailure(ExceptionPhase phase, String context,
+        Throwable exception, Class<? extends Throwable> expected) {
+        failed = true;
+        synchronized (System.err) {
+            if (context == null)
+                System.err.format(
+                    "%s: error: failed test expecting exception %s%n",
+                    test, expected.getName());
+            else
+                System.err.format(
+                    "%s: error: failed test expecting exception %s: %s%n",
+                    test, expected.getName(), context);
+            exception.printStackTrace(System.err);
+        }
     }
 }
