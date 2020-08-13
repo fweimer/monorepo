@@ -35,16 +35,6 @@ public final class Bootstrap {
     private static final String BUILD_CLASS = BUILD_MODULE + ".Main";
 
     /**
-     * Names of the modules which are needed to bootstrap the build
-     * module.
-     */
-    private static final List<String> BOOTSTRAP_MODULES = List.of(
-        BUILD_MODULE,
-        // The following are dependencies of the enyo.build.
-        "enyo.core",
-        "enyo.testing");
-
-    /**
      * Delete the entire directory tree, including the root.
      * @param root the root of the directory tree to delete
      * @throws IOException if an I/O error occurs
@@ -70,9 +60,6 @@ public final class Bootstrap {
         removeTree(targetPath);
         Files.createDirectories(targetPath);
 
-        String modulesString = BOOTSTRAP_MODULES.stream()
-            .collect(Collectors.joining(","));
-
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         return compiler.run(InputStream.nullInputStream(),
             System.out, System.err,
@@ -80,7 +67,7 @@ public final class Bootstrap {
                 "-g",
                 "-d", targetPath.toString(),
                 "--module-source-path", "src",
-                "--module", modulesString,
+                "--module", BUILD_MODULE,
             });
     }
 
