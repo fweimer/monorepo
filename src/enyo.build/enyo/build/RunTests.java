@@ -112,6 +112,8 @@ public final class RunTests {
         long nanoStart = System.nanoTime();
         System.err.println("info: testing started");
 
+        TestResults results = new TestResults();
+
         AtomicLong errors = new AtomicLong();
         modules.stream()
             .flatMap(IOFunction.of(mod -> FindTests.tests(dirs, mod)))
@@ -124,7 +126,7 @@ public final class RunTests {
                             method.method.name(),
                             method.error);
                     else {
-                        Testing t = new Testing(method.locator());
+                        Testing t = new Testing(method.locator(), results);
                         if (!InvokeTest.invokeTest(testLayer, t))
                             errors.incrementAndGet();
                     }
@@ -295,7 +297,8 @@ public final class RunTests {
     }
 
     private static void runOneTest(TestMethodLocator test) {
-        Testing t = new Testing(test);
+        TestResults results = new TestResults();
+        Testing t = new Testing(test, results);
         if (InvokeTest.invokeTest(ModuleLayer.boot(), t))
             System.exit(0);
         else

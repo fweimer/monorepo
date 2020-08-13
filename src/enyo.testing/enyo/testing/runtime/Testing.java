@@ -14,10 +14,12 @@ import java.util.function.Consumer;
 
 public final class Testing implements enyo.testing.Testing {
     final TestMethodLocator test;
+    private final Results results;
     volatile boolean failed;
 
-    public Testing(TestMethodLocator test) {
-        this.test = Objects.requireNonNull(test);
+    public Testing(TestMethodLocator test, Results results) {
+        this.test = Objects.requireNonNull(test, "tests");
+        this.results = Objects.requireNonNull(results, "results");
     }
 
     @Override
@@ -298,22 +300,25 @@ public final class Testing implements enyo.testing.Testing {
     }
 
     void recordFailure(String context, String check, Object value) {
+        recordFailure(context, check, List.of(value), captureStackTrace());
+    }
+
+    void recordFailure(String context, String check, Object left,
+        Object right) {
+        recordFailure(context, check, List.of(left, right),
+            captureStackTrace());
+    }
+
+    void recordFailure(String context, String check,
+        List<? extends Object> values,
+        List<StackWalker.StackFrame> stackTrace) {
         failed = true;
-        synchronized (System.err) {
-            if (context == null)
-                System.err.format("%s: error: failed test: %s%n",
-                    test, check);
-            else
-                System.err.format("%s: error: failed test: %s: %s%n",
-                    test, context, check);
-            captureBacktrace().stream()
-                .forEach(frame -> System.err.format("\t%s%n", frame));
-        }
+        results.failure(test, context, check, values, stackTrace);
     }
 
     // Returns a list of interesting stack frames, ignoring classes in
     // this package and below the RunTests.runTest() method.
-    private static List<StackWalker.StackFrame> captureBacktrace() {
+    private static List<StackWalker.StackFrame> captureStackTrace() {
         Backtrace backtrace = new Backtrace();
         StackWalker walker = StackWalker.getInstance(
             StackWalker.Option.RETAIN_CLASS_REFERENCE);
@@ -361,39 +366,18 @@ public final class Testing implements enyo.testing.Testing {
         private static Package PACKAGE = Backtrace.class.getPackage();
     }
 
-    void recordFailure(String context, String check, Object left,
-        Object right) {
-        // Object data is not recorded yet, so the two implementations
-        // are the same.
-        recordFailure(context, check, left);
-    }
-
     void recordFailure(ExceptionPhase phase, String context,
         Throwable exception) {
-        failed = true;
-        synchronized (System.err) {
-            if (context == null)
-                System.err.format("%s: error: failed test%n", test);
-            else
-                System.err.format("%s: error: failed test: %s%n",
-                    test, context);
-            exception.printStackTrace(System.err);
-        }
+        recordFailure(phase, context, exception, null);
     }
 
     void recordFailure(ExceptionPhase phase, String context,
         Throwable exception, Class<? extends Throwable> expected) {
         failed = true;
-        synchronized (System.err) {
-            if (context == null)
-                System.err.format(
-                    "%s: error: failed test expecting exception %s%n",
-                    test, expected.getName());
-            else
-                System.err.format(
-                    "%s: error: failed test expecting exception %s: %s%n",
-                    test, expected.getName(), context);
-            exception.printStackTrace(System.err);
-        }
+        results.failure(test, phase, context, exception, expected);
+    }
+
+    void recordCompleted() {
+        results.completed(test, !failed);
     }
 }

@@ -31,6 +31,7 @@ public final class InvokeTest {
             testClass = loader.loadClass(test.className());
         } catch (ClassNotFoundException e) {
             t.recordFailure(ExceptionPhase.CLASS_LOOKUP, null, preferCause(e));
+            t.recordCompleted();
             return false;
         }
         Method testMethod;
@@ -48,6 +49,7 @@ public final class InvokeTest {
                 constructor = null;
         } catch (NoSuchMethodException e) {
             t.recordFailure(ExceptionPhase.METHOD_LOOKUP, null, preferCause(e));
+            t.recordCompleted();
             return false;
         }
 
@@ -60,9 +62,11 @@ public final class InvokeTest {
                 // should ensure that there is a public no-argument
                 // constructor.
                 t.recordFailure(ExceptionPhase.SETUP, null, e);
+                t.recordCompleted();
                 return false;
             } catch (InvocationTargetException e) {
                 t.recordFailure(ExceptionPhase.SETUP, null, preferCause(e));
+                t.recordCompleted();
                 return false;
             }
         else
@@ -73,12 +77,15 @@ public final class InvokeTest {
                 testMethod.invoke(obj, t);
             else
                 testMethod.invoke(obj);
+            t.recordCompleted();
             return !t.failed;
         } catch (IllegalAccessException e) {
             t.recordFailure(ExceptionPhase.METHOD_LOOKUP, "invoke", e);
+            t.recordCompleted();
             return false;
         } catch (InvocationTargetException e) {
             t.recordFailure(ExceptionPhase.EXECUTION, null, preferCause(e));
+            t.recordCompleted();
             return false;
         }
     }

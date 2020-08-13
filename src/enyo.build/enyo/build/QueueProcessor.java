@@ -72,7 +72,7 @@ final class QueueProcessor extends Thread {
 
             currentTest = test;
 
-            Testing t = new Testing(test.locator());
+            Testing t = global.newTesting(test);
             if (!InvokeTest.invokeTest(global.testLayer(), t))
                 ++errors;
             ++completed;

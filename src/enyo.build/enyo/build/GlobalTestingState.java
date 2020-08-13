@@ -1,7 +1,9 @@
 package enyo.build;
 
 import enyo.testing.introspect.ResourcesManager;
+import enyo.testing.introspect.ScheduledTest;
 import enyo.testing.introspect.ScheduledTestSet;
+import enyo.testing.runtime.Testing;
 
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -25,6 +27,7 @@ final class GlobalTestingState {
         this.startedTests = new ScheduledTestSet(parameters.testCount());
         this.resources = new ResourcesManager();
         this.sharedArray = testLink.sharedArray();
+        this.results = new TestResults();
 
         // Launch the daemon thread that waits for test termination
         // requests.
@@ -47,6 +50,13 @@ final class GlobalTestingState {
      */
     ResourcesManager resources() {
         return resources;
+    }
+
+    /**
+     * Creates a new testing instance for a scheduled test.
+     */
+    Testing newTesting(ScheduledTest test) {
+        return new Testing(test.locator(), results);
     }
 
     /**
@@ -120,5 +130,6 @@ final class GlobalTestingState {
     private final ScheduledTestSet startedTests;
     private final ResourcesManager resources;
     private final SharedArray sharedArray;
+    private final TestResults results;
     private final AtomicInteger exitInhibitors = new AtomicInteger();
 }
