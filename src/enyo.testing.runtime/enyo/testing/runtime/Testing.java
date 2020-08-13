@@ -12,11 +12,22 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
+/**
+ * Default implementation of the {@link enyo.testing.Testing} interface.
+ * Tests are expected to be run by
+ * {@link InvokeTest#invokeTest(ModuleLayer,Testing)}.
+ */
 public final class Testing implements enyo.testing.Testing {
     final TestMethodLocator test;
     private final Results results;
     volatile boolean failed;
 
+    /**
+     * Creates a new testing object.
+     * @param test the test to execute
+     * @param results where to report test results
+     * @see InvokeTest#invokeTest(ModuleLayer,Testing)
+     */
     public Testing(TestMethodLocator test, Results results) {
         this.test = Objects.requireNonNull(test, "tests");
         this.results = Objects.requireNonNull(results, "results");

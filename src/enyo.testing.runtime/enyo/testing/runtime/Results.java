@@ -13,7 +13,8 @@ public interface Results {
     /**
      * Reports a sub-test failure.
      * Failures involving thrown exceptions should use
-     * {@link failure(ExceptionPhase,String,Throwable,Class)} instead.
+     * {@link #failure(TestMethodLocator,ExceptionPhase,String,Throwable,Class)}
+     * instead.
      * @param test the test that failed (not null)
      * @param context a string providing contextual information
      *   (can be null)

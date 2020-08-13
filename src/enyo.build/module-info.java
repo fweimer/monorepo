@@ -9,5 +9,6 @@ module enyo.build {
 
     requires enyo.core;
     requires enyo.testing;
+    requires enyo.testing.runtime;
     requires java.compiler;
 }

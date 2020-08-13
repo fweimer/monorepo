@@ -17,6 +17,11 @@ import java.lang.reflect.Constructor;
 public final class InvokeTest {
     /**
      * Run a single test.
+     * @param testLayer the module layer that is used for resolving
+     *   module names in the {@linkplain TestMethodLocator test method locator}
+     * @param t the instance of {@link enyo.testing.Testing} to use for
+     *   executing the test; also determines the
+     *   {@linkplain TestMethodLocator test method locator}
      * @return true if the test succeed, false if it could not be located
      *   or if it failed
      */
