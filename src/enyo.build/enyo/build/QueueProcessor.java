@@ -2,6 +2,7 @@ package enyo.build;
 
 import enyo.testing.introspect.ScheduledTest;
 import enyo.testing.runtime.InvokeTest;
+import enyo.testing.runtime.Testing;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -71,7 +72,8 @@ final class QueueProcessor extends Thread {
 
             currentTest = test;
 
-            if (!InvokeTest.invokeTest(global.testLayer(), test.locator()))
+            Testing t = new Testing(test.locator());
+            if (!InvokeTest.invokeTest(global.testLayer(), t))
                 ++errors;
             ++completed;
 

@@ -5,6 +5,7 @@ import enyo.lang.RelaunchVM;
 import enyo.testing.introspect.ScheduledTest;
 import enyo.testing.introspect.TestMethodLocator;
 import enyo.testing.runtime.InvokeTest;
+import enyo.testing.runtime.Testing;
 
 import java.io.IOException;
 import java.lang.invoke.MethodType;
@@ -123,8 +124,8 @@ public final class RunTests {
                             method.method.name(),
                             method.error);
                     else {
-                        TestMethodLocator test = method.locator();
-                        if (!InvokeTest.invokeTest(testLayer, test))
+                        Testing t = new Testing(method.locator());
+                        if (!InvokeTest.invokeTest(testLayer, t))
                             errors.incrementAndGet();
                     }
                 });
@@ -294,7 +295,8 @@ public final class RunTests {
     }
 
     private static void runOneTest(TestMethodLocator test) {
-        if (InvokeTest.invokeTest(ModuleLayer.boot(), test))
+        Testing t = new Testing(test);
+        if (InvokeTest.invokeTest(ModuleLayer.boot(), t))
             System.exit(0);
         else
             System.exit(1);

@@ -20,9 +20,9 @@ public final class InvokeTest {
      * @return true if the test succeed, false if it could not be located
      *   or if it failed
      */
-    public static boolean invokeTest(ModuleLayer testLayer,
-        TestMethodLocator test) {
+    public static boolean invokeTest(ModuleLayer testLayer, Testing t) {
         Class<?> testClass;
+        TestMethodLocator test = t.test;
         Method testMethod;
         Constructor<?> constructor;
         try {
@@ -53,14 +53,11 @@ public final class InvokeTest {
             else
                 obj = null;
 
-            if (test.hasTestingArgument()) {
-                Testing t = new Testing(test);
+            if (test.hasTestingArgument())
                 testMethod.invoke(obj, t);
-                return !t.failed;
-            } else {
+            else
                 testMethod.invoke(obj);
-                return true;
-            }
+            return !t.failed;
         } catch (InstantiationException | InvocationTargetException
             | IllegalAccessException e) {
             synchronized (System.err) {
@@ -83,7 +80,7 @@ public final class InvokeTest {
     // failure).
     static String INVOKE_TEST_METHOD = "invokeTest";
     static MethodType INVOKE_TEST_METHOD_TYPE = MethodType.methodType(
-        Boolean.TYPE, ModuleLayer.class, TestMethodLocator.class);
+        Boolean.TYPE, ModuleLayer.class, Testing.class);
     static {
         MethodHandles.Lookup lookup = MethodHandles.lookup();
         try {

@@ -12,8 +12,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-final class Testing implements enyo.testing.Testing {
-    private final TestMethodLocator test;
+public final class Testing implements enyo.testing.Testing {
+    final TestMethodLocator test;
     volatile boolean failed;
 
     public Testing(TestMethodLocator test) {
