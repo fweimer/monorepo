@@ -7,7 +7,9 @@ import enyo.io.function.IOPredicate;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.util.List;
@@ -44,10 +46,20 @@ final class RebootstrapCheck {
     boolean unchanged(DirectoryLayout dirs) {
         Path root = dirs.buildGeneration();
         // Restrict the class list to classes in the bootstrap modules.
-        List<Path> currentClasses = bootstrapModules.stream()
+        List<Path> currentClasses;
+        try {
+            currentClasses = bootstrapModules.stream()
             .flatMap(IOFunction.of(module ->
                     classFiles(root.resolve(module))))
-            .collect(Collectors.toList());
+                .collect(Collectors.toList());
+        } catch (UncheckedIOException e) {
+            if (e.getCause() instanceof NoSuchFileException)
+                // A module used in the bootstrap went away completely.
+                // This is a fundamental change that needs a rebootstrap.
+                return false;
+            else
+                throw e;
+        }
         // Only check that the classes contained in the bootstrap
         // build are unchanged.  The bootstrap build only contains a
         // full set of classes for enyo.build; classes in other
