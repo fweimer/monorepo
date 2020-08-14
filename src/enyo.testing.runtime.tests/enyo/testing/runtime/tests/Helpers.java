@@ -31,21 +31,21 @@ public final class Helpers {
             hasTestingArgument);
     }
 
-    static List<ResultsRecorder.Call> testHistory(
+    static List<Recorder.Call> testHistory(
         Testing t, Class<?> cls, String methodName) {
         return testHistory(t, locator(cls, methodName));
     }
 
-    static List<ResultsRecorder.Call> testHistory(Testing t,
+    static List<Recorder.Call> testHistory(Testing t,
         TestMethodLocator locator) {
-        ResultsRecorder results = new ResultsRecorder();
+        Recorder results = new Recorder();
         var inner = new enyo.testing.runtime.Testing(locator, results);
         ModuleLayer layer =
             Optional.ofNullable(Helpers.class.getModule())
             .map(Module::getLayer)
             .orElse(ModuleLayer.boot());
         boolean success = InvokeTest.invokeTest(layer, inner);
-        List<ResultsRecorder.Call> history = results.history();
+        List<Recorder.Call> history = results.history();
         t.examine(isSuccess(t, history)).is(success);
         t.examine(history.stream()
             .filter(call -> !call.test.equals(locator))
@@ -55,14 +55,14 @@ public final class Helpers {
     }
 
     static boolean isSuccess(Testing t,
-        List<? extends ResultsRecorder.Call> history) {
-        Optional<? extends ResultsRecorder.Call> last = history.stream()
+        List<? extends Recorder.Call> history) {
+        Optional<? extends Recorder.Call> last = history.stream()
             .reduce((previousLast, current) -> current);
         t.examine(last).isnt(Optional.empty());
         t.fullBarrier();
-        t.examine(last.get()).isExactClass(ResultsRecorder.Completed.class);
+        t.examine(last.get()).isExactClass(Recorder.Completed.class);
         t.fullBarrier();
-        return ((ResultsRecorder.Completed) last.get()).success;
+        return ((Recorder.Completed) last.get()).success;
     }
 
     @Test
@@ -70,7 +70,7 @@ public final class Helpers {
         for (String method : List.of(
                 "successStatic", "success",
                 "successPlainStatic", "successPlain")) {
-            List<ResultsRecorder.Call> history =
+            List<Recorder.Call> history =
                 testHistory(t, Helpers.class, method);
             t.examine(isSuccess(t, history)).is(true);
         }
@@ -78,13 +78,13 @@ public final class Helpers {
 
     @Test
     public static void testExamineFailure(Testing t) {
-        List<ResultsRecorder.Call> history =
+        List<Recorder.Call> history =
             testHistory(t, Helpers.class, "examineFailure");
         t.examine(isSuccess(t, history)).is(false);
         t.examine(history.size()).is(2);
-        t.examine(history.get(0)).isExactClass(ResultsRecorder.Failure.class);
+        t.examine(history.get(0)).isExactClass(Recorder.Failure.class);
         t.fullBarrier();
-        var call = (ResultsRecorder.Failure) history.get(0);
+        var call = (Recorder.Failure) history.get(0);
         t.examine(call.context).isNull();
         t.examine(call.check).is("equals");
         t.<List<?>>examine(call.values).is(List.of(true, false));
@@ -93,13 +93,13 @@ public final class Helpers {
     // Tests that t.assertFail() is recorded properly.
     @Test
     public static void testAssertFail(Testing t) {
-        List<ResultsRecorder.Call> history =
+        List<Recorder.Call> history =
             testHistory(t, Helpers.class, "assertFail");
         t.examine(isSuccess(t, history)).is(false);
         t.examine(history.size()).is(2);
-        t.examine(history.get(0)).isExactClass(ResultsRecorder.Exception.class);
+        t.examine(history.get(0)).isExactClass(Recorder.Exception.class);
         t.fullBarrier();
-        var call = (ResultsRecorder.Exception) history.get(0);
+        var call = (Recorder.Exception) history.get(0);
         t.examine(call.phase).is(ExceptionPhase.EXECUTION);
         t.examine(call.context).isNull();
         t.examine(call.exception).isExactClass(TestFailure.class);
@@ -110,13 +110,13 @@ public final class Helpers {
     // Tests that termination by an exception is recorded properly.
     @Test
     public static void testException(Testing t) {
-        List<ResultsRecorder.Call> history =
+        List<Recorder.Call> history =
             testHistory(t, Helpers.class, "exception");
         t.examine(isSuccess(t, history)).is(false);
         t.examine(history.size()).is(2);
-        t.examine(history.get(0)).isExactClass(ResultsRecorder.Exception.class);
+        t.examine(history.get(0)).isExactClass(Recorder.Exception.class);
         t.fullBarrier();
-        var call = (ResultsRecorder.Exception) history.get(0);
+        var call = (Recorder.Exception) history.get(0);
         t.examine(call.phase).is(ExceptionPhase.EXECUTION);
         t.examine(call.context).isNull();
         t.examine(call.exception).isExactClass(
@@ -128,13 +128,13 @@ public final class Helpers {
     // Test that InvokeTest records a missing method.
     @Test
     public static void testNoSuchMethod(Testing t) {
-        List<ResultsRecorder.Call> history =
+        List<Recorder.Call> history =
             testHistory(t, Helpers.class, "missing"); // Does not exist.
         t.examine(isSuccess(t, history)).is(false);
         t.examine(history.size()).is(2);
-        t.examine(history.get(0)).isExactClass(ResultsRecorder.Exception.class);
+        t.examine(history.get(0)).isExactClass(Recorder.Exception.class);
         t.fullBarrier();
-        var call = (ResultsRecorder.Exception) history.get(0);
+        var call = (Recorder.Exception) history.get(0);
         t.examine(call.phase).is(ExceptionPhase.METHOD_LOOKUP);
         t.examine(call.context).isNull();
         t.examine(call.exception).isExactClass(
@@ -147,13 +147,13 @@ public final class Helpers {
     // Test that InvokeTest records constructor exceptions.
     @Test
     public static void testConstructorException(Testing t) {
-        List<ResultsRecorder.Call> history =
+        List<Recorder.Call> history =
             testHistory(t, BrokenConstructor.class, "test");
         t.examine(isSuccess(t, history)).is(false);
         t.examine(history.size()).is(2);
-        t.examine(history.get(0)).isExactClass(ResultsRecorder.Exception.class);
+        t.examine(history.get(0)).isExactClass(Recorder.Exception.class);
         t.fullBarrier();
-        var call = (ResultsRecorder.Exception) history.get(0);
+        var call = (Recorder.Exception) history.get(0);
         t.examine(call.phase).is(ExceptionPhase.SETUP);
         t.examine(call.context).isNull();
         t.examine(call.exception).isExactClass(
@@ -178,12 +178,12 @@ public final class Helpers {
         TestMethodLocator locator =
             new TestMethodLocator(moduleName, className, "missing", false);
 
-        List<ResultsRecorder.Call> history = testHistory(t, locator);
+        List<Recorder.Call> history = testHistory(t, locator);
         t.examine(isSuccess(t, history)).is(false);
         t.examine(history.size()).is(2);
-        t.examine(history.get(0)).isExactClass(ResultsRecorder.Exception.class);
+        t.examine(history.get(0)).isExactClass(Recorder.Exception.class);
         t.fullBarrier();
-        var call = (ResultsRecorder.Exception) history.get(0);
+        var call = (Recorder.Exception) history.get(0);
         t.examine(call.phase).is(ExceptionPhase.CLASS_LOOKUP);
         t.examine(call.context).isNull();
         t.examine(call.exception).isExactClass(

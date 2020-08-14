@@ -9,7 +9,7 @@ import java.util.List;
 public final class TestTesting {
     @Test
     public void testFullBarrier(Testing t) {
-        List<ResultsRecorder.Call> history;
+        List<Recorder.Call> history;
 
         history = Helpers.testHistory(t, TestTesting.class, "fullBarrier1");
         t.examine(Helpers.isSuccess(t, history)).is(true);
@@ -22,10 +22,8 @@ public final class TestTesting {
             history = Helpers.testHistory(t, TestTesting.class, method);
             t.examine(Helpers.isSuccess(t, history)).is(false);
             t.examine(history.size()).is(2);
-            t.examine(history.get(0))
-                .isExactClass(ResultsRecorder.Failure.class);
-            t.examine(history.get(1))
-                .isExactClass(ResultsRecorder.Completed.class);
+            t.examine(history.get(0)).isExactClass(Recorder.Failure.class);
+            t.examine(history.get(1)).isExactClass(Recorder.Completed.class);
         }
     }
 
@@ -73,50 +71,44 @@ public final class TestTesting {
 
     @Test
     public void testUnsupported(Testing t) {
-        List<ResultsRecorder.Call> history;
+        List<Recorder.Call> history;
 
         history = Helpers.testHistory(
             t, TestTesting.class, "unsupportedSuccess1");
         t.examine(Helpers.isSuccess(t, history)).is(true);
         t.examine(history.size()).is(2);
         t.examine(history.get(0))
-            .isExactClass(ResultsRecorder.Unsupported.class);
-        t.examine(((ResultsRecorder.Unsupported) history.get(0)).context)
+            .isExactClass(Recorder.Unsupported.class);
+        t.examine(((Recorder.Unsupported) history.get(0)).context)
             .is("unsupported context");
 
         history = Helpers.testHistory(
             t, TestTesting.class, "unsupportedSuccess2");
         t.examine(Helpers.isSuccess(t, history)).is(true);
         t.examine(history.size()).is(3);
-        t.examine(history.get(0))
-            .isExactClass(ResultsRecorder.Unsupported.class);
-        t.examine(((ResultsRecorder.Unsupported) history.get(0)).context)
+        t.examine(history.get(0)).isExactClass(Recorder.Unsupported.class);
+        t.examine(((Recorder.Unsupported) history.get(0)).context)
             .is("unsupported context 1");
-        t.examine(history.get(1))
-            .isExactClass(ResultsRecorder.Unsupported.class);
-        t.examine(((ResultsRecorder.Unsupported) history.get(1)).context)
+        t.examine(history.get(1)).isExactClass(Recorder.Unsupported.class);
+        t.examine(((Recorder.Unsupported) history.get(1)).context)
             .is("unsupported context 2");
 
         history = Helpers.testHistory(
             t, TestTesting.class, "unsupportedFailure1");
         t.examine(Helpers.isSuccess(t, history)).is(false);
         t.examine(history.size()).is(3);
-        t.examine(history.get(0))
-            .isExactClass(ResultsRecorder.Unsupported.class);
-        t.examine(((ResultsRecorder.Unsupported) history.get(0)).context)
+        t.examine(history.get(0)).isExactClass(Recorder.Unsupported.class);
+        t.examine(((Recorder.Unsupported) history.get(0)).context)
             .is("unsupported context");
-        t.examine(history.get(1))
-            .isExactClass(ResultsRecorder.Failure.class);
+        t.examine(history.get(1)).isExactClass(Recorder.Failure.class);
 
         history = Helpers.testHistory(
             t, TestTesting.class, "unsupportedFailure2");
         t.examine(Helpers.isSuccess(t, history)).is(false);
         t.examine(history.size()).is(3);
-        t.examine(history.get(0))
-            .isExactClass(ResultsRecorder.Failure.class);
-        t.examine(history.get(1))
-            .isExactClass(ResultsRecorder.Unsupported.class);
-        t.examine(((ResultsRecorder.Unsupported) history.get(1)).context)
+        t.examine(history.get(0)).isExactClass(Recorder.Failure.class);
+        t.examine(history.get(1)).isExactClass(Recorder.Unsupported.class);
+        t.examine(((Recorder.Unsupported) history.get(1)).context)
             .is("unsupported context");
     }
 
@@ -149,26 +141,23 @@ public final class TestTesting {
 
     @Test
     public void testAssertFail(Testing t) {
-        List<ResultsRecorder.Call> history;
+        List<Recorder.Call> history;
 
         history = Helpers.testHistory(t, TestTesting.class, "assertFail1");
         t.examine(Helpers.isSuccess(t, history)).is(false);
         t.examine(history.size()).is(2);
-        t.examine(history.get(0))
-            .isExactClass(ResultsRecorder.Exception.class);
-        t.examine(((ResultsRecorder.Exception) history.get(0))
+        t.examine(history.get(0)) .isExactClass(Recorder.Exception.class);
+        t.examine(((Recorder.Exception) history.get(0))
             .exception)
             .isExactClass(TestFailure.class);
-        t.examine(history.get(1))
-            .isExactClass(ResultsRecorder.Completed.class);
+        t.examine(history.get(1)).isExactClass(Recorder.Completed.class);
 
         // Test that catching the assertion failure exception still
         // results in test failure.
         history = Helpers.testHistory(t, TestTesting.class, "assertFail2");
         t.examine(Helpers.isSuccess(t, history)).is(false);
         t.examine(history.size()).is(1);
-        t.examine(history.get(0))
-            .isExactClass(ResultsRecorder.Completed.class);
+        t.examine(history.get(0)).isExactClass(Recorder.Completed.class);
     }
 
     // Not marked as @Test due to expected test failure.
@@ -187,7 +176,7 @@ public final class TestTesting {
 
     @Test
     public void testAssertTrue(Testing t) {
-        List<ResultsRecorder.Call> history;
+        List<Recorder.Call> history;
 
         history = Helpers.testHistory(t, TestTesting.class, "assertTrue1");
         t.examine(Helpers.isSuccess(t, history)).is(true);
@@ -196,13 +185,10 @@ public final class TestTesting {
         history = Helpers.testHistory(t, TestTesting.class, "assertTrue2");
         t.examine(Helpers.isSuccess(t, history)).is(false);
         t.examine(history.size()).is(2);
-        t.examine(history.get(0))
-            .isExactClass(ResultsRecorder.Exception.class);
-        t.examine(((ResultsRecorder.Exception) history.get(0))
-            .exception)
+        t.examine(history.get(0)).isExactClass(Recorder.Exception.class);
+        t.examine(((Recorder.Exception) history.get(0)).exception)
             .isExactClass(TestFailure.class);
-        t.examine(history.get(1))
-            .isExactClass(ResultsRecorder.Completed.class);
+        t.examine(history.get(1)).isExactClass(Recorder.Completed.class);
     }
 
     @Test
@@ -217,7 +203,7 @@ public final class TestTesting {
 
     @Test
     public void testAssertFalse(Testing t) {
-        List<ResultsRecorder.Call> history;
+        List<Recorder.Call> history;
 
         history = Helpers.testHistory(t, TestTesting.class, "assertFalse1");
         t.examine(Helpers.isSuccess(t, history)).is(true);
@@ -226,13 +212,10 @@ public final class TestTesting {
         history = Helpers.testHistory(t, TestTesting.class, "assertFalse2");
         t.examine(Helpers.isSuccess(t, history)).is(false);
         t.examine(history.size()).is(2);
-        t.examine(history.get(0))
-            .isExactClass(ResultsRecorder.Exception.class);
-        t.examine(((ResultsRecorder.Exception) history.get(0))
-            .exception)
+        t.examine(history.get(0)).isExactClass(Recorder.Exception.class);
+        t.examine(((Recorder.Exception) history.get(0)).exception)
             .isExactClass(TestFailure.class);
-        t.examine(history.get(1))
-            .isExactClass(ResultsRecorder.Completed.class);
+        t.examine(history.get(1)).isExactClass(Recorder.Completed.class);
     }
 
     @Test

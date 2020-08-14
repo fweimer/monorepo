@@ -8,7 +8,7 @@ import enyo.testing.runtime.Results;
 import java.util.ArrayList;
 import java.util.List;
 
-final class ResultsRecorder implements Results {
+final class Recorder implements Results {
     static abstract class Call {
         final TestMethodLocator test;
 
