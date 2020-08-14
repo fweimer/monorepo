@@ -61,4 +61,11 @@ abstract class ExaminerBase {
             barrier = true;
         t.recordFailure(this, check, other);
     }
+
+    void failureWithObjects(String check, Object... others) {
+        failed = true;
+        if (barrierRequested)
+            barrier = true;
+        t.recordExaminerFailure(this, check, others);
+    }
 }
