@@ -8,6 +8,7 @@ import enyo.testing.runtime.Examined;
 import enyo.testing.runtime.InvokeTest;
 import enyo.testing.runtime.ExceptionPhase;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -88,7 +89,7 @@ public final class Helpers {
         var call = (Recorder.Failure) history.get(0);
         t.examine(call.context).is(List.of(new Examined(null, true)));
         t.examine(call.check).is("equals");
-        t.<List<?>>examine(call.values).is(List.of(false));
+        t.assertTrue(Arrays.equals(call.otherObjects, new Object[] { false }));
     }
 
     // Tests that t.assertFail() is recorded properly.

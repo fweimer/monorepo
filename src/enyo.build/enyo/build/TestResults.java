@@ -19,7 +19,7 @@ class TestResults implements Results {
 
     @Override
     public void failure(TestMethodLocator test, List<Examined> context,
-        String check, List<? extends Object> otherValues,
+        String check, Object[] otherObjects,
         List<StackWalker.StackFrame> stackTrace) {
         synchronized (System.err) {
             System.err.format("%s: error: failed test: %s%n", test, check);

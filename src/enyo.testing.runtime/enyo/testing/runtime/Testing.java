@@ -317,34 +317,32 @@ public final class Testing implements enyo.testing.Testing {
             context = List.of();
         else
             context = List.of(new Examined(label, null));
-        recordFailure(context, "missing exception", List.of(exception),
-            captureStackTrace());
+        recordFailureObjects(context, "missing exception",
+            captureStackTrace(), exception);
     }
 
     void recordFailure(ExaminerBase top, String check) {
-        recordFailure(top, check, List.of(), captureStackTrace());
+        recordFailure(top, check, new Object[0], captureStackTrace());
     }
 
     void recordFailure(ExaminerBase top, String check, Object value) {
-        recordFailure(top, check, List.of(value), captureStackTrace());
+        recordFailure(top, check, new Object[] { value }, captureStackTrace());
     }
 
     void recordFailure(ExaminerBase top, String check,
-        List<? extends Object> otherValues,
-        List<StackWalker.StackFrame> stackTrace) {
+        Object[] otherObjects, List<StackWalker.StackFrame> stackTrace) {
         ArrayList<Examined> context = new ArrayList<>();
         for (ExaminerBase current = top; current != null;
              current = current.base)
             context.add(current.asExamined());
         Collections.reverse(context);
-        recordFailure(context, check, otherValues, stackTrace);
+        recordFailureObjects(context, check, stackTrace, otherObjects);
     }
 
-    void recordFailure(List<Examined> context, String check,
-        List<? extends Object> otherValues,
-        List<StackWalker.StackFrame> stackTrace) {
+    void recordFailureObjects(List<Examined> context, String check,
+        List<StackWalker.StackFrame> stackTrace, Object... otherObjects) {
         failed = true;
-        results.failure(test, List.copyOf(context), check, otherValues,
+        results.failure(test, List.copyOf(context), check, otherObjects,
             stackTrace);
     }
 

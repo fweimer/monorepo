@@ -26,13 +26,13 @@ public interface Results {
      * @param check the type of failed check, a short string (not null)
      * @param examined the examination context for this check; can be empty
      *   (but not null)
-     * @param otherValues other objects involved in the check; can be empty
-     *   (but not null)
+     * @param otherObjects other objects involved in the check; can be empty
+     *   (but not null), elements can be null
      * @param stackTrace a pruned stack trace of the failure; can be empty
      *   (but not null)
      */
     void failure(TestMethodLocator test, List<Examined> examined,
-        String check, List<? extends Object> otherValues,
+        String check, Object[] otherObjects,
         List<StackWalker.StackFrame> stackTrace);
 
     /**

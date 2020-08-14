@@ -40,17 +40,16 @@ final class Recorder implements Results {
     static final class Failure extends Call {
         final String check;
         final List<Examined> context;
-        final List<? extends Object> values;
+        final Object[] otherObjects;
         final List<StackWalker.StackFrame> stackTrace;
 
 
         Failure(TestMethodLocator test, List<Examined> context, String check,
-            List<? extends Object> values,
-            List<StackWalker.StackFrame> stackTrace) {
+            Object[] otherObjects, List<StackWalker.StackFrame> stackTrace) {
             super(test);
             this.context = context;
             this.check = check;
-            this.values = values;
+            this.otherObjects = otherObjects;
             this.stackTrace = stackTrace;
         }
 
@@ -58,7 +57,7 @@ final class Recorder implements Results {
             super.check(t);
             t.examine(context).isNotNull();
             t.examine(check).isNotNull();
-            t.examine(values).isNotNull();
+            t.examine(otherObjects).isNotNull();
             t.examine(stackTrace).isNotNull();
         }
     }
@@ -103,9 +102,10 @@ final class Recorder implements Results {
 
     @Override
     public synchronized void failure(TestMethodLocator test,
-        List<Examined> context, String check, List<? extends Object> values,
+        List<Examined> context, String check, Object[] otherObjects,
         List<StackWalker.StackFrame> stackTrace) {
-        history.add(new Failure(test, context, check, values, stackTrace));
+        history.add(new Failure(test, context, check, otherObjects,
+                stackTrace));
     }
 
     @Override
