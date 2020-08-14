@@ -184,4 +184,34 @@ public final class TestTesting {
             // Do not report to caller.
         }
     }
+
+    @Test
+    public void testAssertTrue(Testing t) {
+        List<ResultsRecorder.Call> history;
+
+        history = Helpers.testHistory(t, TestTesting.class, "assertTrue1");
+        t.examine(Helpers.isSuccess(t, history)).is(true);
+        t.examine(history.size()).is(1);
+
+        history = Helpers.testHistory(t, TestTesting.class, "assertTrue2");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        t.examine(history.get(0))
+            .isExactClass(ResultsRecorder.ExceptionFailureCall.class);
+        t.examine(((ResultsRecorder.ExceptionFailureCall) history.get(0))
+            .exception)
+            .isExactClass(TestFailure.class);
+        t.examine(history.get(1))
+            .isExactClass(ResultsRecorder.CompletedCall.class);
+    }
+
+    @Test
+    public void assertTrue1(Testing t) {
+        t.assertTrue(true);
+    }
+
+    // Not marked as @Test due to expected test failure.
+    public void assertTrue2(Testing t) {
+        t.assertTrue(false);
+    }
 }
