@@ -331,12 +331,16 @@ public final class Testing implements enyo.testing.Testing {
 
     void recordFailure(ExaminerBase top, String check,
         Object[] otherObjects, List<StackWalker.StackFrame> stackTrace) {
+        recordFailureObjects(context(top), check, stackTrace, otherObjects);
+    }
+
+    private static List<Examined> context(ExaminerBase top) {
         ArrayList<Examined> context = new ArrayList<>();
         for (ExaminerBase current = top; current != null;
              current = current.base)
             context.add(current.asExamined());
         Collections.reverse(context);
-        recordFailureObjects(context, check, stackTrace, otherObjects);
+        return context;
     }
 
     void recordFailureObjects(List<Examined> context, String check,
