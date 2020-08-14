@@ -227,4 +227,80 @@ public final class TestObjectExaminer {
         t.examine(null)
             .isnt(null);
     }
+
+    @Test
+    public void testNullabeIs(Testing t) {
+        List<Recorder.Call> history;
+        Recorder.Failure failure;
+
+        // Test that the barrier is effective.
+        history = Helpers.testHistory(
+            t, TestObjectExaminer.class, "nullableIs1");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        t.examine(history.get(0)).isExactClass(Recorder.Failure.class);
+        failure = (Recorder.Failure) history.get(0);
+        t.examine(failure.check).is("equals");
+        t.examine(failure.context).is(List.of(new Examined(null, "string1")));
+        t.assertTrue(Arrays.equals(
+                failure.otherObjects, new Object[] { "string2" }));
+
+        // Test reporting of examined null objects.
+        history = Helpers.testHistory(
+            t, TestObjectExaminer.class, "nullableIs2");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        t.examine(history.get(0)).isExactClass(Recorder.Failure.class);
+        failure = (Recorder.Failure) history.get(0);
+        t.examine(failure.check).is("equals");
+        t.examine(failure.context).is(List.of(new Examined(null, null)));
+        t.assertTrue(Arrays.equals(
+                failure.otherObjects, new Object[] { "string1" }));
+
+        // Test reporting of comparison against null.
+        history = Helpers.testHistory(
+            t, TestObjectExaminer.class, "nullableIs3");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        t.examine(history.get(0)).isExactClass(Recorder.Failure.class);
+        failure = (Recorder.Failure) history.get(0);
+        t.examine(failure.check).is("equals");
+        t.examine(failure.context).is(List.of(new Examined(null, "string1")));
+        t.assertTrue(Arrays.equals(
+                failure.otherObjects, new Object[] { null }));
+
+        // Test reporting of double-null comparison.
+        history = Helpers.testHistory(
+            t, TestObjectExaminer.class, "nullableIs4");
+        t.examine(Helpers.isSuccess(t, history)).is(true);
+        t.examine(history.size()).is(1);
+    }
+
+    // No @Test due to expect test failure.
+    public void nullableIs1(Testing t) {
+        t.examine("string1")
+            .nullableIs("string1")
+            .nullableIs(new String("string1"))
+            .nullableIs("string2")
+            .barrier()
+            .nullableIs("string3");
+    }
+
+    // No @Test due to expect test failure.
+    public void nullableIs2(Testing t) {
+        t.examine(null)
+            .nullableIs("string1");
+    }
+
+    // No @Test due to expect test failure.
+    public void nullableIs3(Testing t) {
+        t.examine("string1")
+            .nullableIs(null);
+    }
+
+    @Test
+    public void nullableIs4(Testing t) {
+        t.examine(null)
+            .nullableIs(null);
+    }
 }
