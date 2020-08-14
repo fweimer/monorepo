@@ -30,19 +30,19 @@ final class ResultsRecorder implements Results {
         }
     }
 
-    static final class UnsupportedCall extends ContextCall {
-        UnsupportedCall(TestMethodLocator test, String context) {
+    static final class Unsupported extends ContextCall {
+        Unsupported(TestMethodLocator test, String context) {
             super(test, context);
         }
     }
 
-    static final class FailureCall extends ContextCall {
+    static final class Failure extends ContextCall {
         final String check;
         final List<? extends Object> values;
         final List<StackWalker.StackFrame> stackTrace;
 
 
-        FailureCall(TestMethodLocator test, String context, String check,
+        Failure(TestMethodLocator test, String context, String check,
             List<? extends Object> values,
             List<StackWalker.StackFrame> stackTrace) {
             super(test, context);
@@ -59,13 +59,13 @@ final class ResultsRecorder implements Results {
         }
     }
 
-    static final class ExceptionFailureCall extends ContextCall {
+    static final class Exception extends ContextCall {
         final ExceptionPhase phase;
         final Throwable exception;
         final Class<? extends Throwable> expected;
 
 
-        ExceptionFailureCall(TestMethodLocator test, ExceptionPhase phase,
+        Exception(TestMethodLocator test, ExceptionPhase phase,
             String context, Throwable exception,
             Class<? extends Throwable> expected) {
             super(test, context);
@@ -81,10 +81,10 @@ final class ResultsRecorder implements Results {
         }
     }
 
-    static final class CompletedCall extends Call {
+    static final class Completed extends Call {
         final boolean success;
 
-        CompletedCall(TestMethodLocator test, boolean success) {
+        Completed(TestMethodLocator test, boolean success) {
             super(test);
             this.success = success;
         }
@@ -93,7 +93,7 @@ final class ResultsRecorder implements Results {
     @Override
     public synchronized void unsupported(TestMethodLocator test,
         String context) {
-        history.add(new UnsupportedCall(test, context));
+        history.add(new Unsupported(test, context));
     }
 
 
@@ -101,21 +101,20 @@ final class ResultsRecorder implements Results {
     public synchronized void failure(TestMethodLocator test, String context,
         String check, List<? extends Object> values,
         List<StackWalker.StackFrame> stackTrace) {
-        history.add(new FailureCall(test, context, check, values, stackTrace));
+        history.add(new Failure(test, context, check, values, stackTrace));
     }
 
     @Override
     public synchronized void exception(TestMethodLocator test,
         ExceptionPhase phase, String context, Throwable exception,
         Class<? extends Throwable> expected) {
-        history.add(new ExceptionFailureCall(
-                test, phase, context, exception, expected));
+        history.add(new Exception(test, phase, context, exception, expected));
     }
 
     @Override
     public synchronized void completed(TestMethodLocator test,
         boolean success) {
-        history.add(new CompletedCall(test, success));
+        history.add(new Completed(test, success));
     }
 
     private final ArrayList<Call> history = new ArrayList<>();
@@ -129,6 +128,6 @@ final class ResultsRecorder implements Results {
             call.check(t);
         t.<List<Call>>examine(history).isnt(List.of());
         t.examine(history.get(history.size() -1))
-            .isExactClass(CompletedCall.class);
+            .isExactClass(Completed.class);
     }
 }

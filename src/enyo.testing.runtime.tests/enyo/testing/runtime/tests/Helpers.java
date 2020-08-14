@@ -60,9 +60,9 @@ public final class Helpers {
             .reduce((previousLast, current) -> current);
         t.examine(last).isnt(Optional.empty());
         t.fullBarrier();
-        t.examine(last.get()).isExactClass(ResultsRecorder.CompletedCall.class);
+        t.examine(last.get()).isExactClass(ResultsRecorder.Completed.class);
         t.fullBarrier();
-        return ((ResultsRecorder.CompletedCall) last.get()).success;
+        return ((ResultsRecorder.Completed) last.get()).success;
     }
 
     @Test
@@ -82,10 +82,9 @@ public final class Helpers {
             testHistory(t, Helpers.class, "examineFailure");
         t.examine(isSuccess(t, history)).is(false);
         t.examine(history.size()).is(2);
-        t.examine(history.get(0))
-            .isExactClass(ResultsRecorder.FailureCall.class);
+        t.examine(history.get(0)).isExactClass(ResultsRecorder.Failure.class);
         t.fullBarrier();
-        var call = (ResultsRecorder.FailureCall) history.get(0);
+        var call = (ResultsRecorder.Failure) history.get(0);
         t.examine(call.context).isNull();
         t.examine(call.check).is("equals");
         t.<List<?>>examine(call.values).is(List.of(true, false));
@@ -98,10 +97,9 @@ public final class Helpers {
             testHistory(t, Helpers.class, "assertFail");
         t.examine(isSuccess(t, history)).is(false);
         t.examine(history.size()).is(2);
-        t.examine(history.get(0))
-            .isExactClass(ResultsRecorder.ExceptionFailureCall.class);
+        t.examine(history.get(0)).isExactClass(ResultsRecorder.Exception.class);
         t.fullBarrier();
-        var call = (ResultsRecorder.ExceptionFailureCall) history.get(0);
+        var call = (ResultsRecorder.Exception) history.get(0);
         t.examine(call.phase).is(ExceptionPhase.EXECUTION);
         t.examine(call.context).isNull();
         t.examine(call.exception).isExactClass(TestFailure.class);
@@ -116,10 +114,9 @@ public final class Helpers {
             testHistory(t, Helpers.class, "exception");
         t.examine(isSuccess(t, history)).is(false);
         t.examine(history.size()).is(2);
-        t.examine(history.get(0))
-            .isExactClass(ResultsRecorder.ExceptionFailureCall.class);
+        t.examine(history.get(0)).isExactClass(ResultsRecorder.Exception.class);
         t.fullBarrier();
-        var call = (ResultsRecorder.ExceptionFailureCall) history.get(0);
+        var call = (ResultsRecorder.Exception) history.get(0);
         t.examine(call.phase).is(ExceptionPhase.EXECUTION);
         t.examine(call.context).isNull();
         t.examine(call.exception).isExactClass(
@@ -135,10 +132,9 @@ public final class Helpers {
             testHistory(t, Helpers.class, "missing"); // Does not exist.
         t.examine(isSuccess(t, history)).is(false);
         t.examine(history.size()).is(2);
-        t.examine(history.get(0))
-            .isExactClass(ResultsRecorder.ExceptionFailureCall.class);
+        t.examine(history.get(0)).isExactClass(ResultsRecorder.Exception.class);
         t.fullBarrier();
-        var call = (ResultsRecorder.ExceptionFailureCall) history.get(0);
+        var call = (ResultsRecorder.Exception) history.get(0);
         t.examine(call.phase).is(ExceptionPhase.METHOD_LOOKUP);
         t.examine(call.context).isNull();
         t.examine(call.exception).isExactClass(
@@ -155,10 +151,9 @@ public final class Helpers {
             testHistory(t, BrokenConstructor.class, "test");
         t.examine(isSuccess(t, history)).is(false);
         t.examine(history.size()).is(2);
-        t.examine(history.get(0))
-            .isExactClass(ResultsRecorder.ExceptionFailureCall.class);
+        t.examine(history.get(0)).isExactClass(ResultsRecorder.Exception.class);
         t.fullBarrier();
-        var call = (ResultsRecorder.ExceptionFailureCall) history.get(0);
+        var call = (ResultsRecorder.Exception) history.get(0);
         t.examine(call.phase).is(ExceptionPhase.SETUP);
         t.examine(call.context).isNull();
         t.examine(call.exception).isExactClass(
@@ -186,10 +181,9 @@ public final class Helpers {
         List<ResultsRecorder.Call> history = testHistory(t, locator);
         t.examine(isSuccess(t, history)).is(false);
         t.examine(history.size()).is(2);
-        t.examine(history.get(0))
-            .isExactClass(ResultsRecorder.ExceptionFailureCall.class);
+        t.examine(history.get(0)).isExactClass(ResultsRecorder.Exception.class);
         t.fullBarrier();
-        var call = (ResultsRecorder.ExceptionFailureCall) history.get(0);
+        var call = (ResultsRecorder.Exception) history.get(0);
         t.examine(call.phase).is(ExceptionPhase.CLASS_LOOKUP);
         t.examine(call.context).isNull();
         t.examine(call.exception).isExactClass(
