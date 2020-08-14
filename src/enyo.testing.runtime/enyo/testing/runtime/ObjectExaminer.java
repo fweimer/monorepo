@@ -104,11 +104,9 @@ class ObjectExaminer<T> extends ExaminerBase implements Examiner<T> {
     public Examiner<T> isExactClass(Class<? extends T> cls) {
         if (barrier)
             return this;
-        if (value == null)
-            failure("not null");
-        if (cls == null)
-            failure("not null", cls);
-        if (value != null && cls != null && value.getClass() != cls)
+        if (value == null || cls == null)
+            failure("exact class (not null)", cls);
+        else if (value.getClass() != cls)
             failure("exact class", cls);
         return this;
     }
