@@ -19,7 +19,7 @@ class IntExaminer extends ExaminerBase implements Examiner.OfInt {
 
     @Override
     public Examiner.OfInt context(String context) {
-        context = Objects.requireNonNull(context);
+        this.context = Objects.requireNonNull(context);
         return this;
     }
 

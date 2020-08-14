@@ -19,7 +19,7 @@ class CharExaminer extends ExaminerBase implements Examiner.OfChar {
 
     @Override
     public Examiner.OfChar context(String context) {
-        context = Objects.requireNonNull(context);
+        this.context = Objects.requireNonNull(context);
         return this;
     }
 

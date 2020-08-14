@@ -19,7 +19,7 @@ class DoubleExaminer extends ExaminerBase implements Examiner.OfDouble {
 
     @Override
     public Examiner.OfDouble context(String context) {
-        context = Objects.requireNonNull(context);
+        this.context = Objects.requireNonNull(context);
         return this;
     }
 

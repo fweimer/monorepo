@@ -19,7 +19,7 @@ class ObjectExaminer<T> extends ExaminerBase implements Examiner<T> {
 
     @Override
     public Examiner<T> context(String context) {
-        context = Objects.requireNonNull(context);
+        this.context = Objects.requireNonNull(context);
         return this;
     }
 

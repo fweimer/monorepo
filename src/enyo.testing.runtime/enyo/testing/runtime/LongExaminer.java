@@ -19,7 +19,7 @@ class LongExaminer extends ExaminerBase implements Examiner.OfLong {
 
     @Override
     public Examiner.OfLong context(String context) {
-        context = Objects.requireNonNull(context);
+        this.context = Objects.requireNonNull(context);
         return this;
     }
 
