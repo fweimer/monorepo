@@ -85,28 +85,33 @@ final class ResultsRecorder implements Results {
     }
 
     @Override
-    public void failure(TestMethodLocator test, String context, String check,
-        List<? extends Object> values,
+    public synchronized void failure(TestMethodLocator test, String context,
+        String check, List<? extends Object> values,
         List<StackWalker.StackFrame> stackTrace) {
         history.add(new FailureCall(test, context, check, values, stackTrace));
     }
 
     @Override
-    public void failure(TestMethodLocator test, ExceptionPhase phase,
-        String context, Throwable exception,
+    public synchronized void failure(TestMethodLocator test,
+        ExceptionPhase phase, String context, Throwable exception,
         Class<? extends Throwable> expected) {
         history.add(new ExceptionFailureCall(
                 test, phase, context, exception, expected));
     }
 
     @Override
-    public void completed(TestMethodLocator test, boolean success) {
+    public synchronized void completed(TestMethodLocator test,
+        boolean success) {
         history.add(new CompletedCall(test, success));
     }
 
-    final ArrayList<Call> history = new ArrayList<>();
+    private final ArrayList<Call> history = new ArrayList<>();
 
-    void check(Testing t) {
+    synchronized List<Call> history() {
+        return List.copyOf(history);
+    }
+
+    synchronized void check(Testing t) {
         for(Call call : history)
             call.check(t);
         t.<List<Call>>examine(history).isnt(List.of());

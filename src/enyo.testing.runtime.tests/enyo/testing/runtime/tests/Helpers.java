@@ -45,12 +45,13 @@ public final class Helpers {
             .map(Module::getLayer)
             .orElse(ModuleLayer.boot());
         boolean success = InvokeTest.invokeTest(layer, inner);
-        t.examine(isSuccess(t, results.history)).is(success);
-        t.examine(results.history.stream()
+        List<ResultsRecorder.Call> history = results.history();
+        t.examine(isSuccess(t, history)).is(success);
+        t.examine(history.stream()
             .filter(call -> !call.test.equals(locator))
             .findFirst())
             .is(Optional.empty());
-        return List.copyOf(results.history);
+        return history;
     }
 
     static boolean isSuccess(Testing t,
