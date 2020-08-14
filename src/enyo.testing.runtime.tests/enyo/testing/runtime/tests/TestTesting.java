@@ -1,6 +1,7 @@
 package enyo.testing.runtime.tests;
 
 import enyo.testing.Test;
+import enyo.testing.TestFailure;
 import enyo.testing.Testing;
 
 import java.util.List;
@@ -144,5 +145,43 @@ public final class TestTesting {
         t.examine(true).is(false);
 
         t.unsupported("unsupported context");
+    }
+
+    @Test
+    public void testAssertFail(Testing t) {
+        List<ResultsRecorder.Call> history;
+
+        history = Helpers.testHistory(t, TestTesting.class, "assertFail1");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        t.examine(history.get(0))
+            .isExactClass(ResultsRecorder.ExceptionFailureCall.class);
+        t.examine(((ResultsRecorder.ExceptionFailureCall) history.get(0))
+            .exception)
+            .isExactClass(TestFailure.class);
+        t.examine(history.get(1))
+            .isExactClass(ResultsRecorder.CompletedCall.class);
+
+        // Test that catching the assertion failure exception still
+        // results in test failure.
+        history = Helpers.testHistory(t, TestTesting.class, "assertFail2");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(1);
+        t.examine(history.get(0))
+            .isExactClass(ResultsRecorder.CompletedCall.class);
+    }
+
+    // Not marked as @Test due to expected test failure.
+    public void assertFail1(Testing t) {
+        t.assertFail("expected");
+    }
+
+    // Not marked as @Test due to expected test failure.
+    public void assertFail2(Testing t) {
+        try {
+            t.assertFail("expected");
+        } catch (Throwable e) {
+            // Do not report to caller.
+        }
     }
 }
