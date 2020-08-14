@@ -1,5 +1,7 @@
 package enyo.testing;
 
+import java.util.function.Function;
+
 /**
  * Wrapper for an object reference that is being examined during a test.
  *
@@ -27,6 +29,15 @@ public interface Examiner<T> {
      * @return this object
      */
     public Examiner<T> barrier();
+
+    /**
+     * Derives a new examiner from this examiner.
+     * @param map the function that converts this examiner's object
+     *   to the object for the new examiner
+     * @return the new examiner
+     * @param <U> the object type of the new examiner
+     */
+    public <U> Examiner<U> map(Function<? super T, ? extends U> map);
 
     /**
      * Reports an error if the two values are not equal according to

@@ -4,6 +4,7 @@ import enyo.testing.Order;
 import enyo.testing.Test;
 import enyo.testing.Testing;
 import enyo.testing.runtime.Examined;
+import enyo.testing.runtime.ExceptionPhase;
 
 import java.util.Arrays;
 import java.util.List;
@@ -47,6 +48,38 @@ public final class TestObjectExaminer {
             .is(List.of(new Examined("context1", "string1")));
         t.assertTrue(Arrays.equals(
                 failure.otherObjects, new Object[]  {"string3" }));
+
+        history = Helpers.testHistory(t, TestObjectExaminer.class, "context4");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(5);
+        t.examine(history.get(0)).isExactClass(Recorder.Failure.class);
+        failure = (Recorder.Failure) history.get(0);
+        t.examine(failure.context).is(
+            List.of(new Examined("context1", "string1")));
+        t.examine(failure.check).is("equals");
+        t.assertTrue(Arrays.equals(
+                failure.otherObjects, new Object[] { "string2" }));
+        failure = (Recorder.Failure) history.get(1);
+        t.examine(failure.context)
+            .is(List.of(new Examined("context1", "string1"),
+                    new Examined(null, "STRING1")));
+        t.examine(failure.check).is("equals");
+        t.assertTrue(Arrays.equals(
+                failure.otherObjects, new Object[] { "string1" }));
+        failure = (Recorder.Failure) history.get(2);
+        t.examine(failure.context)
+            .is(List.of(new Examined("context1", "string1"),
+                    new Examined("context2", "STRING1")));
+        t.examine(failure.check).is("equals");
+        t.assertTrue(Arrays.equals(
+                failure.otherObjects, new Object[] { "string2" }));
+        failure = (Recorder.Failure) history.get(3);
+        t.examine(failure.context)
+            // Back to the original context.
+            .is(List.of(new Examined("context1", "string1")));
+        t.examine(failure.check).is("equals");
+        t.assertTrue(Arrays.equals(
+                failure.otherObjects, new Object[] { "string3" }));
     }
 
     // No @Test due to expect test failure.
@@ -72,6 +105,65 @@ public final class TestObjectExaminer {
             .is("string2");
         t.expect(() -> e.context(null), NullPointerException.class);
         e.is("string3");
+    }
+
+    // No @Test due to expect test failure.
+    public void context4(Testing t) {
+        var e = t.examine("string1")
+            .context("context1")
+            .is("string2");
+        e.map(String::toUpperCase)
+            .is("string1")
+            .context("context2")
+            .is("string2");
+        e.is("string3");
+    }
+
+    @Test
+    public void testMap(Testing t) {
+        List<Recorder.Call> history;
+        Recorder.Failure failure;
+
+        history = Helpers.testHistory(t, TestObjectExaminer.class, "map1");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        t.examine(history.get(0)).isExactClass(Recorder.Failure.class);
+        failure = (Recorder.Failure) history.get(0);
+        t.examine(failure.check).is("map (not null)");
+        t.examine(failure.context).is(List.of(new Examined(null, "string1")));
+        t.assertTrue(Arrays.equals(failure.otherObjects, new Object[] { null }));
+
+        history = Helpers.testHistory(t, TestObjectExaminer.class, "map2");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        t.examine(history.get(0)).isExactClass(Recorder.Exception.class);
+        Recorder.Exception exception = (Recorder.Exception) history.get(0);
+        t.examine(exception.context)
+            .is(List.of(new Examined("context1", "string1")));
+        t.examine(exception.phase).is(ExceptionPhase.EXAMINER);
+        t.examine(exception.exception)
+            .isExactClass(UnsupportedOperationException.class);
+        t.examine(exception.exception.getMessage()).is("expected");
+    }
+
+    @Test
+    public void map0(Testing t) {
+        t.examine("string1")
+            .map(List::of)
+            .is(List.of("string1"));
+    }
+
+    public void map1(Testing t) {
+        t.examine("string1")
+            .map(null)
+            .is(false);
+    }
+
+    public void map2(Testing t) {
+        t.examine("string1")
+            .context("context1")
+            .map(s -> { throw new UnsupportedOperationException("expected"); })
+            .is(false);
     }
 
     @Test

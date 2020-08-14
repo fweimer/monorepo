@@ -35,5 +35,10 @@ public enum ExceptionPhase {
      * @see enyo.testing.Testing#expect(enyo.testing.ThrowingRunnable,Class)
      */
     EXCEPTION_TEST,
+
+    /**
+     * Exception during a {@link enyo.testing.Examiner} operation.
+     */
+    EXAMINER,
     ;
 }

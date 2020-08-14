@@ -3,6 +3,7 @@ package enyo.testing.runtime;
 import enyo.testing.Examiner;
 
 import java.util.Objects;
+import java.util.function.Function;
 
 class ObjectExaminer<T> extends ExaminerBase implements Examiner<T> {
     final T value;
@@ -27,6 +28,25 @@ class ObjectExaminer<T> extends ExaminerBase implements Examiner<T> {
     public Examiner<T> barrier() {
         barrierBase();
         return this;
+    }
+
+    @Override
+    public <U> Examiner<U> map(Function<? super T, ? extends U> map) {
+        if (map == null) {
+            failure("map (not null)", map);
+            return forceFailed(new ObjectExaminer<U>(t, this, null));
+        } else {
+            U newValue ;
+            try {
+                newValue = map.apply(value);
+            } catch (Exception e) {
+                // Do not catch errors here, assuming that they should
+                // be fatal.
+                t.recordException(this, e);
+                return forceFailed(new ObjectExaminer<U>(t, this, null));
+            }
+            return transfer(new ObjectExaminer<>(t, this, newValue));
+        }
     }
 
     @Override
