@@ -2,7 +2,7 @@ package enyo.testing.runtime;
 
 /**
  * Describes the phase in which an exception occurred.
- * @see Results#failure(TestMethodLocator,ExceptionPhase,String,Throwable,Class)
+ * @see Results#exception(TestMethodLocator,ExceptionPhase,String,Throwable,Class)
  */
 public enum ExceptionPhase {
     /**

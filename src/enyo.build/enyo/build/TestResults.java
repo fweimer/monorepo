@@ -32,7 +32,7 @@ class TestResults implements Results {
     }
 
     @Override
-    public void failure(TestMethodLocator test, ExceptionPhase phase,
+    public void exception(TestMethodLocator test, ExceptionPhase phase,
         String context, Throwable exception,
         Class<? extends Throwable> expected) {
         synchronized (System.err) {

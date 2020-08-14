@@ -20,7 +20,7 @@ public interface Results {
     /**
      * Reports a sub-test failure.
      * Failures involving thrown exceptions should use
-     * {@link #failure(TestMethodLocator,ExceptionPhase,String,Throwable,Class)}
+     * {@link #exception(TestMethodLocator,ExceptionPhase,String,Throwable,Class)}
      * instead.
      * @param test the test that failed (not null)
      * @param context a string providing contextual information
@@ -44,7 +44,7 @@ public interface Results {
      * @param expected if another exception was expected instead
      *   (can be null)
      */
-    void failure(TestMethodLocator test, ExceptionPhase phase, String context,
+    void exception(TestMethodLocator test, ExceptionPhase phase, String context,
         Throwable exception, Class<? extends Throwable> expected);
 
     /**

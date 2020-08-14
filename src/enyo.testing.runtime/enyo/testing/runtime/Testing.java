@@ -389,7 +389,7 @@ public final class Testing implements enyo.testing.Testing {
     void recordFailure(ExceptionPhase phase, String context,
         Throwable exception, Class<? extends Throwable> expected) {
         failed = true;
-        results.failure(test, phase, context, exception, expected);
+        results.exception(test, phase, context, exception, expected);
     }
 
     void recordCompleted() {

@@ -105,7 +105,7 @@ final class ResultsRecorder implements Results {
     }
 
     @Override
-    public synchronized void failure(TestMethodLocator test,
+    public synchronized void exception(TestMethodLocator test,
         ExceptionPhase phase, String context, Throwable exception,
         Class<? extends Throwable> expected) {
         history.add(new ExceptionFailureCall(
