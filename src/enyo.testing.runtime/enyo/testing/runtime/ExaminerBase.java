@@ -27,7 +27,10 @@ abstract class ExaminerBase {
      * Applies non-value state from this examiner to the other examiner.
      */
     <T extends ExaminerBase> T transfer(T other) {
-        other.context = context;
+        if (other.base != this)
+            // If the other examiner is based on this one, the chain
+            // will provide the context.
+            other.context = context;
         other.barrier = barrier;
         other.barrierRequested = barrierRequested;
         other.failed = failed;
