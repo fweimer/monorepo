@@ -1,5 +1,6 @@
 package enyo.testing.runtime.tests;
 
+import enyo.testing.Order;
 import enyo.testing.Test;
 import enyo.testing.Testing;
 import enyo.testing.runtime.Examined;
@@ -302,5 +303,114 @@ public final class TestObjectExaminer {
     public void nullableIs4(Testing t) {
         t.examine(null)
             .nullableIs(null);
+    }
+
+    final static class AlwaysEquals {
+        @Override
+        public boolean equals(Object o) {
+            return o != null && o.getClass() == AlwaysEquals.class;
+        }
+
+        @Override
+        public int hashCode() {
+            return 1009;
+        }
+
+        final static AlwaysEquals INSTANCE1 = new AlwaysEquals();
+        final static AlwaysEquals INSTANCE2 = new AlwaysEquals();
+    }
+
+    @Test
+    public void testAlwaysEquals() {
+        Order<AlwaysEquals> order = new Order<>();
+        order.group()
+            .add(AlwaysEquals.INSTANCE1)
+            .add(AlwaysEquals.INSTANCE1)
+            .add(AlwaysEquals.INSTANCE2)
+            .add(AlwaysEquals.INSTANCE2)
+            .add(new AlwaysEquals())
+            .add(new AlwaysEquals())
+            .close();
+        order.check();
+    }
+
+    @Test
+    public void testIsSame(Testing t) {
+        List<Recorder.Call> history;
+        Recorder.Failure failure;
+
+        // Test that the barrier is effective.
+        history = Helpers.testHistory(t, TestObjectExaminer.class, "isSame1");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        t.examine(history.get(0)).isExactClass(Recorder.Failure.class);
+        failure = (Recorder.Failure) history.get(0);
+        t.examine(failure.check).is("==");
+        t.examine(failure.context)
+            .is(List.of(new Examined(null, AlwaysEquals.INSTANCE1)));
+        t.assertTrue(failure.context.get(0).value() == AlwaysEquals.INSTANCE1);
+        t.assertTrue(Arrays.equals(
+                failure.otherObjects, new Object[] { AlwaysEquals.INSTANCE2 }));
+        t.assertTrue(failure.otherObjects[0] == AlwaysEquals.INSTANCE2);
+
+        // Test reporting of examined null objects.
+        history = Helpers.testHistory(t, TestObjectExaminer.class, "isSame2");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        t.examine(history.get(0)).isExactClass(Recorder.Failure.class);
+        failure = (Recorder.Failure) history.get(0);
+        t.examine(failure.check).is("== (not null)");
+        t.examine(failure.context).is(List.of(new Examined(null, null)));
+
+        // Test reporting of comparison against null.
+        history = Helpers.testHistory(t, TestObjectExaminer.class, "isSame3");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        t.examine(history.get(0)).isExactClass(Recorder.Failure.class);
+        failure = (Recorder.Failure) history.get(0);
+        t.examine(failure.check).is("== (not null)");
+        t.examine(failure.context)
+            .is(List.of(new Examined(null, AlwaysEquals.INSTANCE1)));
+        t.assertTrue(failure.context.get(0).value() == AlwaysEquals.INSTANCE1);
+        t.assertTrue(Arrays.equals(
+                failure.otherObjects, new Object[] { null }));
+
+        // Test reporting of double-null comparison.
+        history = Helpers.testHistory(t, TestObjectExaminer.class, "isSame4");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        t.examine(history.get(0)).isExactClass(Recorder.Failure.class);
+        failure = (Recorder.Failure) history.get(0);
+        t.examine(failure.check).is("== (not null)");
+        t.examine(failure.context).is(List.of(new Examined(null, null)));
+        t.assertTrue(Arrays.equals(
+                failure.otherObjects, new Object[] { null }));
+    }
+
+    // No @Test due to expect test failure.
+    public void isSame1(Testing t) {
+        t.examine(AlwaysEquals.INSTANCE1)
+            .isSame(AlwaysEquals.INSTANCE1)
+            .isSame(AlwaysEquals.INSTANCE2)
+            .barrier()
+            .isSame(new AlwaysEquals());
+    }
+
+    // No @Test due to expect test failure.
+    public void isSame2(Testing t) {
+        t.examine(null)
+            .isSame(AlwaysEquals.INSTANCE2);
+    }
+
+    // No @Test due to expect test failure.
+    public void isSame3(Testing t) {
+        t.examine(AlwaysEquals.INSTANCE1)
+            .isSame(null);
+    }
+
+    // No @Test due to expect test failure.
+    public void isSame4(Testing t) {
+        t.examine(null)
+            .isSame(null);
     }
 }
