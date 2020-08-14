@@ -21,14 +21,14 @@ public interface Examiner<T> {
      * @return this object
      * @throws NullPointerException if {@code context} is null
      */
-    public Examiner<T> context(String context);
+    Examiner<T> context(String context);
 
     /**
      * Issues a barrier.  If this examiner has recorded any test
      * failures, no further tests are performed through it.
      * @return this object
      */
-    public Examiner<T> barrier();
+    Examiner<T> barrier();
 
     /**
      * Derives a new examiner from this examiner.
@@ -37,7 +37,7 @@ public interface Examiner<T> {
      * @return the new examiner
      * @param <U> the object type of the new examiner
      */
-    public <U> Examiner<U> map(Function<? super T, ? extends U> map);
+    <U> Examiner<U> map(Function<? super T, ? extends U> map);
 
     /**
      * Reports an error if the two values are not equal according to
@@ -47,7 +47,7 @@ public interface Examiner<T> {
      * @param other the other value under comparison
      * @return this object
      */
-    public Examiner<T> is(T other);
+    Examiner<T> is(T other);
 
     /**
      * Reports an error if the two values are not equal according to
@@ -57,7 +57,7 @@ public interface Examiner<T> {
      * @return this object
      * @see #is(Object)
      */
-    public Examiner<T> nullableIs(T other);
+    Examiner<T> nullableIs(T other);
 
     /**
      * Reports an error if the two values are equal according to
@@ -66,7 +66,7 @@ public interface Examiner<T> {
      * @param other the other value under comparison
      * @return this object
      */
-    public Examiner<T> isnt(T other);
+    Examiner<T> isnt(T other);
 
     /**
      * Reports an error if the two references are not the same.
@@ -74,7 +74,7 @@ public interface Examiner<T> {
      * @param other the other value under comparison
      * @return this object
      */
-    public Examiner<T> isSame(T other);
+    Examiner<T> isSame(T other);
 
     /**
      * Reports an error if the two references are the same.
@@ -82,19 +82,19 @@ public interface Examiner<T> {
      * @param other the other value under comparison
      * @return this object
      */
-    public Examiner<T> isNotSame(T other);
+    Examiner<T> isNotSame(T other);
 
     /**
      * Reports an error if the reference is not null.
      * @return this object
      */
-    public Examiner<T> isNull();
+    Examiner<T> isNull();
 
     /**
      * Reports an error if the reference is null.
      * @return this object
      */
-    public Examiner<T> isNotNull();
+    Examiner<T> isNotNull();
 
     /**
      * Reports an error if the checked object does not have the given
@@ -103,165 +103,165 @@ public interface Examiner<T> {
      * @param cls the expected class
      * @return this object
      */
-    public Examiner<T> isExactClass(Class<? extends T> cls);
+    Examiner<T> isExactClass(Class<? extends T> cls);
 
     /**
      * Wrapper for an {@code int} value that is examined during a test.
      */
-    public interface OfInt {
+    interface OfInt {
         /**
          * Sets the context string for the following checks.
          * @param context a message to be included in test failures
          * @return this object
          * @throws NullPointerException if {@code context} is null
          */
-        public OfInt context(String context);
+        OfInt context(String context);
 
         /**
          * Issues a barrier.  If this examiner has recorded any test
          * failures, no further tests are performed through it.
          * @return this object
          */
-        public OfInt barrier();
+        OfInt barrier();
 
         /**
          * Reports an error if the two values are not equal.
          * @param other the other value under comparison
          * @return this object
          */
-        public OfInt is(int other);
+        OfInt is(int other);
 
         /**
          * Reports an error if the two values are equal.
          * @param other the other value under comparison
          * @return this object
          */
-        public OfInt isnt(int other);
+        OfInt isnt(int other);
 
         /**
          * Returns an examiner for the boxed value.
          * @return a reference-based examiner
          */
-        public Examiner<Integer> boxed();
+        Examiner<Integer> boxed();
     }
 
     /**
      * Wrapper for a {@code long} value that is examined during a test.
      */
-    public interface OfLong {
+    interface OfLong {
         /**
          * Sets the context string for the following checks.
          * @param context a message to be included in test failures
          * @return this object
          * @throws NullPointerException if {@code context} is null
          */
-        public OfLong context(String context);
+        OfLong context(String context);
 
         /**
          * Issues a barrier.  If this examiner has recorded any test
          * failures, no further tests are performed through it.
          * @return this object
          */
-        public OfLong barrier();
+        OfLong barrier();
 
         /**
          * Reports an error if the two values are not equal.
          * @param other the other value under comparison
          * @return this object
          */
-        public OfLong is(long other);
+        OfLong is(long other);
 
         /**
          * Reports an error if the two values are equal.
          * @param other the other value under comparison
          * @return this object
          */
-        public OfLong isnt(long other);
+        OfLong isnt(long other);
 
         /**
          * Returns an examiner for the boxed value.
          * @return a reference-based examiner
          */
-        public Examiner<Long> boxed();
+        Examiner<Long> boxed();
     }
 
     /**
      * Wrapper for a {@code double} value that is examined during a test.
      */
-    public interface OfDouble {
+    interface OfDouble {
         /**
          * Sets the context string for the following checks.
          * @param context a message to be included in test failures
          * @return this object
          * @throws NullPointerException if {@code context} is null
          */
-        public OfDouble context(String context);
+        OfDouble context(String context);
 
         /**
          * Issues a barrier.  If this examiner has recorded any test
          * failures, no further tests are performed through it.
          * @return this object
          */
-        public OfDouble barrier();
+        OfDouble barrier();
 
         /**
          * Reports an error if the two values are not equal.
          * @param other the other value under comparison
          * @return this object
          */
-        public OfDouble is(double other);
+        OfDouble is(double other);
 
         /**
          * Reports an error if the two values are equal.
          * @param other the other value under comparison
          * @return this object
          */
-        public OfDouble isnt(double other);
+        OfDouble isnt(double other);
 
         /**
          * Returns an examiner for the boxed value.
          * @return a reference-based examiner
          */
-        public Examiner<Double> boxed();
+        Examiner<Double> boxed();
     }
 
     /**
      * Wrapper for a {@code char} value that is examined during a test.
      */
-    public interface OfChar {
+    interface OfChar {
         /**
          * Sets the context string for the following checks.
          * @param context a message to be included in test failures
          * @return this object
          * @throws NullPointerException if {@code context} is null
          */
-        public OfChar context(String context);
+        OfChar context(String context);
 
         /**
          * Issues a barrier.  If this examiner has recorded any test
          * failures, no further tests are performed through it.
          * @return this object
          */
-        public OfChar barrier();
+        OfChar barrier();
 
         /**
          * Reports an error if the two values are not equal.
          * @param other the other value under comparison
          * @return this object
          */
-        public OfChar is(char other);
+        OfChar is(char other);
 
         /**
          * Reports an error if the two values are equal.
          * @param other the other value under comparison
          * @return this object
          */
-        public OfChar isnt(char other);
+        OfChar isnt(char other);
 
         /**
          * Returns an examiner for the boxed value.
          * @return a reference-based examiner
          */
-        public Examiner<Character> boxed();
+        Examiner<Character> boxed();
     }
 }
