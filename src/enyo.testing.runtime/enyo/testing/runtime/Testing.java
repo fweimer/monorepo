@@ -308,8 +308,8 @@ public final class Testing implements enyo.testing.Testing {
                     throw e;
                 }
             else
-                recordFailure(ExceptionPhase.EXCEPTION_TEST,
-                    label, t, exception);
+                recordFailure(Examined.contextFromString(label),
+                    ExceptionPhase.EXCEPTION_TEST, t, exception);
             return;
         }
         List<Examined> context;
@@ -396,15 +396,22 @@ public final class Testing implements enyo.testing.Testing {
         private static Package PACKAGE = Backtrace.class.getPackage();
     }
 
-    void recordFailure(ExceptionPhase phase, String context,
-        Throwable exception) {
-        recordFailure(phase, context, exception, null);
+    // Reports an exception without any context information.
+    void recordFailure(ExceptionPhase phase, Throwable exception) {
+        failed = true;
+        results.exception(test, List.of(), phase, exception, null);
     }
 
-    void recordFailure(ExceptionPhase phase, String context,
+    void recordFailure(List<Examined> context, ExceptionPhase phase,
+        Throwable exception) {
+        failed = true;
+        results.exception(test, context, phase, exception, null);
+    }
+
+    void recordFailure(List<Examined> context, ExceptionPhase phase,
         Throwable exception, Class<? extends Throwable> expected) {
         failed = true;
-        results.exception(test, phase, context, exception, expected);
+        results.exception(test, context, phase, exception, expected);
     }
 
     void recordCompleted() {

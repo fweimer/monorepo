@@ -36,7 +36,7 @@ public final class InvokeTest {
                 .orElse(InvokeTest.class.getClassLoader());
             testClass = loader.loadClass(test.className());
         } catch (ClassNotFoundException e) {
-            t.recordFailure(ExceptionPhase.CLASS_LOOKUP, null, preferCause(e));
+            t.recordFailure(ExceptionPhase.CLASS_LOOKUP, preferCause(e));
             t.recordCompleted();
             return false;
         }
@@ -54,7 +54,7 @@ public final class InvokeTest {
             else
                 constructor = null;
         } catch (NoSuchMethodException e) {
-            t.recordFailure(ExceptionPhase.METHOD_LOOKUP, null, preferCause(e));
+            t.recordFailure(ExceptionPhase.METHOD_LOOKUP, preferCause(e));
             t.recordCompleted();
             return false;
         }
@@ -67,11 +67,11 @@ public final class InvokeTest {
                 // Neither should happen because the test framework
                 // should ensure that there is a public no-argument
                 // constructor.
-                t.recordFailure(ExceptionPhase.SETUP, null, e);
+                t.recordFailure(ExceptionPhase.SETUP, e);
                 t.recordCompleted();
                 return false;
             } catch (InvocationTargetException e) {
-                t.recordFailure(ExceptionPhase.SETUP, null, preferCause(e));
+                t.recordFailure(ExceptionPhase.SETUP, preferCause(e));
                 t.recordCompleted();
                 return false;
             }
@@ -86,7 +86,7 @@ public final class InvokeTest {
             t.recordCompleted();
             return !t.failed;
         } catch (IllegalAccessException e) {
-            t.recordFailure(ExceptionPhase.METHOD_LOOKUP, "invoke", e);
+            t.recordFailure(ExceptionPhase.METHOD_LOOKUP, e);
             t.recordCompleted();
             return false;
         } catch (InvocationTargetException e) {
@@ -94,7 +94,7 @@ public final class InvokeTest {
             // If the test has already failed and the exception was
             // caused by a test barrier, do not record it.
             if (!(e1.getClass() == TestAlreadyFailed.class && t.failed))
-                t.recordFailure(ExceptionPhase.EXECUTION, null, e1);
+                t.recordFailure(ExceptionPhase.EXECUTION, e1);
             t.recordCompleted();
             return false;
         }

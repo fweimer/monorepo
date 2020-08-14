@@ -23,9 +23,14 @@ final class Recorder implements Results {
     }
 
     static abstract class ContextCall extends Call {
-        final String context;
+        final List<Examined> context;
 
         ContextCall(TestMethodLocator test, String context) {
+            super(test);
+            this.context = List.of(new Examined(context, null));
+        }
+
+        ContextCall(TestMethodLocator test, List<Examined> context) {
             super(test);
             this.context = context;
         }
@@ -68,8 +73,8 @@ final class Recorder implements Results {
         final Class<? extends Throwable> expected;
 
 
-        Exception(TestMethodLocator test, ExceptionPhase phase,
-            String context, Throwable exception,
+        Exception(TestMethodLocator test, List<Examined> context,
+            ExceptionPhase phase, Throwable exception,
             Class<? extends Throwable> expected) {
             super(test, context);
             this.phase = phase;
@@ -110,9 +115,9 @@ final class Recorder implements Results {
 
     @Override
     public synchronized void exception(TestMethodLocator test,
-        ExceptionPhase phase, String context, Throwable exception,
+        List<Examined> context, ExceptionPhase phase, Throwable exception,
         Class<? extends Throwable> expected) {
-        history.add(new Exception(test, phase, context, exception, expected));
+        history.add(new Exception(test, context, phase, exception, expected));
     }
 
     @Override

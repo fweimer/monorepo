@@ -3,6 +3,7 @@ package enyo.testing.runtime.tests;
 import enyo.testing.Test;
 import enyo.testing.TestFailure;
 import enyo.testing.Testing;
+import enyo.testing.runtime.Examined;
 
 import java.util.List;
 
@@ -80,7 +81,7 @@ public final class TestTesting {
         t.examine(history.get(0))
             .isExactClass(Recorder.Unsupported.class);
         t.examine(((Recorder.Unsupported) history.get(0)).context)
-            .is("unsupported context");
+            .is(List.of(new Examined("unsupported context", null)));
 
         history = Helpers.testHistory(
             t, TestTesting.class, "unsupportedSuccess2");
@@ -88,10 +89,10 @@ public final class TestTesting {
         t.examine(history.size()).is(3);
         t.examine(history.get(0)).isExactClass(Recorder.Unsupported.class);
         t.examine(((Recorder.Unsupported) history.get(0)).context)
-            .is("unsupported context 1");
+            .is(List.of(new Examined("unsupported context 1", null)));
         t.examine(history.get(1)).isExactClass(Recorder.Unsupported.class);
         t.examine(((Recorder.Unsupported) history.get(1)).context)
-            .is("unsupported context 2");
+            .is(List.of(new Examined("unsupported context 2", null)));
 
         history = Helpers.testHistory(
             t, TestTesting.class, "unsupportedFailure1");
@@ -99,7 +100,7 @@ public final class TestTesting {
         t.examine(history.size()).is(3);
         t.examine(history.get(0)).isExactClass(Recorder.Unsupported.class);
         t.examine(((Recorder.Unsupported) history.get(0)).context)
-            .is("unsupported context");
+            .is(List.of(new Examined("unsupported context", null)));
         t.examine(history.get(1)).isExactClass(Recorder.Failure.class);
 
         history = Helpers.testHistory(
@@ -109,7 +110,7 @@ public final class TestTesting {
         t.examine(history.get(0)).isExactClass(Recorder.Failure.class);
         t.examine(history.get(1)).isExactClass(Recorder.Unsupported.class);
         t.examine(((Recorder.Unsupported) history.get(1)).context)
-            .is("unsupported context");
+            .is(List.of(new Examined("unsupported context", null)));
     }
 
     // Not marked as @Test due to spurious unsupported message.

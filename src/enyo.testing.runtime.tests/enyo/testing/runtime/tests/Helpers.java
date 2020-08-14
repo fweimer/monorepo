@@ -103,7 +103,7 @@ public final class Helpers {
         t.fullBarrier();
         var call = (Recorder.Exception) history.get(0);
         t.examine(call.phase).is(ExceptionPhase.EXECUTION);
-        t.examine(call.context).isNull();
+        t.examine(call.context).is(List.of());
         t.examine(call.exception).isExactClass(TestFailure.class);
         t.examine(call.exception.getMessage()).is("expected");
         t.examine(call.expected).isNull();
@@ -120,7 +120,7 @@ public final class Helpers {
         t.fullBarrier();
         var call = (Recorder.Exception) history.get(0);
         t.examine(call.phase).is(ExceptionPhase.EXECUTION);
-        t.examine(call.context).isNull();
+        t.examine(call.context).is(List.of());
         t.examine(call.exception).isExactClass(
             UnsupportedOperationException.class);
         t.examine(call.exception.getMessage()).is("expected");
@@ -138,7 +138,7 @@ public final class Helpers {
         t.fullBarrier();
         var call = (Recorder.Exception) history.get(0);
         t.examine(call.phase).is(ExceptionPhase.METHOD_LOOKUP);
-        t.examine(call.context).isNull();
+        t.examine(call.context).is(List.of());
         t.examine(call.exception).isExactClass(
             NoSuchMethodException.class);
         t.examine(call.exception.getMessage())
@@ -157,7 +157,7 @@ public final class Helpers {
         t.fullBarrier();
         var call = (Recorder.Exception) history.get(0);
         t.examine(call.phase).is(ExceptionPhase.SETUP);
-        t.examine(call.context).isNull();
+        t.examine(call.context).is(List.of());
         t.examine(call.exception).isExactClass(
             UnsupportedOperationException.class);
         t.examine(call.exception.getMessage()).is("expected from constructor");
@@ -187,7 +187,7 @@ public final class Helpers {
         t.fullBarrier();
         var call = (Recorder.Exception) history.get(0);
         t.examine(call.phase).is(ExceptionPhase.CLASS_LOOKUP);
-        t.examine(call.context).isNull();
+        t.examine(call.context).is(List.of());
         t.examine(call.exception).isExactClass(
             ClassNotFoundException.class);
         t.examine(call.exception.getMessage()).is(className);

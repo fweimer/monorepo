@@ -47,25 +47,33 @@ class TestResults implements Results {
     }
 
     @Override
-    public void exception(TestMethodLocator test, ExceptionPhase phase,
-        String context, Throwable exception,
+    public void exception(TestMethodLocator test, List<Examined> context,
+        ExceptionPhase phase, Throwable exception,
         Class<? extends Throwable> expected) {
         synchronized (System.err) {
-            if (expected == null) {
-                if (context == null)
-                    System.err.format("%s: error: failed test%n", test);
-                else
-                    System.err.format("%s: error: failed test: %s%n",
-                        test, context);
-            } else {
-                if (context == null)
-                    System.err.format(
-                        "%s: error: failed test expecting exception %s%n",
-                        test, expected.getName());
-                else
-                    System.err.format(
-                        "%s: error: failed test expecting exception %s: %s%n",
-                        test, expected.getName(), context);
+            if (expected == null)
+                System.err.format("%s: error: failed test%n", test);
+            else
+                System.err.format(
+                    "%s: error: failed test expecting exception %s%n",
+                    test, expected.getName());
+            {
+                List<String> contexts = context.stream()
+                    .map(Examined::context)
+                    .filter(ctx -> ctx != null && !ctx.isEmpty())
+                    .collect(Collectors.toList());
+                switch (contexts.size()) {
+                case 0:
+                    break;
+                case 1:
+                    System.err.format("note: in context: %s%n",
+                        contexts.get(0));
+                    break;
+                default:
+                    System.err.println("note: test failure context:");
+                    for (String ctx : contexts)
+                        System.err.format("  %s%n", ctx);
+                }
             }
             exception.printStackTrace(System.err);
         }
