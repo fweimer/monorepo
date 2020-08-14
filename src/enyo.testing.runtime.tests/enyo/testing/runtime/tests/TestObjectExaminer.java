@@ -570,4 +570,123 @@ public final class TestObjectExaminer {
     public void isNotNull2(Testing t) {
         t.examine("string1").isNotNull();
     }
+
+    @Test
+    public void testIsExactClass(Testing t) {
+        List<Recorder.Call> history;
+        Recorder.Failure failure;
+
+        // Test that the barrier is effective.
+        history = Helpers.testHistory(
+            t, TestObjectExaminer.class, "isExactClass1");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        t.examine(history.get(0)).isExactClass(Recorder.Failure.class);
+        failure = (Recorder.Failure) history.get(0);
+        t.examine(failure.check).is("exact class");
+        t.examine(failure.context).is(List.of(new Examined(null, "string1")));
+        t.assertTrue(Arrays.equals(
+                failure.otherObjects, new Object[] { Integer.class }));
+
+        // Test reporting of examined null objects.
+        history = Helpers.testHistory(
+            t, TestObjectExaminer.class, "isExactClass2");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        t.examine(history.get(0)).isExactClass(Recorder.Failure.class);
+        failure = (Recorder.Failure) history.get(0);
+        t.examine(failure.check).is("exact class (not null)");
+        t.examine(failure.context).is(List.of(new Examined(null, null)));
+        t.assertTrue(Arrays.equals(
+                failure.otherObjects, new Object[] { Integer.class }));
+
+        // Test reporting of comparison against null.
+        history = Helpers.testHistory(
+            t, TestObjectExaminer.class, "isExactClass3");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        t.examine(history.get(0)).isExactClass(Recorder.Failure.class);
+        failure = (Recorder.Failure) history.get(0);
+        t.examine(failure.check).is("exact class (not null)");
+        t.examine(failure.context).is(List.of(new Examined(null, "string1")));
+        t.assertTrue(Arrays.equals(
+                failure.otherObjects, new Object[] { null }));
+
+        // Test reporting of double-null comparison.
+        history = Helpers.testHistory(
+            t, TestObjectExaminer.class, "isExactClass4");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        t.examine(history.get(0)).isExactClass(Recorder.Failure.class);
+        failure = (Recorder.Failure) history.get(0);
+        t.examine(failure.check).is("exact class (not null)");
+        t.examine(failure.context).is(List.of(new Examined(null, null)));
+        t.assertTrue(Arrays.equals(
+                failure.otherObjects, new Object[] { null }));
+
+        // Test comparison against superclass.
+        history = Helpers.testHistory(
+            t, TestObjectExaminer.class, "isExactClass5");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        t.examine(history.get(0)).isExactClass(Recorder.Failure.class);
+        failure = (Recorder.Failure) history.get(0);
+        t.examine(failure.check).is("exact class");
+        t.examine(failure.context.size()).is(1);
+        t.<Class<?>>examine(failure.context.get(0).value().getClass())
+            .isSame(RuntimeException.class);
+        t.assertTrue(Arrays.equals(
+                failure.otherObjects, new Object[] { Exception.class }));
+
+        // Test comparison against subclass.
+        history = Helpers.testHistory(
+            t, TestObjectExaminer.class, "isExactClass6");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        t.examine(history.get(0)).isExactClass(Recorder.Failure.class);
+        failure = (Recorder.Failure) history.get(0);
+        t.examine(failure.check).is("exact class");
+        t.examine(failure.context.size()).is(1);
+        t.<Class<?>>examine(failure.context.get(0).value().getClass())
+            .isSame(Exception.class);
+        t.assertTrue(Arrays.equals(
+                failure.otherObjects, new Object[] { RuntimeException.class }));
+    }
+
+    // No @Test due to expect test failure.
+    public void isExactClass1(Testing t) {
+        t.<Object>examine("string1")
+            .isExactClass(String.class)
+            .isExactClass(Integer.class)
+            .barrier()
+            .isExactClass(Long.class);
+    }
+
+    // No @Test due to expect test failure.
+    public void isExactClass2(Testing t) {
+        t.examine(null)
+            .isExactClass(Integer.class);
+    }
+
+    // No @Test due to expect test failure.
+    public void isExactClass3(Testing t) {
+        t.examine("string1")
+            .isExactClass(null);
+    }
+
+    // No @Test due to expect test failure.
+    public void isExactClass4(Testing t) {
+        t.examine(null)
+            .isExactClass(null);
+    }
+
+    public void isExactClass5(Testing t) {
+        t.<Object>examine(new RuntimeException())
+            .isExactClass(Exception.class);
+    }
+
+    public void isExactClass6(Testing t) {
+        t.examine(new Exception())
+            .isExactClass(RuntimeException.class);
+    }
 }
