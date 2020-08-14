@@ -1,6 +1,7 @@
 package enyo.testing.runtime;
 
 import enyo.testing.introspect.TestMethodLocator;
+import enyo.testing.TestAlreadyFailed;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -89,7 +90,11 @@ public final class InvokeTest {
             t.recordCompleted();
             return false;
         } catch (InvocationTargetException e) {
-            t.recordFailure(ExceptionPhase.EXECUTION, null, preferCause(e));
+            Throwable e1 = preferCause(e);
+            // If the test has already failed and the exception was
+            // caused by a test barrier, do not record it.
+            if (!(e1.getClass() == TestAlreadyFailed.class && t.failed))
+                t.recordFailure(ExceptionPhase.EXECUTION, null, e1);
             t.recordCompleted();
             return false;
         }

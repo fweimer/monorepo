@@ -295,6 +295,10 @@ public final class Testing implements enyo.testing.Testing {
         try {
             source.run();
         } catch (Throwable t) {
+            if (t.getClass() == TestAlreadyFailed.class && failed)
+                // Do not record an exception mismatch for a full barrier.
+                throw (TestAlreadyFailed) t;
+
             if (exception.isAssignableFrom(t.getClass()))
                 try {
                     consumer.accept(exception.cast(t));
