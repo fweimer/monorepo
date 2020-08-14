@@ -350,6 +350,12 @@ public final class Testing implements enyo.testing.Testing {
             stackTrace);
     }
 
+    void recordExaminerFailure(ExaminerBase top, String check,
+        Object[] otherObjects) {
+        recordFailureObjects(context(top), check, captureStackTrace(),
+            otherObjects);
+    }
+
     // Returns a list of interesting stack frames, ignoring classes in
     // this package and below the RunTests.runTest() method.
     private static List<StackWalker.StackFrame> captureStackTrace() {
