@@ -1,6 +1,7 @@
 package enyo.testing.runtime;
 
 import enyo.testing.Examiner;
+import enyo.testing.TestFailure;
 
 import java.util.Objects;
 import java.util.function.Function;
@@ -39,6 +40,9 @@ class ObjectExaminer<T> extends ExaminerBase implements Examiner<T> {
             U newValue ;
             try {
                 newValue = map.apply(value);
+            } catch (TestFailure e) {
+                // Abort the test.
+                throw e;
             } catch (Exception e) {
                 // Do not catch errors here, assuming that they should
                 // be fatal.

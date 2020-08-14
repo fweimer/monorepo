@@ -3,6 +3,7 @@ package enyo.testing.runtime.tests;
 import enyo.testing.Order;
 import enyo.testing.Test;
 import enyo.testing.Testing;
+import enyo.testing.TestFailure;
 import enyo.testing.runtime.Examined;
 import enyo.testing.runtime.ExceptionPhase;
 
@@ -144,6 +145,31 @@ public final class TestObjectExaminer {
         t.examine(exception.exception)
             .isExactClass(UnsupportedOperationException.class);
         t.examine(exception.exception.getMessage()).is("expected");
+
+        // Check that TestAlreadyFailed from the mapping function is
+        // not recorded separately.
+        history = Helpers.testHistory(t, TestObjectExaminer.class, "map3");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        t.examine(history.get(0)).isExactClass(Recorder.Failure.class);
+        failure = (Recorder.Failure) history.get(0);
+        t.examine(failure.check).is("equals");
+        t.examine(failure.context).is(List.of(new Examined(null, true)));
+        t.assertTrue(Arrays.equals(
+                failure.otherObjects, new Object[] { false }));
+
+        // Check that TestFailure from the mapping function is
+        // not recorded separately.
+        history = Helpers.testHistory(t, TestObjectExaminer.class, "map4");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        t.examine(history.get(0)).isExactClass(Recorder.Exception.class);
+        exception = (Recorder.Exception) history.get(0);
+        t.examine(exception.context).is(List.of());
+        t.examine(exception.phase).is(ExceptionPhase.EXECUTION);
+        t.examine(exception.exception)
+            .isExactClass(TestFailure.class);
+        t.examine(exception.exception.getMessage()).is("expected");
     }
 
     @Test
@@ -166,6 +192,26 @@ public final class TestObjectExaminer {
             .is(false);
     }
 
+    public void map3(Testing t) {
+        t.examine("string1")
+            .context("context1")
+            .map(s -> {
+                    t.examine(true).is(false);
+                    t.fullBarrier();
+                    return null; // Not reached.
+                })
+            .is(false);
+    }
+
+    public void map4(Testing t) {
+        t.examine("string1")
+            .context("context1")
+            .map(s -> {
+                    t.assertFail("expected");
+                    return null; // Not reached.
+                })
+            .is(false);
+    }
     @Test
     public void testIs(Testing t) {
         List<Recorder.Call> history;
