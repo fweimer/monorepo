@@ -5,6 +5,8 @@ import enyo.testing.Test;
 import enyo.testing.Testing;
 import enyo.testing.runtime.Examined;
 
+import java.util.List;
+
 public final class TestExamined {
     @Test
     public void test(Testing t) {
@@ -84,6 +86,16 @@ public final class TestExamined {
             t.examine(e.toString()).is("[context string]: <error: "
                 + UnsupportedOperationException.class.getName() + '>');
         }
+    }
+
+    @Test
+    public void testContextFromString(Testing t) {
+        t.examine(Examined.contextFromString(""))
+            .is(List.of(new Examined("", null)));
+        t.examine(Examined.contextFromString("123"))
+            .is(List.of(new Examined("123", null)));
+        t.expect(() -> Examined.contextFromString(null),
+            NullPointerException.class);
     }
 
     @Test

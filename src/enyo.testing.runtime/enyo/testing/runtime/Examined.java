@@ -1,5 +1,6 @@
 package enyo.testing.runtime;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -79,6 +80,17 @@ public final class Examined {
         } catch (Throwable e) {
             return '[' + ctx + "]: <error: " + e.getClass().getName() + '>';
         }
+    }
+
+    /**
+     * Creates a context list from a single context string.
+     * @param context the short string descring the context
+     * @return a single-element list with the context and a null value
+     * @throws NullPointerException if {@code context} is null
+     */
+    public static List<Examined> contextFromString(String context) {
+        Objects.requireNonNull(context);
+        return List.of(new Examined(context, null));
     }
 
     private final String context;
