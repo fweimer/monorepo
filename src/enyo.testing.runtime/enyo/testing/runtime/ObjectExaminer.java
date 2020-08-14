@@ -33,11 +33,9 @@ class ObjectExaminer<T> extends ExaminerBase implements Examiner<T> {
     public Examiner<T> is(T other) {
         if (barrier)
             return this;
-        if (value == null)
-            failure("not null");
-        if (other == null)
-            failure("not null", other);
-        if (!Objects.equals(value, other))
+        if (value == null || other == null)
+            failure("equals (not null)", other);
+        else if (!value.equals(other))
             failure("equals", other);
         return this;
     }
@@ -55,11 +53,9 @@ class ObjectExaminer<T> extends ExaminerBase implements Examiner<T> {
     public Examiner<T> isnt(T other) {
         if (barrier)
             return this;
-        if (value == null)
-            failure("not null");
-        if (other == null)
-            failure("not null", other);
-        if (Objects.equals(value, other))
+        if (value == null || other == null)
+            failure("not equals (not null)", other);
+        else if (Objects.equals(value, other))
             failure("not equals", other);
         return this;
     }
