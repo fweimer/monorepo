@@ -421,4 +421,11 @@ public final class Testing implements enyo.testing.Testing {
     void recordCompleted() {
         results.completed(test, !failed);
     }
+
+    /**
+     * Records an exception thrown internally in an examiner.
+     */
+    void recordException(ExaminerBase top, Throwable exception) {
+        recordFailure(context(top), ExceptionPhase.EXAMINER, exception);
+    }
 }
