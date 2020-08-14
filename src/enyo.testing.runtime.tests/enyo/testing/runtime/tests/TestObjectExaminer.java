@@ -413,4 +413,91 @@ public final class TestObjectExaminer {
         t.examine(null)
             .isSame(null);
     }
+
+    @Test
+    public void testIsNotSame(Testing t) {
+        List<Recorder.Call> history;
+        Recorder.Failure failure;
+
+        // Test that the barrier is effective.
+        history = Helpers.testHistory(
+            t, TestObjectExaminer.class, "isNotSame1");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        t.examine(history.get(0)).isExactClass(Recorder.Failure.class);
+        failure = (Recorder.Failure) history.get(0);
+        t.examine(failure.check).is("!=");
+        t.examine(failure.context)
+            .is(List.of(new Examined(null, AlwaysEquals.INSTANCE1)));
+        t.assertTrue(failure.context.get(0).value() == AlwaysEquals.INSTANCE1);
+        t.assertTrue(Arrays.equals(
+                failure.otherObjects, new Object[] { AlwaysEquals.INSTANCE1 }));
+        t.assertTrue(failure.otherObjects[0] == AlwaysEquals.INSTANCE1);
+
+        // Test reporting of examined null objects.
+        history = Helpers.testHistory(
+            t, TestObjectExaminer.class, "isNotSame2");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        t.examine(history.get(0)).isExactClass(Recorder.Failure.class);
+        failure = (Recorder.Failure) history.get(0);
+        t.examine(failure.check).is("!= (not null)");
+        t.examine(failure.context).is(List.of(new Examined(null, null)));
+        t.assertTrue(Arrays.equals(
+                failure.otherObjects, new Object[] { AlwaysEquals.INSTANCE2 }));
+        t.assertTrue(failure.otherObjects[0] == AlwaysEquals.INSTANCE2);
+
+        // Test reporting of comparison against null.
+        history = Helpers.testHistory(
+            t, TestObjectExaminer.class, "isNotSame3");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        t.examine(history.get(0)).isExactClass(Recorder.Failure.class);
+        failure = (Recorder.Failure) history.get(0);
+        t.examine(failure.check).is("!= (not null)");
+        t.examine(failure.context)
+            .is(List.of(new Examined(null, AlwaysEquals.INSTANCE1)));
+        t.assertTrue(failure.context.get(0).value() == AlwaysEquals.INSTANCE1);
+        t.assertTrue(Arrays.equals(
+                failure.otherObjects, new Object[] { null }));
+
+        // Test reporting of double-null comparison.
+        history = Helpers.testHistory(
+            t, TestObjectExaminer.class, "isNotSame4");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        t.examine(history.get(0)).isExactClass(Recorder.Failure.class);
+        failure = (Recorder.Failure) history.get(0);
+        t.examine(failure.check).is("!= (not null)");
+        t.examine(failure.context).is(List.of(new Examined(null, null)));
+        t.assertTrue(Arrays.equals(
+                failure.otherObjects, new Object[] { null }));
+    }
+
+    // No @Test due to expect test failure.
+    public void isNotSame1(Testing t) {
+        t.examine(AlwaysEquals.INSTANCE1)
+            .isNotSame(AlwaysEquals.INSTANCE2)
+            .isNotSame(AlwaysEquals.INSTANCE1)
+            .barrier()
+            .isNotSame(AlwaysEquals.INSTANCE1);
+    }
+
+    // No @Test due to expect test failure.
+    public void isNotSame2(Testing t) {
+        t.examine(null)
+            .isNotSame(AlwaysEquals.INSTANCE2);
+    }
+
+    // No @Test due to expect test failure.
+    public void isNotSame3(Testing t) {
+        t.examine(AlwaysEquals.INSTANCE1)
+            .isNotSame(null);
+    }
+
+    // No @Test due to expect test failure.
+    public void isNotSame4(Testing t) {
+        t.examine(null)
+            .isNotSame(null);
+    }
 }
