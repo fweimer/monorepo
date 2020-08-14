@@ -8,6 +8,14 @@ import java.util.List;
 
 class TestResults implements Results {
     @Override
+    public void unsupported(TestMethodLocator test, String context) {
+        synchronized (System.err) {
+            System.err.format("%s: warning: unsupported test: %s%n",
+                test, context);
+        }
+    }
+
+    @Override
     public void failure(TestMethodLocator test, String context, String check,
         List<? extends Object> values,
         List<StackWalker.StackFrame> stackTrace) {

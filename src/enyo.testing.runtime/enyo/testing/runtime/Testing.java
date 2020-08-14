@@ -66,7 +66,7 @@ public final class Testing implements enyo.testing.Testing {
 
     @Override
     public void unsupported(String message) {
-        System.err.format("%s: warning: unsupported test: %s%n", test, message);
+        results.unsupported(test, message);
     }
 
     @Override

@@ -11,6 +11,13 @@ import java.util.List;
  */
 public interface Results {
     /**
+     * Reports an unsupported test.
+     * @param test the test that is unsupported or has an unsupported aspect
+     * @param context a short, explanatory message
+     */
+    void unsupported(TestMethodLocator test, String context);
+
+    /**
      * Reports a sub-test failure.
      * Failures involving thrown exceptions should use
      * {@link #failure(TestMethodLocator,ExceptionPhase,String,Throwable,Class)}

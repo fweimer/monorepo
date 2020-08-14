@@ -30,6 +30,12 @@ final class ResultsRecorder implements Results {
         }
     }
 
+    static final class UnsupportedCall extends ContextCall {
+        UnsupportedCall(TestMethodLocator test, String context) {
+            super(test, context);
+        }
+    }
+
     static final class FailureCall extends ContextCall {
         final String check;
         final List<? extends Object> values;
@@ -83,6 +89,13 @@ final class ResultsRecorder implements Results {
             this.success = success;
         }
     }
+
+    @Override
+    public synchronized void unsupported(TestMethodLocator test,
+        String context) {
+        history.add(new UnsupportedCall(test, context));
+    }
+
 
     @Override
     public synchronized void failure(TestMethodLocator test, String context,
