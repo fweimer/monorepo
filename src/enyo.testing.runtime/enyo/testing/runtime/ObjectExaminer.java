@@ -64,11 +64,9 @@ class ObjectExaminer<T> extends ExaminerBase implements Examiner<T> {
     public Examiner<T> isSame(T other) {
         if (barrier)
             return this;
-        if (value == null)
-            failure("not null");
-        if (other == null)
-            failure("not null", other);
-        if (value != null && value != other)
+        if (value == null || other == null)
+            failure("== (not null)", other);
+        else if (value != other)
             failure("==", other);
         return this;
     }
