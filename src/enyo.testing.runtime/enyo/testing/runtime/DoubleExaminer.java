@@ -33,6 +33,8 @@ class DoubleExaminer extends ExaminerBase implements Examiner.OfDouble {
 
     @Override
     public Examiner.OfDouble is(double other) {
+        if (barrier)
+            return this;
         if (value != other)
             failure("==", other);
         return this;
