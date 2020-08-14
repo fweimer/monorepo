@@ -500,4 +500,38 @@ public final class TestObjectExaminer {
         t.examine(null)
             .isNotSame(null);
     }
+
+    @Test
+    public void testIsNull(Testing t) {
+        List<Recorder.Call> history;
+        Recorder.Failure failure;
+
+        // Test that the barrier is effective.
+        history = Helpers.testHistory(t, TestObjectExaminer.class, "isNull1");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        t.examine(history.get(0)).isExactClass(Recorder.Failure.class);
+        failure = (Recorder.Failure) history.get(0);
+        t.examine(failure.check).is("null");
+        t.examine(failure.context).is(List.of(new Examined(null, "string1")));
+        t.examine(failure.otherObjects.length).is(0);
+
+        // Test reporting of examined null objects.
+        history = Helpers.testHistory(t, TestObjectExaminer.class, "isNull2");
+        t.examine(Helpers.isSuccess(t, history)).is(true);
+        t.examine(history.size()).is(1);
+    }
+
+    // No @Test due to expect test failure.
+    public void isNull1(Testing t) {
+        t.examine("string1")
+            .isNull()
+            .barrier()
+            .isNull();
+    }
+
+    @Test
+    public void isNull2(Testing t) {
+        t.examine(null).isNull();
+    }
 }
