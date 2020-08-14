@@ -56,6 +56,20 @@ public interface Examiner<T> {
         Consumer<Examiner<U>> consumer);
 
     /**
+     * Derives a new examiner from this examiner, for a specific type.
+     * If the current object cannot be assigned to {@code cls},
+     * a test failure is reported.
+     * Examination of the old value continues after the consumer
+     * for the new examiner returns.
+     * @param cls the expected type for this examiner's value
+      *@param consumer the consumer that receives the new examiner
+     * @return this object
+     * @param <U> the object type of the new examiner
+     * @see #map(Function)
+     */
+    <U> Examiner<T> map(Class<U> cls, Consumer<Examiner<U>> consumer);
+
+    /**
      * Reports an error if the two values are not equal according to
      * {@link java.util.Objects#equals(Object,Object)}.
      * Errors are also reported if the references are null;
