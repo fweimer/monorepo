@@ -4,6 +4,7 @@ import enyo.testing.Examiner;
 import enyo.testing.TestFailure;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 class ObjectExaminer<T> extends ExaminerBase implements Examiner<T> {
@@ -51,6 +52,40 @@ class ObjectExaminer<T> extends ExaminerBase implements Examiner<T> {
             }
             return transfer(new ObjectExaminer<>(t, this, newValue));
         }
+    }
+
+    @Override
+    public <U> Examiner<T> map(Function<? super T, ? extends U> map,
+                               Consumer<Examiner<U>> consumer) {
+        if (map == null || consumer == null)
+            failureWithObjects("map (not null)", map, consumer);
+        else {
+            U newValue ;
+            try {
+                newValue = map.apply(value);
+            } catch (TestFailure e) {
+                // Abort the test.
+                throw e;
+            } catch (Exception e) {
+                // Do not catch errors here, assuming that they should
+                // be fatal.
+                t.recordException(this, e);
+                return this;
+            }
+            var newExaminer = transfer(new ObjectExaminer<>(t, this, newValue));
+            try {
+                consumer.accept(newExaminer);
+            } catch (TestFailure e) {
+                // Abort the test.
+                throw e;
+            } catch (Exception e) {
+                // Record the exception in the context of the new
+                // examiner, providing details about the examined
+                // value.
+                t.recordException(newExaminer, e);
+            }
+        }
+        return this;
     }
 
     @Override

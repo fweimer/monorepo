@@ -1,5 +1,6 @@
 package enyo.testing;
 
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -36,8 +37,23 @@ public interface Examiner<T> {
      *   to the object for the new examiner
      * @return the new examiner
      * @param <U> the object type of the new examiner
+     * @see #map(Function,Consumer)
      */
     <U> Examiner<U> map(Function<? super T, ? extends U> map);
+
+    /**
+     * Derives a new examiner from this examiner.
+     * Examination of the old value continues after the consumer
+     * for the new examiner returns.
+     * @param map the function that converts this examiner's object
+     *   to the object for the new examiner
+      *@param consumer the consumer that receives the new examiner
+     * @return this object
+     * @param <U> the object type of the new examiner
+     * @see #map(Function)
+     */
+    <U> Examiner<T> map(Function<? super T, ? extends U> map,
+        Consumer<Examiner<U>> consumer);
 
     /**
      * Reports an error if the two values are not equal according to
