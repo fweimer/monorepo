@@ -8,6 +8,7 @@ import enyo.testing.introspect.TestMethodLocator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -41,27 +42,27 @@ public final class Testing implements enyo.testing.Testing {
 
     @Override
     public <T> Examiner<T> examine(T value) {
-        return new ObjectExaminer<>(this, value);
+        return new ObjectExaminer<>(this, null, value);
     }
 
     @Override
     public Examiner.OfInt examine(int value) {
-        return new IntExaminer(this, value);
+        return new IntExaminer(this, null, value);
     }
 
     @Override
     public Examiner.OfLong examine(long value) {
-        return new LongExaminer(this, value);
+        return new LongExaminer(this, null, value);
     }
 
     @Override
     public Examiner.OfDouble examine(double value) {
-        return new DoubleExaminer(this, value);
+        return new DoubleExaminer(this, null, value);
     }
 
     @Override
     public Examiner.OfChar examine(char value) {
-        return new CharExaminer(this, value);
+        return new CharExaminer(this, null, value);
     }
 
     @Override
@@ -311,24 +312,40 @@ public final class Testing implements enyo.testing.Testing {
                     label, t, exception);
             return;
         }
-        recordFailure(label, "missing exception", exception);
-    }
-
-    void recordFailure(String context, String check, Object value) {
-        recordFailure(context, check, List.of(value), captureStackTrace());
-    }
-
-    void recordFailure(String context, String check, Object left,
-        Object right) {
-        recordFailure(context, check, List.of(left, right),
+        List<Examined> context;
+        if (label == null)
+            context = List.of();
+        else
+            context = List.of(new Examined(label, null));
+        recordFailure(context, "missing exception", List.of(exception),
             captureStackTrace());
     }
 
-    void recordFailure(String context, String check,
-        List<? extends Object> values,
+    void recordFailure(ExaminerBase top, String check) {
+        recordFailure(top, check, List.of(), captureStackTrace());
+    }
+
+    void recordFailure(ExaminerBase top, String check, Object value) {
+        recordFailure(top, check, List.of(value), captureStackTrace());
+    }
+
+    void recordFailure(ExaminerBase top, String check,
+        List<? extends Object> otherValues,
+        List<StackWalker.StackFrame> stackTrace) {
+        ArrayList<Examined> context = new ArrayList<>();
+        for (ExaminerBase current = top; current != null;
+             current = current.base)
+            context.add(current.asExamined());
+        Collections.reverse(context);
+        recordFailure(context, check, otherValues, stackTrace);
+    }
+
+    void recordFailure(List<Examined> context, String check,
+        List<? extends Object> otherValues,
         List<StackWalker.StackFrame> stackTrace) {
         failed = true;
-        results.failure(test, context, check, values, stackTrace);
+        results.failure(test, List.copyOf(context), check, otherValues,
+            stackTrace);
     }
 
     // Returns a list of interesting stack frames, ignoring classes in

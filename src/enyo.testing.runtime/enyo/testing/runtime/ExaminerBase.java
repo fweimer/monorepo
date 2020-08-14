@@ -2,19 +2,26 @@ package enyo.testing.runtime;
 
 abstract class ExaminerBase {
     final Testing t;
+    final ExaminerBase base;
     String context;
     boolean barrier;
     boolean barrierRequested;
     boolean failed;
 
-    ExaminerBase(Testing t) {
+    ExaminerBase(Testing t, ExaminerBase base) {
         this.t = t;
+        this.base = base;
     }
 
     void barrierBase() {
         barrierRequested = true;
         barrier = barrier || failed;
     }
+
+    /**
+     * Produces an examined value from this examiner.
+     */
+    abstract Examined asExamined();
 
     /**
      * Applies non-value state from this examiner to the other examiner.
@@ -27,17 +34,17 @@ abstract class ExaminerBase {
         return other;
     }
 
-    void failure(String check, Object value) {
+    void failure(String check) {
         failed = true;
         if (barrierRequested)
             barrier = true;
-        t.recordFailure(context, check, value);
+        t.recordFailure(this, check);
     }
 
-    void failure(String check, Object left, Object right) {
+    void failure(String check, Object other) {
         failed = true;
         if (barrierRequested)
             barrier = true;
-        t.recordFailure(context, check, left, right);
+        t.recordFailure(this, check, other);
     }
 }

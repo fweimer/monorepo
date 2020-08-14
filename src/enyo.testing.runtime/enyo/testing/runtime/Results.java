@@ -23,16 +23,17 @@ public interface Results {
      * {@link #exception(TestMethodLocator,ExceptionPhase,String,Throwable,Class)}
      * instead.
      * @param test the test that failed (not null)
-     * @param context a string providing contextual information
-     *   (can be null)
      * @param check the type of failed check, a short string (not null)
-     * @param values the objects involved in the check; can be empty
+     * @param examined the examination context for this check; can be empty
+     *   (but not null)
+     * @param otherValues other objects involved in the check; can be empty
      *   (but not null)
      * @param stackTrace a pruned stack trace of the failure; can be empty
      *   (but not null)
      */
-    void failure(TestMethodLocator test, String context, String check,
-        List<? extends Object> values, List<StackWalker.StackFrame> stackTrace);
+    void failure(TestMethodLocator test, List<Examined> examined,
+        String check, List<? extends Object> otherValues,
+        List<StackWalker.StackFrame> stackTrace);
 
     /**
      * Reports a failure related to an unexpected exception.

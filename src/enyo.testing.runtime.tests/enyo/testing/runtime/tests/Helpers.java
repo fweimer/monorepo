@@ -4,6 +4,7 @@ import enyo.testing.Test;
 import enyo.testing.TestFailure;
 import enyo.testing.Testing;
 import enyo.testing.introspect.TestMethodLocator;
+import enyo.testing.runtime.Examined;
 import enyo.testing.runtime.InvokeTest;
 import enyo.testing.runtime.ExceptionPhase;
 
@@ -85,9 +86,9 @@ public final class Helpers {
         t.examine(history.get(0)).isExactClass(Recorder.Failure.class);
         t.fullBarrier();
         var call = (Recorder.Failure) history.get(0);
-        t.examine(call.context).isNull();
+        t.examine(call.context).is(List.of(new Examined(null, true)));
         t.examine(call.check).is("equals");
-        t.<List<?>>examine(call.values).is(List.of(true, false));
+        t.<List<?>>examine(call.values).is(List.of(false));
     }
 
     // Tests that t.assertFail() is recorded properly.

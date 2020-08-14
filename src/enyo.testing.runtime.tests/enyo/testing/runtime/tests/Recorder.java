@@ -2,6 +2,7 @@ package enyo.testing.runtime.tests;
 
 import enyo.testing.Testing;
 import enyo.testing.introspect.TestMethodLocator;
+import enyo.testing.runtime.Examined;
 import enyo.testing.runtime.ExceptionPhase;
 import enyo.testing.runtime.Results;
 
@@ -36,16 +37,18 @@ final class Recorder implements Results {
         }
     }
 
-    static final class Failure extends ContextCall {
+    static final class Failure extends Call {
         final String check;
+        final List<Examined> context;
         final List<? extends Object> values;
         final List<StackWalker.StackFrame> stackTrace;
 
 
-        Failure(TestMethodLocator test, String context, String check,
+        Failure(TestMethodLocator test, List<Examined> context, String check,
             List<? extends Object> values,
             List<StackWalker.StackFrame> stackTrace) {
-            super(test, context);
+            super(test);
+            this.context = context;
             this.check = check;
             this.values = values;
             this.stackTrace = stackTrace;
@@ -53,6 +56,7 @@ final class Recorder implements Results {
 
         void check(Testing t) {
             super.check(t);
+            t.examine(context).isNotNull();
             t.examine(check).isNotNull();
             t.examine(values).isNotNull();
             t.examine(stackTrace).isNotNull();
@@ -98,8 +102,8 @@ final class Recorder implements Results {
 
 
     @Override
-    public synchronized void failure(TestMethodLocator test, String context,
-        String check, List<? extends Object> values,
+    public synchronized void failure(TestMethodLocator test,
+        List<Examined> context, String check, List<? extends Object> values,
         List<StackWalker.StackFrame> stackTrace) {
         history.add(new Failure(test, context, check, values, stackTrace));
     }

@@ -7,9 +7,14 @@ import java.util.Objects;
 class IntExaminer extends ExaminerBase implements Examiner.OfInt {
     final int value;
 
-    IntExaminer(Testing t, int value) {
-        super(t);
+    IntExaminer(Testing t, ExaminerBase base, int value) {
+        super(t, base);
         this.value = value;
+    }
+
+    @Override
+    Examined asExamined() {
+        return new Examined(context, value);
     }
 
     @Override
@@ -29,7 +34,7 @@ class IntExaminer extends ExaminerBase implements Examiner.OfInt {
         if (barrier)
             return this;
         if (value != other)
-            failure("==", value, other);
+            failure("==", other);
         return this;
     }
 
@@ -38,12 +43,14 @@ class IntExaminer extends ExaminerBase implements Examiner.OfInt {
         if (barrier)
             return this;
         if (value == other)
-            failure("!=", value, other);
+            failure("!=", other);
         return this;
     }
 
     @Override
     public Examiner<Integer> boxed() {
-        return transfer(new ObjectExaminer<>(t, value));
+        // Boxing does not add information.  Do not chain to this
+        // examiner, but the original examiner.
+        return transfer(new ObjectExaminer<>(t, base, value));
     }
 }

@@ -7,9 +7,14 @@ import java.util.Objects;
 class ObjectExaminer<T> extends ExaminerBase implements Examiner<T> {
     final T value;
 
-    ObjectExaminer(Testing t, T value) {
-        super(t);
+    ObjectExaminer(Testing t, ExaminerBase base, T value) {
+        super(t, base);
         this.value = value;
+    }
+
+    @Override
+    Examined asExamined() {
+        return new Examined(context, value);
     }
 
     @Override
@@ -29,11 +34,11 @@ class ObjectExaminer<T> extends ExaminerBase implements Examiner<T> {
         if (barrier)
             return this;
         if (value == null)
-            failure("not null", value);
+            failure("not null");
         if (other == null)
             failure("not null", other);
         if (!Objects.equals(value, other))
-            failure("equals", value, other);
+            failure("equals", other);
         return this;
     }
 
@@ -42,7 +47,7 @@ class ObjectExaminer<T> extends ExaminerBase implements Examiner<T> {
         if (barrier)
             return this;
         if (!Objects.equals(value, other))
-            failure("equals", value, other);
+            failure("equals", other);
         return this;
     }
 
@@ -51,11 +56,11 @@ class ObjectExaminer<T> extends ExaminerBase implements Examiner<T> {
         if (barrier)
             return this;
         if (value == null)
-            failure("not null", value);
+            failure("not null");
         if (other == null)
             failure("not null", other);
         if (Objects.equals(value, other))
-            failure("not equals", value, other);
+            failure("not equals", other);
         return this;
     }
 
@@ -64,11 +69,11 @@ class ObjectExaminer<T> extends ExaminerBase implements Examiner<T> {
         if (barrier)
             return this;
         if (value == null)
-            failure("not null", value);
+            failure("not null");
         if (other == null)
             failure("not null", other);
         if (value != null && value != other)
-            failure("==", value, other);
+            failure("==", other);
         return this;
     }
 
@@ -77,11 +82,11 @@ class ObjectExaminer<T> extends ExaminerBase implements Examiner<T> {
         if (barrier)
             return this;
         if (value == null)
-            failure("not null", value);
+            failure("not null");
         if (other == null)
             failure("not null", other);
         if (value != null && value == other)
-            failure("!=", value, other);
+            failure("!=", other);
         return this;
     }
 
@@ -90,7 +95,7 @@ class ObjectExaminer<T> extends ExaminerBase implements Examiner<T> {
         if (barrier)
             return this;
         if (value != null)
-            failure("null", value);
+            failure("null");
         return this;
     }
 
@@ -99,7 +104,7 @@ class ObjectExaminer<T> extends ExaminerBase implements Examiner<T> {
         if (barrier)
             return this;
         if (value == null)
-            failure("not null", value);
+            failure("not null");
         return this;
     }
 
@@ -108,11 +113,11 @@ class ObjectExaminer<T> extends ExaminerBase implements Examiner<T> {
         if (barrier)
             return this;
         if (value == null)
-            failure("not null", value);
+            failure("not null");
         if (cls == null)
             failure("not null", cls);
         if (value != null && cls != null && value.getClass() != cls)
-            failure("exact class", value, cls);
+            failure("exact class", cls);
         return this;
     }
 }

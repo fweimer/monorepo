@@ -7,9 +7,14 @@ import java.util.Objects;
 class LongExaminer extends ExaminerBase implements Examiner.OfLong {
     final long value;
 
-    LongExaminer(Testing t, long value) {
-        super(t);
+    LongExaminer(Testing t, ExaminerBase base, long value) {
+        super(t, base);
         this.value = value;
+    }
+
+    @Override
+    Examined asExamined() {
+        return new Examined(context, value);
     }
 
     @Override
@@ -29,7 +34,7 @@ class LongExaminer extends ExaminerBase implements Examiner.OfLong {
         if (barrier)
             return this;
         if (value != other)
-            failure("==", value, other);
+            failure("==", other);
         return this;
     }
 
@@ -38,12 +43,14 @@ class LongExaminer extends ExaminerBase implements Examiner.OfLong {
         if (barrier)
             return this;
         if (value == other)
-            failure("!=", value, other);
+            failure("!=", other);
         return this;
     }
 
     @Override
     public Examiner<Long> boxed() {
-        return transfer(new ObjectExaminer<>(t, value));
+        // Boxing does not add information.  Do not chain to this
+        // examiner, but the original examiner.
+        return transfer(new ObjectExaminer<>(t, base, value));
     }
 }

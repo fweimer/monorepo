@@ -7,9 +7,14 @@ import java.util.Objects;
 class DoubleExaminer extends ExaminerBase implements Examiner.OfDouble {
     final double value;
 
-    DoubleExaminer(Testing t, double value) {
-        super(t);
+    DoubleExaminer(Testing t, ExaminerBase base, double value) {
+        super(t, base);
         this.value = value;
+    }
+
+    @Override
+    Examined asExamined() {
+        return new Examined(context, value);
     }
 
     @Override
@@ -29,7 +34,7 @@ class DoubleExaminer extends ExaminerBase implements Examiner.OfDouble {
     @Override
     public Examiner.OfDouble is(double other) {
         if (value != other)
-            failure("==", value, other);
+            failure("==", other);
         return this;
     }
 
@@ -38,12 +43,14 @@ class DoubleExaminer extends ExaminerBase implements Examiner.OfDouble {
         if (barrier)
             return this;
         if (value == other)
-            failure("!=", value, other);
+            failure("!=", other);
         return this;
     }
 
     @Override
     public Examiner<Double> boxed() {
-        return transfer(new ObjectExaminer<>(t, value));
+        // Boxing does not add information.  Do not chain to this
+        // examiner, but the original examiner.
+        return transfer(new ObjectExaminer<>(t, base, value));
     }
 }

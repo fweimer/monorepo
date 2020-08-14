@@ -7,9 +7,14 @@ import java.util.Objects;
 class CharExaminer extends ExaminerBase implements Examiner.OfChar {
     final char value;
 
-    CharExaminer(Testing t, char value) {
-        super(t);
+    CharExaminer(Testing t, ExaminerBase base, char value) {
+        super(t, base);
         this.value = value;
+    }
+
+    @Override
+    Examined asExamined() {
+        return new Examined(context, value);
     }
 
     @Override
@@ -29,7 +34,7 @@ class CharExaminer extends ExaminerBase implements Examiner.OfChar {
         if (barrier)
             return this;
         if (value != other)
-            failure("==", value, other);
+            failure("==", other);
         return this;
     }
 
@@ -38,12 +43,14 @@ class CharExaminer extends ExaminerBase implements Examiner.OfChar {
         if (barrier)
             return this;
         if (value == other)
-            failure("!=", value, other);
+            failure("!=", other);
         return this;
     }
 
     @Override
     public Examiner<Character> boxed() {
-        return transfer(new ObjectExaminer<>(t, value));
+        // Boxing does not add information.  Do not chain to this
+        // examiner, but the original examiner.
+        return transfer(new ObjectExaminer<>(t, base, value));
     }
 }
