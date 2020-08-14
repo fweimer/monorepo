@@ -34,6 +34,17 @@ abstract class ExaminerBase {
         return other;
     }
 
+    /**
+     * This can be used to construct a failed examiner after a mapping
+     * failure.
+     */
+    static <T extends ExaminerBase> T forceFailed(T examiner) {
+        examiner.barrier = true;
+        examiner.barrierRequested = true;
+        examiner.failed = true;
+        return examiner;
+    }
+
     void failure(String check) {
         failed = true;
         if (barrierRequested)
