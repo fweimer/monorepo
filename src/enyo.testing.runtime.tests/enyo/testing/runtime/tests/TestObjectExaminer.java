@@ -595,32 +595,32 @@ public final class TestObjectExaminer {
     }
 
     public void mapClass1(Testing t) {
-        t.examine("string1")
+        t.<Object>examine("string1")
             .map((Class<String>) null, e -> e.is("string1"))
             .is("string1");
     }
 
     public void mapClass2(Testing t) {
-        t.examine("string1")
+        t.<Object>examine("string1")
             .map(String.class, null)
             .is("string1");
     }
 
     public void mapClass3(Testing t) {
-        t.examine("string1")
+        t.<Object>examine("string1")
             .map((Class<String>) null, null)
             .is("string1");
     }
 
     public void mapClass4(Testing t) {
-        t.examine("string1")
+        t.<Object>examine("string1")
             .context("context1")
             .map(Integer.class, e -> t.assertFail("unreachable"))
             .is("string1");
     }
 
     public void mapClass5(Testing t) {
-        t.examine("string1")
+        t.<Object>examine("string1")
             .context("context1")
             .map(String.class,
                 e -> {
@@ -631,7 +631,7 @@ public final class TestObjectExaminer {
     }
 
     public void mapClass8(Testing t) {
-        t.examine("string1")
+        t.<Object>examine("string1")
             .context("context1")
             .map(String.class,
                 e -> {
@@ -642,14 +642,14 @@ public final class TestObjectExaminer {
     }
 
     public void mapClass9(Testing t) {
-        t.examine("string1")
+        t.<Object>examine("string1")
             .context("context1")
             .map(String.class, e -> t.assertFail("expected"))
             .is("string1");
     }
 
     public void mapClass10(Testing t) {
-        t.examine("string1")
+        t.<Object>examine("string1")
             .context("context1")
             .is("string2")
             .barrier()

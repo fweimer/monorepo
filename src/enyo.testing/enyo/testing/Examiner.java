@@ -67,7 +67,7 @@ public interface Examiner<T> {
      * @param <U> the object type of the new examiner
      * @see #map(Function)
      */
-    <U> Examiner<T> map(Class<U> cls, Consumer<Examiner<U>> consumer);
+    <U extends T> Examiner<T> map(Class<U> cls, Consumer<Examiner<U>> consumer);
 
     /**
      * Inspects this examiner's value using a consumer.
