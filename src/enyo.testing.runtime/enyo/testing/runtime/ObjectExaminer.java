@@ -6,6 +6,7 @@ import enyo.testing.TestFailure;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 class ObjectExaminer<T> extends ExaminerBase implements Examiner<T> {
     final T value;
@@ -172,6 +173,29 @@ class ObjectExaminer<T> extends ExaminerBase implements Examiner<T> {
             } catch (Exception e) {
                 t.recordException(this, e);
             }
+        }
+        return this;
+    }
+
+    @Override
+    public Examiner<T> test(Predicate<? super T> predicate) {
+        if (barrier)
+            return this;
+        if (predicate == null)
+            failure("test predicate (not null)");
+        else {
+            boolean result;
+            try {
+                result = predicate.test(value);
+            } catch (TestFailure e) {
+                // Abort the test.
+                throw e;
+            } catch (Exception e) {
+                t.recordException(this, e);
+                return this;
+            }
+            if (!result)
+                failure("test predicate");
         }
         return this;
     }

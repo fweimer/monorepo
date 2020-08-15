@@ -2,6 +2,7 @@ package enyo.testing;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * Wrapper for an object reference that is being examined during a test.
@@ -90,6 +91,14 @@ public interface Examiner<T> {
      */
     <U extends T> Examiner<T> inspect(
         Class<U> cls, Consumer<? super U> consumer);
+
+    /**
+     * Checks that the examined value matches the predicate.
+     * A test failure is reported if {@code predicate} returns false.
+     * @param predicate the predicate to evaluate at the test value (not null)
+     * @return this object
+     */
+    Examiner<T> test(Predicate<? super T> predicate);
 
     /**
      * Reports an error if the two values are not equal according to
