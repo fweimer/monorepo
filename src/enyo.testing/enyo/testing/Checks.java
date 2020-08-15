@@ -35,5 +35,31 @@ public final class Checks {
         };
     }
 
+    /**
+     * Returns a check for an {@code int} array containing the
+     * specified elements.
+     * @param values the expected array elements
+     * @return a check for {@code int} arrays
+     * @throws NullPointerException if {@code values} is null
+     */
+    public static Check<int[]> intArrayEquals(int... values) {
+        Objects.requireNonNull(values, "values");
+        return (int[] array) -> {
+            if (Arrays.equals(array, values))
+                return null;
+            else {
+                String check;
+                if (array == null)
+                    check = "intArrayEquals (not null)";
+                else
+                    check = "intArrayEquals";
+                Object[] boxed = new Object[values.length];
+                for (int i = 0; i < values.length; ++i)
+                    boxed[i] = values[i];
+                return new Check.Failure(check, boxed);
+            }
+        };
+    }
+
     private Checks() { }
 }
