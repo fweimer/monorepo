@@ -253,4 +253,28 @@ public interface Testing {
      * @see #assertFail(String)
      */
     void failedCheck(String check, Object... objects);
+
+    /**
+     * Creates a new counter with the default target, 1.
+     * @return the counter
+     * @see Counter#Counter()
+     * @see #counter(int)
+     */
+    default Counter counter() {
+        return new Counter(this, 1);
+    }
+
+     /**
+     * Creates a new counter with an explicit target value.
+     * @param target the requested target value
+     * @return the counter
+     * @throws IllegalArgumentException if the argument is negative
+     * @see #counter()
+     * @see Counter#Counter(int)
+     */
+    default Counter counter(int target) {
+        if (target < 0)
+            throw new IllegalArgumentException("target: " + target);
+        return new Counter(this, target);
+    }
 }
