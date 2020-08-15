@@ -26,64 +26,64 @@ public final class TestResult {
         t.examine(r.error()).is(Optional.empty());
         {
             Result<Long, String> r2 = Result.of(2L);
-            Flag flag = new Flag(t);
+            var counter = t.counter();
             // FIXME: Should really be the same object.
             t.examine(r.flatMap(value -> {
                         t.examine(value).is(1);
-                        flag.setOnce();
+                        counter.increment();
                         return r2;
                     }))
                 .is(r2);
-            flag.assertSet();
+            counter.checkTarget();
             Result<Long, String> r3 = Result.ofError("3");
-            flag.clear();
+            counter.reset();
             // FIXME: Should really be the same object.
             t.examine(r.flatMap(value -> {
                         t.examine(value).is(1);
-                        flag.setOnce();
+                        counter.increment();
                         return r3;
                     }))
                 .is(r3);
-            flag.assertSet();
+            counter.checkTarget();
         }
         {
-            Flag flag = new Flag(t);
+            var counter = t.counter();
             r.ifPresent(value -> {
                     t.examine(value).is(1);
-                    flag.setOnce();
+                    counter.increment();
                 });
-            flag.assertSet();
+            counter.checkTarget();
         }
         {
-            Flag flag = new Flag(t);
+            var counter = t.counter();
             r.ifPresentOrElse(value -> {
                     t.examine(value).is(1);
-                    flag.setOnce();
+                    counter.increment();
                 }, error -> t.assertFail("Unreachable"));
-            flag.assertSet();
+            counter.checkTarget();
         }
         t.assertFalse(r.isError());
         t.assertTrue(r.isPresent());
         {
-            Flag flag = new Flag(t);
+            var counter = t.counter();
             t.examine(r.map(
                     i -> {
-                        flag.setOnce();
+                        counter.increment();
                         return i + 1;
                     }))
                 .is(Result.of(2));
-            flag.assertSet();
+            counter.checkTarget();
         }
         {
-            Flag flag = new Flag(t);
+            var counter = t.counter();
             t.examine(r.map(
                     i -> {
-                        flag.setOnce();
+                        counter.increment();
                         return i + 1;
                     },
                     e -> t.assertFail("Unreachable")))
                 .is(Result.of(2));
-            flag.assertSet();
+            counter.checkTarget();
         }
         t.<Result<?, ?>>examine(r.mapError(e -> t.assertFail("Unreachable")))
             .isSame(r);
@@ -110,49 +110,49 @@ public final class TestResult {
             .is(r);
         r.ifPresent(value -> t.assertFail("Unreachable"));
         {
-            Flag flag = new Flag(t);
+            var counter = t.counter();
             r.ifPresentOrElse(value -> t.assertFail("Unreachable"),
                 error -> {
                     t.examine(error).is(1);
-                    flag.setOnce();
+                    counter.increment();
                 });
-            flag.assertSet();
+            counter.checkTarget();
         }
         t.assertTrue(r.isError());
         t.assertFalse(r.isPresent());
         t.<Result<?, ?>>examine(r.map(value -> t.assertFail("Unreachable")))
             .is(r);
         {
-            Flag flag = new Flag(t);
+            var counter = t.counter();
             t.examine(r.map(
                     value -> t.assertFail("Unreachable"),
                     i -> {
-                        flag.setOnce();
+                        counter.increment();
                         return i + 1;
                     }))
                 .is(Result.ofError(2));
-            flag.assertSet();
+            counter.checkTarget();
         }
         {
-            Flag flag = new Flag(t);
+            var counter = t.counter();
             t.examine(r.mapError(
                     i -> {
-                        flag.setOnce();
+                        counter.increment();
                         return i + 1;
                     }))
                 .is(Result.ofError(2));
-            flag.assertSet();
+            counter.checkTarget();
         }
         t.examine(r.value()).is(Optional.empty());
         t.examine(r.orElse("2")).is("2");
         {
-            Flag flag = new Flag(t);
+            var counter = t.counter();
             t.examine(r.orElseGet(() -> {
-                        flag.setOnce();
+                        counter.increment();
                         return "2";
                     }))
                 .is("2");
-            flag.assertSet();
+            counter.checkTarget();
         }
         t.expect(() -> r.orElseThrow(),
             ResultException.class, e -> t.examine(e.getMessage()).is("1"));
@@ -267,28 +267,5 @@ public final class TestResult {
                     }))
             .collect(Collectors.toList());
         t.examine(actual).is(expected);
-    }
-
-
-    private static final class Flag {
-        Flag(Testing t) {
-            this.t = t;
-        }
-
-        private final Testing t;
-        private boolean flag;
-
-        void setOnce() {
-            t.assertFalse(flag);
-            flag = true;
-        }
-
-        void clear() {
-            flag = false;
-        }
-
-        void assertSet() {
-            t.assertTrue(flag);
-        }
     }
 }
