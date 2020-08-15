@@ -124,6 +124,25 @@ class ObjectExaminer<T> extends ExaminerBase implements Examiner<T> {
     }
 
     @Override
+    public Examiner<T> inspect(Consumer<? super T> consumer) {
+        if (barrier)
+            return this;
+        if (consumer == null)
+            failureWithObjects("map (not null)", consumer);
+        else {
+            try {
+                consumer.accept(value);
+            } catch (TestFailure e) {
+                // Abort the test.
+                throw e;
+            } catch (Exception e) {
+                t.recordException(this, e);
+            }
+        }
+        return this;
+    }
+
+    @Override
     public Examiner<T> is(T other) {
         if (barrier)
             return this;

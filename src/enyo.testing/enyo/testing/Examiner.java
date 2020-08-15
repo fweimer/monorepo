@@ -70,6 +70,15 @@ public interface Examiner<T> {
     <U> Examiner<T> map(Class<U> cls, Consumer<Examiner<U>> consumer);
 
     /**
+     * Inspects this examiner's value using a consumer.
+     * Examination of the value continues after the consumer
+     * returns.
+      *@param consumer the consumer that receives this examiner's value
+     * @return this object
+     */
+    Examiner<T> inspect(Consumer<? super T> consumer);
+
+    /**
      * Reports an error if the two values are not equal according to
      * {@link java.util.Objects#equals(Object,Object)}.
      * Errors are also reported if the references are null;

@@ -581,6 +581,77 @@ public final class TestObjectExaminer {
     }
 
     @Test
+    public void testInspect(Testing t) {
+        List<Recorder.Call> history;
+
+        // Test that the barrier is effective.
+        history = Helpers.testHistory(t, TestObjectExaminer.class, "inspect1");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        t.examine(history.get(0))
+            .map(Recorder.Failure.class, e -> e
+                .map(call -> call.check, e1 -> e1.is("equals"))
+                .map(call -> call.context, e1 -> e1.is(
+                        List.of(new Examined(null, "string1"))))
+                .map(call -> call.otherObjects.length, e1 -> e1.is(1))
+                .map(call -> call.otherObjects[0], e1 -> e1.is("string2")));
+
+        history = Helpers.testHistory(t, TestObjectExaminer.class, "inspect2");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(3);
+        t.examine(history.get(0))
+            .map(Recorder.Exception.class, e -> e
+                .map(call -> call.context, e1 -> e1.is(
+                        List.of(new Examined(null, "string1"))))
+                .map(call -> call.exception, (e1 -> e1
+                    .isExactClass(UnsupportedOperationException.class)
+                    .map(Throwable::getMessage).is("expected"))));
+        t.examine(history.get(1))
+            .map(Recorder.Failure.class, e -> e
+                .map(call -> call.check, e1 -> e1.is("mark: inspect2")));
+    }
+
+    @Test
+    public void inspect0(Testing t) {
+        var counter = t.counter();
+        t.examine("string1")
+            .map(String::toUpperCase)
+            .inspect(s -> {
+                    t.examine(s).is("STRING1");
+                    counter.increment();
+                })
+            .is("STRING1");
+        counter.checkTarget();
+    }
+
+    // No @Test due to expected test failure.
+    public void inspect1(Testing t) {
+        var counter = t.counter();
+        t.examine("string1")
+            .is("string2")
+            .barrier()
+            .inspect(s -> counter.increment())
+            .is("string3");
+        t.examine(counter.value()).is(0);
+    }
+
+    // No @Test due to expected test failure.
+    public void inspect2(Testing t) {
+        var c1 = t.counter();
+        var c2 = t.counter();
+        t.examine("string1")
+            .is("string1")
+            .inspect(s -> {
+                    c1.increment();
+                    throw new UnsupportedOperationException("expected");
+                })
+            .inspect(s -> c2.increment()); // Should still be called.
+        c1.checkTarget();
+        c2.checkTarget();
+        t.failedCheck("mark: inspect2");
+    }
+
+    @Test
     public void testIs(Testing t) {
         List<Recorder.Call> history;
         Recorder.Failure failure;
