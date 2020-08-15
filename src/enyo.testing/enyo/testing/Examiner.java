@@ -101,6 +101,18 @@ public interface Examiner<T> {
     Examiner<T> test(Predicate<? super T> predicate);
 
     /**
+     * Checks that the examined value matches the predicate.
+     * A test failure is reported if {@code predicate} returns false.
+     * <p>Good check descriptions describe the test expectation
+     * (e.g., <i>argument is an even integer</i>), not the cause of the test
+     * failure (which might be <i>argument is odd</i> in the example).
+     * @param check a short string identifying the failed check (not null)
+     * @param predicate the predicate to evaluate at the test value (not null)
+     * @return this object
+     */
+    Examiner<T> test(String check, Predicate<? super T> predicate);
+
+    /**
      * Reports an error if the two values are not equal according to
      * {@link java.util.Objects#equals(Object,Object)}.
      * Errors are also reported if the references are null;

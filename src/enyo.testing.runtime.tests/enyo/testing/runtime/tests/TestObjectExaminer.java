@@ -953,6 +953,221 @@ public final class TestObjectExaminer {
     }
 
     @Test
+    public void testTestPredicateDescription(Testing t) {
+        List<Recorder.Call> history;
+
+        // Test that the barrier is effective.
+        history = Helpers.testHistory(
+            t, TestObjectExaminer.class, "testPredicateDescription1");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(3);
+        t.examine(history.get(0))
+            .map(Recorder.Failure.class, e -> e
+                .map(call -> call.check, e1 -> e1.is("equals"))
+                .map(call -> call.context, e1 -> e1.is(
+                        List.of(new Examined(null, "string1"))))
+                .map(call -> call.otherObjects.length, e1 -> e1.is(1))
+                .map(call -> call.otherObjects[0], e1 -> e1.is("string2")));
+        t.examine(history.get(1))
+            .map(Recorder.Failure.class, e -> e
+                .map(call -> call.check, e1 -> e1.is(
+                        "mark: testPredicateDescription1")));
+
+        history = Helpers.testHistory(
+            t, TestObjectExaminer.class, "testPredicateDescription2");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(3);
+        t.examine(history.get(0))
+            .map(Recorder.Exception.class, e -> e
+                .map(call -> call.context, e1 -> e1.is(
+                        List.of(new Examined(null, "string1"))))
+                .map(call -> call.exception, (e1 -> e1
+                    .isExactClass(UnsupportedOperationException.class)
+                    .map(Throwable::getMessage).is("expected"))));
+        t.examine(history.get(1))
+            .map(Recorder.Failure.class, e -> e
+                .map(call -> call.check, e1 -> e1.is(
+                        "mark: testPredicateDescription2")));
+
+        // Check that test failures are reported.
+        history = Helpers.testHistory(
+            t, TestObjectExaminer.class, "testPredicateDescription3");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(4);
+        t.examine(history.get(0))
+            .map(Recorder.Failure.class, e -> e
+                .map(call -> call.check, e1 -> e1.is("my check 1"))
+                .map(call -> call.context, e1 -> e1.is(
+                        List.of(new Examined(null, "string1"))))
+                .map(call -> call.otherObjects.length, e1 -> e1.is(0)));
+        t.examine(history.get(1))
+            .map(Recorder.Failure.class, e -> e
+                .map(call -> call.check, e1 -> e1.is("my check 2"))
+                .map(call -> call.context, e1 -> e1.is(
+                        List.of(new Examined("call 2", "string1"))))
+                .map(call -> call.otherObjects.length, e1 -> e1.is(0)));
+        t.examine(history.get(2))
+            .map(Recorder.Failure.class, e -> e
+                .map(call -> call.check, e1 -> e1.is(
+                        "mark: testPredicateDescription3")));
+
+        // Null check message.
+        history = Helpers.testHistory(
+            t, TestObjectExaminer.class, "testPredicateDescription4");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(3);
+        t.examine(history.get(0))
+            .map(Recorder.Failure.class, e -> e
+                .map(call -> call.check, e1 -> e1.is(
+                        "test predicate description (not null)"))
+                .map(call -> call.context, e1 -> e1.is(
+                        List.of(new Examined(null, "string1"))))
+                .map(call -> call.otherObjects.length, e1 -> e1.is(0)));
+        t.examine(history.get(1))
+            .map(Recorder.Failure.class, e -> e
+                .map(call -> call.check, e1 -> e1.is(
+                        "mark: testPredicateDescription4")));
+
+        // Null predicate.
+        history = Helpers.testHistory(
+            t, TestObjectExaminer.class, "testPredicateDescription5");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(3);
+        t.examine(history.get(0))
+            .map(Recorder.Failure.class, e -> e
+                .map(call -> call.check, e1 -> e1.is(
+                        "test predicate (not null)"))
+                .map(call -> call.context, e1 -> e1.is(
+                        List.of(new Examined(null, "string1"))))
+                .map(call -> call.otherObjects.length, e1 -> e1.is(1))
+                .map(call -> call.otherObjects[0], e1 -> e1.is("my check")));
+        t.examine(history.get(1))
+            .map(Recorder.Failure.class, e -> e
+                .map(call -> call.check, e1 -> e1.is(
+                        "mark: testPredicateDescription5")));
+
+        // Null description and predicate.
+        history = Helpers.testHistory(
+            t, TestObjectExaminer.class, "testPredicateDescription6");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(4);
+        t.examine(history.get(0))
+            .map(Recorder.Failure.class, e -> e
+                .map(call -> call.check, e1 -> e1.is(
+                        "test predicate description (not null)"))
+                .map(call -> call.context, e1 -> e1.is(
+                        List.of(new Examined(null, "string1"))))
+                .map(call -> call.otherObjects.length, e1 -> e1.is(0)));
+        t.examine(history.get(1))
+            .map(Recorder.Failure.class, e -> e
+                .map(call -> call.check, e1 -> e1.is(
+                        "test predicate (not null)"))
+                .map(call -> call.context, e1 -> e1.is(
+                        List.of(new Examined(null, "string1"))))
+                .map(call -> call.otherObjects.length, e1 -> e1.is(0)));
+        t.examine(history.get(2))
+            .map(Recorder.Failure.class, e -> e
+                .map(call -> call.check, e1 -> e1.is(
+                        "mark: testPredicateDescription6")));
+    }
+
+    @Test
+    public void testPredicateDescription0(Testing t) {
+        var counter = t.counter();
+        t.examine("string1")
+            .map(String::toUpperCase)
+            .test("my check", s -> {
+                    counter.increment();
+                    return s.equals("STRING1");
+                })
+            .is("STRING1");
+        counter.checkTarget();
+    }
+
+    // No @Test due to expected test failure.
+    public void testPredicateDescription1(Testing t) {
+        var counter = t.counter();
+        t.examine("string1")
+            .is("string2")
+            .barrier()
+            .inspect(s -> counter.increment())
+            .is("string3");
+        t.examine(counter.value()).is(0);
+        t.failedCheck("mark: testPredicateDescription1");
+    }
+
+    // No @Test due to expected test failure.
+    public void testPredicateDescription2(Testing t) {
+        var c1 = t.counter();
+        var c2 = t.counter();
+        String string1 = "string1";
+        t.examine(string1)
+            .is("string1")
+            .test("my check 1", s -> {
+                    t.examine(s).isSame(string1);
+                    c1.increment();
+                    throw new UnsupportedOperationException("expected");
+                })
+            .test("my check 2", s -> {
+                    c2.increment(); // Should still be called.
+                    return s == string1;
+                });
+        c1.checkTarget();
+        c2.checkTarget();
+        t.failedCheck("mark: testPredicateDescription2");
+    }
+
+    // No @Test due to expected test failure.
+    public void testPredicateDescription3(Testing t) {
+        var c1 = t.counter();
+        var c2 = t.counter();
+        String string1 = "string1";
+        t.examine(string1)
+            .test("my check 1", s -> {
+                    c1.increment();
+                    t.examine(s).isSame(string1);
+                    return false;
+                })
+            .context("call 2")
+            .test("my check 2", s -> {
+                    c2.increment();
+                    t.examine(s).isSame(string1);
+                    return false;
+                });
+        c1.checkTarget();
+        c2.checkTarget();
+        t.failedCheck("mark: testPredicateDescription3");
+    }
+
+    // No @Test due to expected test failure.
+    public void testPredicateDescription4(Testing t) {
+        var counter = t.counter();
+        String string1 = "string1";
+        t.examine(string1)
+            .test(null, s -> {
+                    counter.increment();
+                    return s == string1;
+                });
+        counter.checkTarget();
+        t.failedCheck("mark: testPredicateDescription4");
+    }
+
+    // No @Test due to expected test failure.
+    public void testPredicateDescription5(Testing t) {
+        String string1 = "string1";
+        t.examine(string1)
+            .test("my check", null);
+        t.failedCheck("mark: testPredicateDescription5");
+    }
+
+    // No @Test due to expected test failure.
+    public void testPredicateDescription6(Testing t) {
+        t.examine("string1")
+            .test(null, (Predicate<Object>) null);
+        t.failedCheck("mark: testPredicateDescription6");
+    }
+
+    @Test
     public void testIs(Testing t) {
         List<Recorder.Call> history;
         Recorder.Failure failure;
