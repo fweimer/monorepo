@@ -149,6 +149,33 @@ class ObjectExaminer<T> extends ExaminerBase implements Examiner<T> {
     }
 
     @Override
+    public <U extends T> Examiner<T> inspect(
+        Class<U> cls, Consumer<? super U> consumer) {
+        if (barrier)
+            return this;
+        if (consumer == null)
+            failureWithObjects("map (not null)", consumer);
+        else {
+            U newValue;
+            try {
+                newValue = cls.cast(value);
+            } catch (ClassCastException e) {
+                t.recordException(this, e);
+                return this;
+            }
+            try {
+                consumer.accept(newValue);
+            } catch (TestFailure e) {
+                // Abort the test.
+                throw e;
+            } catch (Exception e) {
+                t.recordException(this, e);
+            }
+        }
+        return this;
+    }
+
+    @Override
     public Examiner<T> is(T other) {
         if (barrier)
             return this;

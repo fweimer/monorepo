@@ -73,10 +73,23 @@ public interface Examiner<T> {
      * Inspects this examiner's value using a consumer.
      * Examination of the value continues after the consumer
      * returns.
-      *@param consumer the consumer that receives this examiner's value
+     * @param consumer the consumer that receives this examiner's value
      * @return this object
      */
     Examiner<T> inspect(Consumer<? super T> consumer);
+
+    /**
+     * Inspects this examiner's value using a consumer.
+     * Examination of the value continues after the consumer
+     * returns.  If the value does not have type {@code cls}, a test
+     * failure occurs.
+     * @param cls the reified type for the consumer input
+     * @param consumer the consumer that receives this examiner's value
+     * @param <U> the expected type of the value
+     * @return this object
+     */
+    <U extends T> Examiner<T> inspect(
+        Class<U> cls, Consumer<? super U> consumer);
 
     /**
      * Reports an error if the two values are not equal according to
