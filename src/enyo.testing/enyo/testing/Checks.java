@@ -1,6 +1,7 @@
 package enyo.testing;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Objects;
 
 /**
@@ -58,6 +59,23 @@ public final class Checks {
                     boxed[i] = values[i];
                 return new Check.Failure(check, boxed);
             }
+        };
+    }
+
+    /**
+     * Returns a check that tests if a collection is null.
+     * @param <T> type of the collection elements
+     * @param <C> type of the collection
+     * @return a check for collections
+     */
+    public static <T, C extends Collection<T>> Check<C> empty() {
+        return collection -> {
+            if (collection == null)
+                return new Check.Failure("empty (not null)");
+            else if (collection.isEmpty())
+                return null;
+            else
+                return new Check.Failure("empty");
         };
     }
 
