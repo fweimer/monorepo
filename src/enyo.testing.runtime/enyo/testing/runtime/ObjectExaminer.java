@@ -90,6 +90,8 @@ class ObjectExaminer<T> extends ExaminerBase implements Examiner<T> {
 
     @Override
     public <U> Examiner<T> map(Class<U> cls, Consumer<Examiner<U>> consumer) {
+        if (barrier)
+            return this;
         if (cls == null || consumer == null)
             failureWithObjects("map (not null)", cls, consumer);
         else {
