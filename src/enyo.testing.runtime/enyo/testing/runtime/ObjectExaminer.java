@@ -34,6 +34,8 @@ class ObjectExaminer<T> extends ExaminerBase implements Examiner<T> {
 
     @Override
     public <U> Examiner<U> map(Function<? super T, ? extends U> map) {
+        if (barrier)
+            return forceFailed(new ObjectExaminer<U>(t, this, null));
         if (map == null) {
             failure("map (not null)", map);
             return forceFailed(new ObjectExaminer<U>(t, this, null));

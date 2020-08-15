@@ -172,6 +172,22 @@ public final class TestObjectExaminer {
         t.examine(exception.exception)
             .isExactClass(TestFailure.class);
         t.examine(exception.exception.getMessage()).is("expected");
+
+        // Working barrier.
+        history = Helpers.testHistory(
+            t, TestObjectExaminer.class, "map5");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(3);
+        t.examine(history.get(0)).isExactClass(Recorder.Failure.class);
+        failure = (Recorder.Failure) history.get(0);
+        t.examine(failure.check).is("equals");
+        t.examine(failure.context).is(
+            List.of(new Examined("context1", "string1")));
+        t.examine(failure.otherObjects.length).is(1);
+        t.examine(failure.otherObjects[0]).is("string2");
+        t.examine(history.get(1)).isExactClass(Recorder.Failure.class);
+        failure = (Recorder.Failure) history.get(1);
+        t.examine(failure.check).is("mark: map5");
     }
 
     @Test
@@ -213,6 +229,16 @@ public final class TestObjectExaminer {
                     return null; // Not reached.
                 })
             .is(false);
+    }
+
+    public void map5(Testing t) {
+        t.examine("string1")
+            .context("context1")
+            .is("string2")
+            .barrier()
+            .map(s -> t.assertFail("unreachable"))
+            .is("string3");
+        t.failedCheck("mark: map5");
     }
 
     @Test
