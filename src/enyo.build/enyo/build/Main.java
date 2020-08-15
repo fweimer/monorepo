@@ -44,15 +44,18 @@ public final class Main {
      */
     public static boolean bootstrap(String[] args)
         throws IOException, InterruptedException {
-        run(true, args);
-        return true;
+        return run(true, args);
     }
 
-    private static void run(boolean forBootstrap, String[] args)
+    private static boolean run(boolean forBootstrap, String[] args)
         throws IOException, InterruptedException {
-        if (args.length != 0) {
-            System.err.println("error: no arguments supported");
-            System.exit(1);
+        Options options;
+        try {
+            options = new Options(args);
+        } catch (Options.Exception e) {
+            System.err.format("error: %s: %s%n", e.error(), e.argument());
+            System.exit(2);
+            return false; // Not reached.
         }
 
         DirectoryLayout rootGeneration = new DirectoryLayout(Path.of(""), 0);
@@ -63,6 +66,29 @@ public final class Main {
 
         AtomicReference<DirectoryLayout> generations =
             new AtomicReference<>(rootGeneration);
+
+        if (options.once()) {
+            SourceFileChanges.loop(rootGeneration, changeWaiter -> {
+                    DirectoryLayout dirs = generations.getAndUpdate(
+                        DirectoryLayout::nextGeneration);
+                    List<String> modules = listModules(dirs);
+
+                    if (build(dirs, modules)) {
+                        if (!rebootstrapCheck.unchanged(dirs))
+                            System.err.println(
+                                "warning: New bootstrap required");
+                        document(dirs, modules);
+                        if (options.testSameVm())
+                            invokeRunTests(dirs, modules);
+                        else
+                            RunTests.testInSeparateVM(
+                                options, dirs, modules, changeWaiter);
+                    }
+                    return SourceFileChanges.Result.EXIT;
+                });
+            return false;
+        }
+
         SourceFileChanges.loop(rootGeneration, changeWaiter -> {
                 DirectoryLayout dirs = generations.getAndUpdate(
                     DirectoryLayout::nextGeneration);
@@ -79,15 +105,17 @@ public final class Main {
                                 "warning: New bootstrap required");
                     }
                     document(dirs, modules);
-                    if (TEST_IN_SEPARATE_VM)
-                        RunTests.testInSeparateVM(
-                            dirs, modules, changeWaiter);
-                    else
+                    if (options.testSameVm())
                         invokeRunTests(dirs, modules);
+                    else
+                        RunTests.testInSeparateVM(
+                            options, dirs, modules, changeWaiter);
                     return SourceFileChanges.Result.CONTINUE;
                 } else
                     return SourceFileChanges.Result.CONTINUE_COMPILE_FAILURE;
             });
+
+        return true;
     }
 
     static List<String> listModules(DirectoryLayout dirs) throws IOException {
@@ -251,8 +279,6 @@ public final class Main {
 
     private static final String PUBLIC_API =
         "https://docs.oracle.com/en/java/javase/14/docs/api/";
-
-    private static final boolean TEST_IN_SEPARATE_VM = true;
 
     private Main() { } // No instances.
 }

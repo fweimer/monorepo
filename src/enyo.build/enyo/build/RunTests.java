@@ -14,6 +14,7 @@ import java.lang.module.ModuleFinder;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,6 +24,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The Enyo testing tool.
@@ -199,10 +201,29 @@ public final class RunTests {
     /**
      * Invoked from enyo.build.Main to perform tests in a separate VM.
      */
-    static void testInSeparateVM(DirectoryLayout dirs, List<String> modules,
-        SourceFileChanges.Waiter changeWaiter)
+    static void testInSeparateVM(Options options, DirectoryLayout dirs,
+        List<String> modules, SourceFileChanges.Waiter changeWaiter)
         throws IOException {
         long nanoStart = System.nanoTime();
+
+
+        List<String> additionalVmArguments = options.testVmArgsFile()
+            .<List<String>>map(path -> {
+                    try (Stream<String> lines = Files.lines(path)) {
+                        return lines
+                            .map(String::strip)
+                            .filter(line ->
+                                !line.isEmpty() && !line.startsWith("#"))
+                            .collect(Collectors.toUnmodifiableList());
+                    } catch (IOException e) {
+                        System.err.format(
+                            "warning: cannot read VM arguments file: %s%n",
+                            path);
+                        return List.of();
+                    }
+                })
+            .orElse(List.of());
+
         try (TestLinkController controller =
             new TestLinkController(dirs, modules, changeWaiter)) {
             {
@@ -222,6 +243,7 @@ public final class RunTests {
 
                 ArrayList<String> args = new ArrayList<>();
                 args.add(RelaunchVM.defaultLauncher());
+                args.addAll(additionalVmArguments);
                 args.add("--module-path");
                 args.add(dirs.buildGeneration().toString());
 
