@@ -113,6 +113,14 @@ public interface Examiner<T> {
     Examiner<T> test(String check, Predicate<? super T> predicate);
 
     /**
+     * Performs the specified check against this examiner's value.
+     * A test failure is reported if the check fails.
+     * @param check the check to perform
+     * @return this object
+     */
+    Examiner<T> check(Check<? super T> check);
+
+    /**
      * Reports an error if the two values are not equal according to
      * {@link java.util.Objects#equals(Object,Object)}.
      * Errors are also reported if the references are null;
