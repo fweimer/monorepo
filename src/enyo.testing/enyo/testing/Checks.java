@@ -79,5 +79,204 @@ public final class Checks {
         };
     }
 
+    /**
+     * Returns a check that tests if a comparable object is less
+     * than a specified object.
+     * @param reference the reference object for this check
+     * @param <T> the type of the object being checked
+     * @return a check for an object reference
+     * @throws NullPointerException if the reference is null
+     */
+    public static <T extends Comparable<T>> Check<T> lessThan(T reference) {
+        Objects.requireNonNull(reference);
+        return obj -> {
+            if (obj == null)
+                return new Check.Failure("lessThan (not null)", reference);
+            else if (obj.compareTo(reference) < 0)
+                return null;
+            else
+                return new Check.Failure("lessThan", reference);
+        };
+    }
+
+    /**
+     * Returns a check that tests if a comparable object is less than
+     * or equal to a specified object.
+     * @param reference the reference object for this check
+     * @param <T> the type of the object being checked
+     * @return a check for an object reference
+     * @throws NullPointerException if the reference is null
+     */
+    public static <T extends Comparable<T>> Check<T> lessThanOrEquals(
+        T reference) {
+        Objects.requireNonNull(reference);
+        return obj -> {
+            if (obj == null)
+                return new Check.Failure(
+                    "lessThanOrEquals (not null)", reference);
+            else if (obj.compareTo(reference) <= 0)
+                return null;
+            else
+                return new Check.Failure("lessThanOrEquals", reference);
+        };
+    }
+
+    /**
+     * Returns a check that tests if a comparable object is greater
+     * than a specified object.
+     * @param reference the reference object for this check
+     * @param <T> the type of the object being checked
+     * @return a check for an object reference
+     * @throws NullPointerException if the reference is null
+     */
+    public static <T extends Comparable<T>> Check<T> greaterThan(T reference) {
+        Objects.requireNonNull(reference);
+        return obj -> {
+            if (obj == null)
+                return new Check.Failure("greaterThan (not null)", reference);
+            else if (obj.compareTo(reference) > 0)
+                return null;
+            else
+                return new Check.Failure("greaterThan", reference);
+        };
+    }
+
+    /**
+     * Returns a check that tests if a comparable object is greater
+     * than or equal to a specified object.
+     * @param reference the reference object for this check
+     * @param <T> the type of the object being checked
+     * @return a check for an object reference
+     * @throws NullPointerException if the reference is null
+     */
+    public static <T extends Comparable<T>> Check<T> greaterThanOrEquals(
+        T reference) {
+        Objects.requireNonNull(reference);
+        return obj -> {
+            if (obj == null)
+                return new Check.Failure(
+                    "greaterThanOrEquals (not null)", reference);
+            else if (obj.compareTo(reference) >= 0)
+                return null;
+            else
+                return new Check.Failure("greaterThanOrEquals", reference);
+        };
+    }
+
+    /**
+     * Returns a check that tests if a comparable object falls within
+     * a range.
+     * @param low the lower bound of the range (inclusive)
+     * @param high the lower bound of the range (exclusive)
+     * @param <T> the type of the object being checked
+     * @return a check for an object reference
+     * @throws NullPointerException if an argument is null
+     * @throws IllegalArgumentException
+     *   if {@code low} is greater than {@code high}
+     */
+    public static <T extends Comparable<T>> Check<T> inRange(T low, T high) {
+        Objects.requireNonNull(low, "low");
+        Objects.requireNonNull(high, "high");
+        if (low.compareTo(high) > 0)
+            throw new IllegalArgumentException(
+                "inRange: low end greater than high end");
+        return obj -> {
+            if (obj == null)
+                return new Check.Failure("inRange (not null)", low, high);
+            else if (obj.compareTo(low) < 0)
+                return new Check.Failure("inRange low", low, high);
+            else if (obj.compareTo(high) >= 0)
+                return new Check.Failure("inRange high", low, high);
+            else
+                return null;
+        };
+    }
+
+    /**
+     * Returns a check that tests if a comparable object falls within
+     * a closed range.
+     * @param low the lower bound of the range (inclusive)
+     * @param high the lower bound of the range (inclusive)
+     * @param <T> the type of the object being checked
+     * @return a check for an object reference
+     * @throws NullPointerException if an argument is null
+     * @throws IllegalArgumentException
+     *   if {@code low} is greater than {@code high}
+     */
+    public static <T extends Comparable<T>> Check<T> inRangeClosed(
+        T low, T high) {
+        Objects.requireNonNull(low, "low");
+        Objects.requireNonNull(high, "high");
+        if (low.compareTo(high) > 0)
+            throw new IllegalArgumentException(
+                "inRangeClosed: low end greater than high end");
+        return obj -> {
+            if (obj == null)
+                return new Check.Failure("inRangeClosed (not null)", low, high);
+            else if (obj.compareTo(low) < 0)
+                return new Check.Failure("inRangeClosed low", low, high);
+            else if (obj.compareTo(high) > 0)
+                return new Check.Failure("inRangeClosed high", low, high);
+            else
+                return null;
+        };
+    }
+
+    /**
+     * Returns a check that tests if a comparable object does not fall
+     * within a range.
+     * @param low the lower bound of the range (inclusive)
+     * @param high the lower bound of the range (exclusive)
+     * @param <T> the type of the object being checked
+     * @return a check for an object reference
+     * @throws NullPointerException if an argument is null
+     * @throws IllegalArgumentException
+     *   if {@code low} is greater than {@code high}
+     */
+    public static <T extends Comparable<T>> Check<T> notInRange(T low, T high) {
+        Objects.requireNonNull(low, "low");
+        Objects.requireNonNull(high, "high");
+        if (low.compareTo(high) > 0)
+            throw new IllegalArgumentException(
+                "notInRange: low end greater than high end");
+        return obj -> {
+            if (obj == null)
+                return new Check.Failure("notInRange (not null)", low, high);
+            else if (obj.compareTo(low) >= 0 && obj.compareTo(high) < 0)
+                return new Check.Failure("notInRange", low, high);
+            else
+                return null;
+        };
+    }
+
+    /**
+     * Returns a check that tests if a comparable object does not fall
+     * within a closed range.
+     * @param low the lower bound of the range (inclusive)
+     * @param high the lower bound of the range (inclusive)
+     * @param <T> the type of the object being checked
+     * @return a check for an object reference
+     * @throws NullPointerException if an argument is null
+     * @throws IllegalArgumentException
+     *   if {@code low} is greater than {@code high}
+     */
+    public static <T extends Comparable<T>> Check<T> notInRangeClosed(
+        T low, T high) {
+        Objects.requireNonNull(low, "low");
+        Objects.requireNonNull(high, "high");
+        if (low.compareTo(high) > 0)
+            throw new IllegalArgumentException(
+                "notInRangeClosed: low end greater than high end");
+        return obj -> {
+            if (obj == null)
+                return new Check.Failure(
+                    "notInRangeClosed (not null)", low, high);
+            else if (obj.compareTo(low) >= 0 && obj.compareTo(high) <= 0)
+                return new Check.Failure("notInRangeClosed", low, high);
+            else
+                return null;
+        };
+    }
+
     private Checks() { }
 }
