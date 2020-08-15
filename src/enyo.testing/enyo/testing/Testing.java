@@ -64,6 +64,7 @@ public interface Testing {
      * @param message the message to include in the test failure exception
      * @return nothing; this method never returns normally
      * @param <T> the type of the object that is never returned
+     * @see #failedCheck(String,Object[])
      */
     <T> T assertFail(String message);
 
@@ -239,4 +240,17 @@ public interface Testing {
      */
     <E extends Throwable> void expect(String label, ThrowingRunnable source,
         Class<E> exception);
+
+    /**
+     * Reports a failed check.  Unlike {@link #assertFail(String)},
+     * execution continues after this test failure.
+     * Good check descriptions describe the test expectation
+     * (e.g., <i>argument is an even integer</i>), not the cause of the test
+     * failure (which might be <i>argument is odd</i> in the example).
+     * @param check a short string identifying the failed check (not null)
+     * @param objects object references related to the test failure (not null,
+     *   may contain null elements)
+     * @see #assertFail(String)
+     */
+    void failedCheck(String check, Object... objects);
 }

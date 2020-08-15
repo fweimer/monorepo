@@ -321,6 +321,20 @@ public final class Testing implements enyo.testing.Testing {
             captureStackTrace(), exception);
     }
 
+    @Override
+    public void failedCheck(String check, Object... objects) {
+        if (check == null)
+            check = "(non-null check argument in Testing.failedCheck)";
+        var stackTrace = captureStackTrace();
+        if (objects == null) {
+            recordFailureObjects(List.of(),
+                "non-null objects array in Testing.failedCheck",
+                stackTrace, check);
+            objects = new Object[0];
+        }
+        recordFailureObjects(List.of(), check, stackTrace, objects);
+    }
+
     void recordFailure(ExaminerBase top, String check) {
         recordFailure(top, check, new Object[0], captureStackTrace());
     }

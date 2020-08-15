@@ -228,4 +228,72 @@ public final class TestTesting {
     public void assertFalse2(Testing t) {
         t.assertFalse(true);
     }
+
+    @Test
+    public static void testFailedCheck(Testing t) {
+        List<Recorder.Call> history  = Helpers.testHistory(
+            t, TestTesting.class, "failedCheck");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(8);
+        t.examine(history.get(0))
+            .map(Recorder.Failure.class,
+                e -> e
+                .map(call -> call.context, e1-> e1.is(List.of()))
+                .map(call -> call.check, e1 -> e1.is("check1"))
+                .map(call -> call.otherObjects.length, e1 -> e1.is(0)));
+        t.examine(history.get(1))
+            .map(Recorder.Failure.class,
+                e -> e
+                .map(call -> call.context, e1-> e1.is(List.of()))
+                .map(call -> call.check, e1 -> e1.is("check2"))
+                .map(call -> call.otherObjects.length, e1 -> e1.is(1))
+                .map(call -> call.otherObjects[0], e1 -> e1.is("object1")));
+        t.examine(history.get(2))
+            .map(Recorder.Failure.class,
+                e -> e
+                .map(call -> call.context, e1-> e1.is(List.of()))
+                .map(call -> call.check, e1 -> e1.is("check3"))
+                .map(call -> call.otherObjects.length, e1 -> e1.is(1))
+                .map(call -> call.otherObjects[0], e1 -> e1.isNull()));
+        t.examine(history.get(3))
+            .map(Recorder.Failure.class,
+                e -> e
+                .map(call -> call.context, e1-> e1.is(List.of()))
+                .map(call -> call.check, e1 -> e1.is("check4"))
+                .map(call -> call.otherObjects.length, e1 -> e1.is(2))
+                .map(call -> call.otherObjects[0], e1 -> e1.isNull())
+                .map(call -> call.otherObjects[1], e1 -> e1.isNull()));
+        t.examine(history.get(4))
+            .map(Recorder.Failure.class,
+                e -> e
+                .map(call -> call.context, e1-> e1.is(List.of()))
+                .map(call -> call.check, e1 -> e1.is(
+                        "non-null objects array in Testing.failedCheck"))
+                .map(call -> call.otherObjects.length, e1 -> e1.is(1))
+                .map(call -> call.otherObjects[0], e1 -> e1.is("check5")));
+        t.examine(history.get(5))
+            .map(Recorder.Failure.class,
+                e -> e
+                .map(call -> call.context, e1-> e1.is(List.of()))
+                .map(call -> call.check, e1 -> e1.is("check5"))
+                .map(call -> call.otherObjects.length, e1 -> e1.is(0)));
+        t.examine(history.get(6))
+            .map(Recorder.Failure.class,
+                e -> e
+                .map(call -> call.context, e1-> e1.is(List.of()))
+                .map(call -> call.check, e1 -> e1.is(
+                        "(non-null check argument in Testing.failedCheck)"))
+                .map(call -> call.otherObjects.length, e1 -> e1.is(1))
+                .map(call -> call.otherObjects[0], e1 -> e1.is("object2")));
+    }
+
+    // Not marked as @Test due to expected test failure.
+    public static void failedCheck(Testing t) {
+        t.failedCheck("check1");
+        t.failedCheck("check2", "object1");
+        t.failedCheck("check3", (Object) null);
+        t.failedCheck("check4", null, null);
+        t.failedCheck("check5", (Object[]) null);
+        t.failedCheck(null, "object2");
+    }
 }
