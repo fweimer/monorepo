@@ -9,22 +9,22 @@ public final class TestResourcesManager {
     @Test
     public static void testDefault(Testing t) throws InterruptedException {
         ResourcesManager rm = new ResourcesManager();
-        Flag flag = new Flag(t);
+        var counter = t.counter();
         rm.withResources(TestResources.DEFAULT, () -> {
-                flag.setOnce();
+                counter.increment();
             });
-        flag.assertSet();
+        counter.checkTarget();
     }
 
     @Test
     public static void testLarge(Testing t) throws InterruptedException {
         ResourcesManager rm = new ResourcesManager();
         TestResources tr = rm.available();
-        Flag flag = new Flag(t);
+        var counter = t.counter();
         rm.withResources(tr, () -> {
-                flag.setOnce();
+                counter.increment();
             });
-        flag.assertSet();
+        counter.checkTarget();
     }
 
     @Test
@@ -34,32 +34,10 @@ public final class TestResourcesManager {
         TestResources tr = new TestResources(
             rm.available().threads() + 1,
             rm.available().memory() + 1);
-        Flag flag = new Flag(t);
+        var counter = t.counter();
         rm.withResources(tr, () -> {
-                flag.setOnce();
+                counter.increment();
             });
-        flag.assertSet();
-    }
-
-    private static final class Flag {
-        Flag(Testing t) {
-            this.t = t;
-        }
-
-        private final Testing t;
-        private boolean flag;
-
-        void setOnce() {
-            t.assertFalse(flag);
-            flag = true;
-        }
-
-        void clear() {
-            flag = false;
-        }
-
-        void assertSet() {
-            t.assertTrue(flag);
-        }
+        counter.checkTarget();
     }
 }
