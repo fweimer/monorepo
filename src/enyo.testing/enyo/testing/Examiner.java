@@ -271,6 +271,19 @@ public interface Examiner<T> {
         OfInt map(IntUnaryOperator map);
 
         /**
+         * Derives a new {@code int} examiner from this examiner.
+         * Examination of the old value continues after the consumer
+         * for the new examiner returns.
+         * @param map the function that converts this examiner's value
+         *   to the {@code int} value for the new examiner
+         * @param consumer the consumer that receives
+         *   the new {@code int} examiner
+         * @return this object
+         * @see #map(Function)
+         */
+        OfInt map(IntUnaryOperator map, Consumer<OfInt> consumer);
+
+        /**
          * Reports an error if the two values are not equal.
          * @param other the other value under comparison
          * @return this object
