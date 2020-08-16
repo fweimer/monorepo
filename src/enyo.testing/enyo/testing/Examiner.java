@@ -2,6 +2,7 @@ package enyo.testing;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.IntUnaryOperator;
 import java.util.function.Predicate;
 import java.util.function.ToIntFunction;
 
@@ -259,6 +260,15 @@ public interface Examiner<T> {
          * @return this object
          */
         OfInt barrier();
+
+        /**
+         * Derives a new {@code int} examiner from this examiner.
+         * @param map the function that converts this examiner's value
+         *   to the {@code int} value for the new examiner
+         * @return the new {@code int} examiner
+         * @see #map(Function)
+         */
+        OfInt map(IntUnaryOperator map);
 
         /**
          * Reports an error if the two values are not equal.
