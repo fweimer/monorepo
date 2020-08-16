@@ -44,9 +44,9 @@ public final class TestRelaunchVM {
             process.destroy();
         }
         // Our output can be hidden among log messages.
-        String actual = new String(output);
-        t.assertTrue(actual,
-            actual.indexOf("Hello, world!\n0: zero\n1: one\n2: two\n") >= 0);
+        t.examine(new String(output))
+            .test(s ->
+                s.indexOf("Hello, world!\n0: zero\n1: one\n2: two\n") >= 0);
         t.examine(status).is(17);
     }
 
@@ -78,9 +78,9 @@ public final class TestRelaunchVM {
             process.destroy();
         }
         // Our output can be hidden among log messages.
-        String actual = new String(output);
-        t.assertTrue(actual,
-            actual.indexOf("Hello, world!\n0: zero\n1: one\n2: two\n") >= 0);
+        t.examine(new String(output))
+            .test(s ->
+                s.indexOf("Hello, world!\n0: zero\n1: one\n2: two\n") >= 0);
         t.examine(status).is(17);
     }
 
@@ -102,11 +102,10 @@ public final class TestRelaunchVM {
             process.destroy();
         }
         // Our output can be hidden among log messages.
-        String actual = new String(output);
-        t.assertTrue(actual,
-            actual.indexOf("Hello, world!\n"
-                + setting + '\n'
-                + "0: zero\n1: one\n2: two\n") >= 0);
+        t.examine(new String(output))
+            .test(s -> s.indexOf("Hello, world!\n"
+                    + setting + '\n'
+                    + "0: zero\n1: one\n2: two\n") >= 0);
         t.examine(status).is(17);
     }
 
@@ -133,8 +132,8 @@ public final class TestRelaunchVM {
                 Matcher m = reOption.matcher(line);
                 if (m.matches()) {
                     matches = true;
-                    String option = m.group(1);
-                    t.assertTrue(option, knownOptions.contains(option));
+                    t.examine(m.group(1))
+                        .test(option -> knownOptions.contains(option));
                 }
             }
         t.assertTrue(matches);
