@@ -318,5 +318,23 @@ public final class Checks {
         };
     }
 
+    /**
+     * Returns a check that tests if a string has the specified suffix.
+     * @param suffix the suffix string to check for
+     * @return a check for a string
+     * @throws NullPointerException if {@code suffix} is null
+     */
+    public static Check<String> endsWith(String suffix) {
+        Objects.requireNonNull(suffix, "suffix");
+        return string -> {
+            if (string == null)
+                return new Check.Failure("endsWith (not null)", suffix);
+            else if (string.endsWith(suffix))
+                return null;
+            else
+                return new Check.Failure("endsWith", suffix);
+        };
+    }
+
     private Checks() { }
 }
