@@ -185,6 +185,42 @@ class ObjectExaminer<T> extends ExaminerBase implements Examiner<T> {
     }
 
     @Override
+    public Examiner<T> mapToInt(ToIntFunction<? super T> map,
+        Consumer<Examiner.OfInt> consumer) {
+        if (barrier)
+            return this;
+        if (map == null || consumer == null)
+            failureWithObjects("mapToInt (not null)", map, consumer);
+        else {
+            int newValue;
+            try {
+                newValue = map.applyAsInt(value);
+            } catch (TestFailure e) {
+                // Abort the test.
+                throw e;
+            } catch (Exception e) {
+                // Do not catch errors here, assuming that they should
+                // be fatal.
+                t.recordException(this, e);
+                return this;
+            }
+            var newExaminer = transfer(new IntExaminer(t, this, newValue));
+            try {
+                consumer.accept(newExaminer);
+            } catch (TestFailure e) {
+                // Abort the test.
+                throw e;
+            } catch (Exception e) {
+                // Record the exception in the context of the new
+                // examiner, providing details about the examined
+                // value.
+                t.recordException(newExaminer, e);
+            }
+        }
+        return this;
+    }
+
+    @Override
     public Examiner<T> inspect(Consumer<? super T> consumer) {
         if (barrier)
             return this;

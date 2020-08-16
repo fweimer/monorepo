@@ -89,8 +89,21 @@ public interface Examiner<T> {
      *   to the {@code int} value for the new examiner
      * @return the new examiner
      * @see #map(Function)
+     * @see #mapToInt(ToIntFunction,Consumer)
      */
     OfInt mapToInt(ToIntFunction<? super T> map);
+
+    /**
+     * Derives a new {@code int} examiner from this examiner.
+     * Examination of the old value continues after the consumer
+     * for the new examiner returns.
+     * @param map the function that converts this examiner's object
+     *   to the {@code int} value for the new examiner
+     * @param consumer the the consumer that receives the new examiner
+     * @return this object
+     * @see #mapToInt(ToIntFunction)
+     */
+    Examiner<T> mapToInt(ToIntFunction<? super T> map, Consumer<OfInt> consumer);
 
     /**
      * Inspects this examiner's value using a consumer.
