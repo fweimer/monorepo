@@ -298,5 +298,23 @@ public final class Checks {
         };
     }
 
+    /**
+     * Returns a check that tests if a string has the specified prefix.
+     * @param prefix the prefix string to check for
+     * @return a check for a string
+     * @throws NullPointerException if {@code prefix} is null
+     */
+    public static Check<String> startsWith(String prefix) {
+        Objects.requireNonNull(prefix, "prefix");
+        return string -> {
+            if (string == null)
+                return new Check.Failure("startsWith (not null)", prefix);
+            else if (string.startsWith(prefix))
+                return null;
+            else
+                return new Check.Failure("startsWith", prefix);
+        };
+    }
+
     private Checks() { }
 }
