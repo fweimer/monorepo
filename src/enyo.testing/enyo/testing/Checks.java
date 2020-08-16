@@ -102,6 +102,26 @@ public final class Checks {
     }
 
     /**
+     * Returns a check that tests if a collection contains a specific object.
+     * @param reference the object whose presence in the collection is checked
+     * @param <T> type of the collection elements
+     * @param <C> type of the collection
+     * @return a check for collections
+     * @throws NullPointerException if {@code reference} is null
+     */
+    public static <T, C extends Collection<T>> Check<C> contains(T reference) {
+        Objects.requireNonNull(reference);
+        return collection -> {
+            if (collection == null)
+                return new Check.Failure("contains (not null)", reference);
+            else if (collection.contains(reference))
+                return null;
+            else
+                return new Check.Failure("contains", reference);
+        };
+    }
+
+    /**
      * Returns a check that tests if a comparable object is less
      * than a specified object.
      * @param reference the reference object for this check
