@@ -83,6 +83,7 @@ public interface Testing {
      * @param message an information string to include in the error message
      * @param flag the flag to check
      */
+    @Deprecated
     void assertTrue(String message, boolean flag);
 
     /**
@@ -100,6 +101,7 @@ public interface Testing {
      * @param message an information string to include in the error message
      * @param flag the flag to check
      */
+    @Deprecated
     void assertFalse(String message, boolean flag);
 
     /**

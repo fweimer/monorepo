@@ -89,6 +89,7 @@ public final class Testing implements enyo.testing.Testing {
     }
 
     @Override
+    @Deprecated
     public void assertTrue(String message, boolean flag) {
         if (!flag) {
             failed = true;
@@ -127,6 +128,7 @@ public final class Testing implements enyo.testing.Testing {
     }
 
     @Override
+    @Deprecated
     public void assertFalse(String message, boolean flag) {
         if (flag) {
             failed = true;
