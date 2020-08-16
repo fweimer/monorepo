@@ -504,6 +504,234 @@ public final class TestIntExaminer {
         t.failedCheck("mark: mapToObj5");
     }
 
+    @Test
+    public void testMapToObjConsumer(Testing t) {
+        List<Recorder.Call> history;
+
+        // Null function.
+        history = Helpers.testHistory(t, getClass(), "mapToObjConsumer1");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        Recorder.examineFailure(t.examine(history.get(0)),
+            check -> check.is("mapToObj (not null)"),
+            context -> context.is(List.of(new Examined(null, 17))),
+            objects -> objects
+            .test(array -> array.length == 2)
+            .test(array -> array[0] == null)
+            .test(array -> array[1] instanceof Consumer));
+
+        // Null consumer.
+        history = Helpers.testHistory(t, getClass(), "mapToObjConsumer2");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        Recorder.examineFailure(t.examine(history.get(0)),
+            check -> check.is("mapToObj (not null)"),
+            context -> context.is(List.of(new Examined(null, 17))),
+            objects -> objects
+            .test(array -> array.length == 2)
+            .test(array -> array[0] instanceof IntFunction)
+            .test(array -> array[1] == null));
+
+        // Null function and null consumer.
+        history = Helpers.testHistory(t, getClass(), "mapToObjConsumer3");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        Recorder.examineFailure(t.examine(history.get(0)),
+            check -> check.is("mapToObj (not null)"),
+            context -> context.is(List.of(new Examined(null, 17))),
+            objects ->  objects.check(Checks.arrayEquals(null, null)));
+
+        // Exception in function.
+        history = Helpers.testHistory(
+            t, getClass(), "mapToObjConsumer4");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(3);
+        Recorder.examineException(t.examine(history.get(0)),
+            context -> context.is(List.of(new Examined("context1", 17))),
+            phase -> phase.is(ExceptionPhase.EXAMINER),
+            exception -> exception
+            .isExactClass(UnsupportedOperationException.class)
+            .map(Throwable::getMessage)
+            .is("expected"));
+        Recorder.examineFailure(t.examine(history.get(1)),
+            check -> check.is("=="),
+            context -> context.is(List.of(new Examined("context1", 17))),
+            objects -> objects.check(Checks.arrayEquals(18)));
+
+        // Exception in consumer.
+        history = Helpers.testHistory(t, getClass(), "mapToObjConsumer5");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(3);
+        Recorder.examineException(t.examine(history.get(0)),
+            context -> context.is(
+                List.of(
+                    new Examined("context1", 17),
+                    new Examined(null, "17"))),
+            phase -> phase.is(ExceptionPhase.EXAMINER),
+            exception -> exception
+            .isExactClass(UnsupportedOperationException.class)
+            .map(Throwable::getMessage)
+            .is("expected"));
+        Recorder.examineFailure(t.examine(history.get(1)),
+            check -> check.is("=="),
+            context -> context.is(List.of(new Examined("context1", 17))),
+            objects -> objects.check(Checks.arrayEquals(19)));
+
+        // Ignored barrier exception in function.
+        history = Helpers.testHistory(t, getClass(), "mapToObjConsumer6");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        Recorder.examineFailure(t.examine(history.get(0)),
+            check -> check.is("equals"),
+            context -> context.is(List.of(new Examined(null, true))),
+            objects -> objects.check(Checks.arrayEquals(false)));
+
+        // Ignored test failure exception in function.
+        history = Helpers.testHistory(
+            t, getClass(), "mapToObjConsumer7");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        Recorder.examineException(t.examine(history.get(0)),
+            context -> context.check(Checks.empty()),
+            phase -> phase.is(ExceptionPhase.EXECUTION),
+            exception -> exception
+            .isExactClass(TestFailure.class)
+            .map(Throwable::getMessage)
+            .is("expected"));
+
+        // Ignored barrier exception in consumer.
+        history = Helpers.testHistory(
+            t, getClass(), "mapToObjConsumer8");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        Recorder.examineFailure(t.examine(history.get(0)),
+            check -> check.is("equals"),
+            context -> context.is(List.of(new Examined(null, true))),
+            objects -> objects.check(Checks.arrayEquals(false)));
+
+        // Ignored test failure exception in consumer.
+        history = Helpers.testHistory(
+            t, getClass(), "mapToObjConsumer9");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        Recorder.examineException(t.examine(history.get(0)),
+            context -> context.check(Checks.empty()),
+            phase -> phase.is(ExceptionPhase.EXECUTION),
+            exception -> exception
+            .isExactClass(TestFailure.class)
+            .map(Throwable::getMessage)
+            .is("expected"));
+
+        // Working barrier.
+        history = Helpers.testHistory(
+            t, getClass(), "mapToObjConsumer10");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(3);
+        Recorder.examineFailure(t.examine(history.get(0)),
+            check -> check.is("=="),
+            context -> context.is(List.of(new Examined("context1", 17))),
+            objects -> objects.check(Checks.arrayEquals(18)));
+        Recorder.examineFailure(t.examine(history.get(1)),
+            check -> check.is("mark: mapToObjConsumer10"),
+            context -> context.check(Checks.empty()),
+            objects -> objects.check(Checks.arrayEquals()));
+    }
+
+    @Test
+    public void mapToObjConsumer0(Testing t) {
+        t.examine(17)
+            .mapToObj(Integer::toString, e -> e.is("17"))
+            .is(17);
+    }
+
+    public void mapToObjConsumer1(Testing t) {
+        t.examine(17)
+            .mapToObj(null, e -> e.is(18))
+            .is(17);
+    }
+
+    public void mapToObjConsumer2(Testing t) {
+        t.examine(17)
+            .mapToObj(Integer::toString, null)
+            .is(17);
+    }
+
+    public void mapToObjConsumer3(Testing t) {
+        t.examine(17)
+            .mapToObj(null, null)
+            .is(17);
+    }
+
+    public void mapToObjConsumer4(Testing t) {
+        t.examine(17)
+            .context("context1")
+            .mapToObj(
+                s -> { throw new UnsupportedOperationException("expected"); },
+                e -> t.assertFail("unreachable"))
+            .is(18);
+    }
+
+    public void mapToObjConsumer5(Testing t) {
+        t.examine(17)
+            .context("context1")
+            .mapToObj(Integer::toString, e -> {
+                    e.is("17");
+                    throw new UnsupportedOperationException("expected");
+                })
+            .is(19);
+    }
+
+    public void mapToObjConsumer6(Testing t) {
+        t.examine(17)
+            .context("context1")
+            .mapToObj(s -> {
+                    t.examine(true).is(false);
+                    t.fullBarrier();
+                    return null;
+                },
+                e -> t.assertFail("unreachable"))
+            .is(18);
+    }
+
+    public void mapToObjConsumer7(Testing t) {
+        t.examine(17)
+            .context("context1")
+            .mapToObj(s -> {
+                    t.assertFail("expected");
+                    return null;
+                },
+                e -> t.assertFail("unreachable"))
+            .is(18);
+    }
+
+    public void mapToObjConsumer8(Testing t) {
+        t.examine(17)
+            .context("context1")
+            .mapToObj(Integer::toString,
+                e -> {
+                    e.is("17");
+                    t.examine(true).is(false);
+                    t.fullBarrier();
+                })
+            .is(19);
+    }
+
+    public void mapToObjConsumer9(Testing t) {
+        t.examine(17)
+            .context("context1")
+            .mapToObj(Integer::toString, e -> t.assertFail("expected"))
+            .is(18);
+    }
+
+    public void mapToObjConsumer10(Testing t) {
+        t.examine(17)
+            .context("context1")
+            .is(18)
+            .barrier()
+            .mapToObj(Integer::toString, e -> t.assertFail("unreachable"))
+            .is(19);
+        t.failedCheck("mark: mapToObjConsumer10");
+    }
 
     @Test
     public void testInspect(Testing t) {

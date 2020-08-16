@@ -292,8 +292,25 @@ public interface Examiner<T> {
          * @param <T> the object type of the new examiner
          * @return the new object examiner
          * @see #map(Function)
+         * @see #mapToObj(IntFunction,Consumer)
          */
         <T> Examiner<T> mapToObj(IntFunction<? extends T> map);
+
+        /**
+         * Derives a new object examiner from this examiner.
+         * Examination of the old value continues after the consumer
+         * for the new examiner returns.
+         * @param map the function that converts this examiner's value
+         *   to the object for the new examiner
+         * @param consumer the consumer that receives
+         *   the new object examiner
+         * @param <T> the object type of the new examiner
+         * @return this object
+         * @see #map(IntUnaryOperator,Consumer)
+         * @see #mapToObj(IntFunction)
+         */
+        <T> OfInt mapToObj(IntFunction<? extends T> map,
+            Consumer<Examiner<T>> consumer);
 
         /**
          * Inspects this examiner's value using a consumer.
