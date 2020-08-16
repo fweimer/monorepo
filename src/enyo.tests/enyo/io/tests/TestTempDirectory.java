@@ -17,10 +17,10 @@ public class TestTempDirectory {
         try (TempDirectory dir = TempDirectory.withPrefix(
                 "test-tempdir-")) {
             path = dir.path();
-            t.assertTrue(Files.exists(path));
+            t.examine(path).test(Files::exists);
             t.examine(path.toString()).is(dir.toString());
         }
-        t.assertFalse(Files.exists(path));
+        t.examine(path).testNot(Files::exists);
     }
 
     @Test
@@ -29,11 +29,11 @@ public class TestTempDirectory {
         try (TempDirectory dir = TempDirectory.withPrefix(
                 "test-tempdir-")) {
             path = dir.path();
-            t.assertTrue(Files.exists(path));
+            t.examine(path).test(Files::exists);
             Path file = path.resolve("file");
             Files.write(file, "data".getBytes());
         }
-        t.assertFalse(Files.exists(path));
+        t.examine(path).testNot(Files::exists);
     }
 
     private static void testHierarchy(Testing t, boolean withThrow)
@@ -49,7 +49,7 @@ public class TestTempDirectory {
             try (TempDirectory dir = TempDirectory.withPrefix(
                     "test-tempdir-")) {
                 path = dir.path();
-                t.assertTrue(Files.exists(path));
+                t.examine(path).test(Files::exists);
 
                 String[] names = {
                     "file",
@@ -80,7 +80,7 @@ public class TestTempDirectory {
         } catch (Marker m) {
             t.examine(thrown).isSame(m);
         }
-        t.assertFalse(Files.exists(path));
+        t.examine(path).testNot(Files::exists);
     }
 
     @Test
@@ -101,7 +101,7 @@ public class TestTempDirectory {
                     TempDirectory.withPrefix("enyo-TestTempDirectory-");
             };
         Path path = helper.dir.path();
-        t.assertTrue(Files.isDirectory(path));
+        t.examine(path).test(Files::isDirectory);
         helper.dir = null;
         // The TempDirectory object should be eligible for garbage
         // collection after this point.  Wait for at most 60 seconds.
@@ -114,6 +114,6 @@ public class TestTempDirectory {
                 System.gc();
             Thread.sleep(100);
         }
-        t.assertFalse(path.toString(), Files.exists(path));
+        t.examine(path).testNot(Files::exists);
     }
 }
