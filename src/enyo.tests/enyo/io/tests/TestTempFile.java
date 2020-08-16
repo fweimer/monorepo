@@ -1,6 +1,7 @@
 package enyo.io.tests;
 
 import enyo.io.TempFile;
+import enyo.testing.Checks;
 import enyo.testing.Cost;
 import enyo.testing.Test;
 import enyo.testing.Testing;
@@ -19,9 +20,9 @@ public final class TestTempFile {
         Path path = Files.createTempFile("enyo-TestTempFile-", ".tmp");
         try (TempFile file = TempFile.of(path)) {
             t.examine(file.path()).is(path);
-            t.assertTrue(path.toString(), Files.exists(path));
+            t.examine(path).test(Files::exists);
         }
-        t.assertFalse(path.toString(), Files.exists(path));
+        t.examine(path).testNot(Files::exists);
     }
 
     @Test
@@ -37,9 +38,9 @@ public final class TestTempFile {
         Path path;
         try (TempFile file = TempFile.create("enyo-TestTempFile-", ".tmp")) {
             path = file.path();
-            t.assertTrue(path.toString(), Files.exists(path));
+            t.examine(path).test(Files::exists);
         }
-        t.assertFalse(path.toString(), Files.exists(path));
+        t.examine(path).testNot(Files::exists);
     }
 
     @Test
@@ -50,13 +51,13 @@ public final class TestTempFile {
             TempFile file =
                 TempFile.create(tempDir, "enyo-TestTempFile-", ".tmp");
             Path path = file.path();
-            t.assertTrue(Files.exists(path));
+            t.examine(path).test(Files::exists);
             file.close(); // First call.
-            t.assertFalse(Files.exists(path));
+            t.examine(path).testNot(Files::exists);
             Files.writeString(path, "");
-            t.assertTrue(Files.exists(path));
+            t.examine(path).test(Files::exists);
             file.close(); // Second call.
-            t.assertTrue(Files.exists(path));
+            t.examine(path).test(Files::exists);
             Files.delete(path);
         } finally {
             Files.delete(tempDir);
@@ -70,7 +71,7 @@ public final class TestTempFile {
         try (TempFile file = TempFile.create("enyo-TestTempFile-", ".tmp")) {
             Path path = file.path();
             Files.delete(path);
-            t.assertFalse(Files.exists(path));
+            t.examine(path).testNot(Files::exists);
         }
     }
 
@@ -107,15 +108,15 @@ public final class TestTempFile {
                 tempDir, "enyo-TestTempFile-", ".tmp");
             Path path = file.path();
             try {
-                t.assertTrue(Files.exists(path));
+                t.examine(path).test(Files::exists);
                 Files.setPosixFilePermissions(tempDir, Set.of());
-                t.assertFalse(Files.exists(path));
+                t.examine(path).testNot(Files::exists);
                 t.expect(() -> file.close(),
                     AccessDeniedException.class,
                     e -> t.examine(e.getMessage()).is(path.toString()));
             } finally {
                 Files.setPosixFilePermissions(tempDir, perms);
-                t.assertTrue(Files.exists(path));
+                t.examine(path).test(Files::exists);
                 Files.delete(path);
             }
         } finally {
@@ -130,17 +131,18 @@ public final class TestTempFile {
             String suffix = "-" + i + ".tmp";
             try (TempFile file = TempFile.create(prefix, suffix)) {
                 String fileName = file.path().getFileName().toString();
-                t.assertTrue(file.toString(), fileName.startsWith(prefix));
-                t.assertTrue(file.toString(), fileName.endsWith(suffix));
+                t.examine(fileName)
+                    .check(Checks.startsWith(prefix))
+                    .check(Checks.endsWith(suffix));
             }
             Path tempDir = Files.createTempDirectory("Enyo-TestTempFile-");
             try {
                 try (TempFile file = TempFile.create(
                         tempDir, prefix, suffix)) {
                     String fileName = file.path().getFileName().toString();
-                    t.assertTrue(file.toString(), fileName.startsWith(prefix));
-                    t.assertTrue(file.toString(), fileName.endsWith(suffix));
-                    t.examine(tempDir.resolve(fileName)).is(file.path());
+                    t.examine(fileName)
+                        .check(Checks.startsWith(prefix))
+                        .check(Checks.endsWith(suffix));
                 }
             } finally {
                 Files.delete(tempDir);
@@ -156,7 +158,7 @@ public final class TestTempFile {
                     TempFile.create("enyo-TestTempFile-", ".tmp");
             };
         Path path = helper.file.path();
-        t.assertTrue(Files.exists(path));
+        t.examine(path).test(Files::exists);
         helper.file = null;
         // The TempFile object should be eligible for garbage
         // collection after this point.  Wait for at most 60 seconds.
@@ -169,6 +171,6 @@ public final class TestTempFile {
                 System.gc();
             Thread.sleep(100);
         }
-        t.assertFalse(path.toString(), Files.exists(path));
+        t.examine(path).testNot(Files::exists);
     }
 }
