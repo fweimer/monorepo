@@ -6,6 +6,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.tools.JavaCompiler;
@@ -57,18 +58,43 @@ public final class Bootstrap {
      * @throws IOException if an I/O error occurs
      */
     private static int bootstrapBuild(Path targetPath) throws IOException {
-        removeTree(targetPath);
-        Files.createDirectories(targetPath);
+        HashSet<String> modules = new HashSet<>();
+        modules.add(BUILD_MODULE);
 
-        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-        return compiler.run(InputStream.nullInputStream(),
-            System.out, System.err,
-            new String[] {
-                "-g",
-                "-d", targetPath.toString(),
-                "--module-source-path", "src",
-                "--module", BUILD_MODULE,
-            });
+        // Multiple bootstrap iterations are necessary to discover
+        // module dependencies.  The compiler builds referenced
+        // modules only partially, and those modules are not
+        // necessarily fully functional.
+        while (true) {
+            removeTree(targetPath);
+            Files.createDirectories(targetPath);
+
+            String modulesArgument = modules.stream()
+                .collect(Collectors.joining(","));
+
+            JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+            int status = compiler.run(InputStream.nullInputStream(),
+                System.out, System.err,
+                new String[] {
+                    "-g",
+                    "-d", targetPath.toString(),
+                    "--module-source-path", "src",
+                    "--module", modulesArgument,
+                });
+            if (status != 0)
+                return status;
+
+            // Pick up the newly built modules.
+            int previousModulesCount = modules.size();
+            Files.list(targetPath)
+                .filter(Files::isDirectory)
+                .map(Path::getFileName)
+                .map(Path::toString)
+                .forEach(modules::add);
+            if (previousModulesCount >= modules.size())
+                // No more modules were discoved.
+                return 0;
+        }
     }
 
     private static void tryToRebootstrap(Path targetPath) throws IOException {

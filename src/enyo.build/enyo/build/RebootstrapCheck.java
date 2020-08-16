@@ -60,27 +60,15 @@ final class RebootstrapCheck {
             else
                 throw e;
         }
-        // Only check that the classes contained in the bootstrap
-        // build are unchanged.  The bootstrap build only contains a
-        // full set of classes for enyo.build; classes in other
-        // modules are only if they are needed by enyo.build and its
-        // dependencies.  Since the set of needed classes can only
-        // change as the result of a class from enyo.build or its
-        // dependencies, that change triggers a rebuild, and a
-        // bootstrap build with the new dependency.
+        if (currentClasses.size() != bootstrapClasses.size())
+            // Classes have been deleted or added.
+            return false;
         return currentClasses.stream()
             .allMatch(IOPredicate.of(path -> {
                         Path relpath = root.relativize(path);
                         FileDigest expected = bootstrapClasses.get(relpath);
-                        if (expected == null)
-                            // Not present in the bootstrap build.
-                            // Changes to such classes cannot affect
-                            // the bootstrap result unless there are
-                            // other changes (see above).
-                            return true;
-                        else
-                            // Classes part of the boostrap must match.
-                            return fileDigest(path).equals(expected);
+                        return expected != null
+                            && fileDigest(path).equals(expected);
                     }));
     }
 
