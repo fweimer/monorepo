@@ -783,7 +783,7 @@ public final class TestObjectExaminer {
         t.examine("string1")
             .is("string2")
             .barrier()
-            .inspect(s -> counter.increment())
+            .inspect(String.class, s -> counter.increment())
             .is("string3");
         t.examine(counter.value()).is(0);
     }
@@ -794,11 +794,12 @@ public final class TestObjectExaminer {
         var c2 = t.counter();
         t.examine("string1")
             .is("string1")
-            .inspect(s -> {
+            .inspect(String.class, s -> {
                     c1.increment();
                     throw new UnsupportedOperationException("expected");
                 })
-            .inspect(s -> c2.increment()); // Should still be called.
+            .inspect(String.class,
+                s -> c2.increment()); // Should still be called.
         c1.checkTarget();
         c2.checkTarget();
         t.failedCheck("mark: inspectClass2");
@@ -896,7 +897,10 @@ public final class TestObjectExaminer {
         t.examine("string1")
             .is("string2")
             .barrier()
-            .inspect(s -> counter.increment())
+            .test(s -> {
+                    counter.increment();
+                    return true;
+                })
             .is("string3");
         t.examine(counter.value()).is(0);
         t.failedCheck("mark: testPredicate1");
@@ -1245,7 +1249,10 @@ public final class TestObjectExaminer {
         t.examine("string1")
             .is("string2")
             .barrier()
-            .inspect(s -> counter.increment())
+            .test("my check", s -> {
+                    counter.increment();
+                    return true;
+                })
             .is("string3");
         t.examine(counter.value()).is(0);
         t.failedCheck("mark: testPredicateDescription1");
