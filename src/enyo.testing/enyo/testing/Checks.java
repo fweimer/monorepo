@@ -10,6 +10,8 @@ import java.util.Objects;
 public final class Checks {
     /**
      * Returns a check for an array containing the specified elements.
+     * The array type is not checked.  For this, see
+     * {@link Examiner#isExactClass(Class)}.
      * @param objects the expected array elements (which can be null)
      * @param <T> the type of array elements
      * @return a check for arrays
