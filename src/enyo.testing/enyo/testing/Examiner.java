@@ -101,6 +101,14 @@ public interface Examiner<T> {
     Examiner<T> test(Predicate<? super T> predicate);
 
     /**
+     * Checks that the examined value does not match the predicate.
+     * A test failure is reported if {@code predicate} returns true.
+     * @param predicate the predicate to evaluate at the test value (not null)
+     * @return this object
+     */
+    Examiner<T> testNot(Predicate<? super T> predicate);
+
+    /**
      * Checks that the examined value matches the predicate.
      * A test failure is reported if {@code predicate} returns false.
      * <p>Good check descriptions describe the test expectation

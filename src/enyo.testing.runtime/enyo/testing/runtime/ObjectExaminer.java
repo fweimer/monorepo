@@ -202,6 +202,29 @@ class ObjectExaminer<T> extends ExaminerBase implements Examiner<T> {
     }
 
     @Override
+    public Examiner<T> testNot(Predicate<? super T> predicate) {
+        if (barrier)
+            return this;
+        if (predicate == null)
+            failure("testNot predicate (not null)");
+        else {
+            boolean result;
+            try {
+                result = predicate.test(value);
+            } catch (TestFailure e) {
+                // Abort the test.
+                throw e;
+            } catch (Exception e) {
+                t.recordException(this, e);
+                return this;
+            }
+            if (result)
+                failure("testNot predicate");
+        }
+        return this;
+    }
+
+    @Override
     public Examiner<T> test(String check, Predicate<? super T> predicate) {
         if (barrier)
             return this;
