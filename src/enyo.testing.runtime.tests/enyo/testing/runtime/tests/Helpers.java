@@ -61,9 +61,7 @@ public final class Helpers {
         Optional<? extends Recorder.Call> last = history.stream()
             .reduce((previousLast, current) -> current);
         t.examine(last).isnt(Optional.empty());
-        t.fullBarrier();
         t.examine(last.get()).isExactClass(Recorder.Completed.class);
-        t.fullBarrier();
         return ((Recorder.Completed) last.get()).success;
     }
 
