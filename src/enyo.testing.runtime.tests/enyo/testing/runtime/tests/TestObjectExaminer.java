@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.ToIntFunction;
 
 public final class TestObjectExaminer {
     @Test
@@ -752,6 +753,142 @@ public final class TestObjectExaminer {
             .map(String.class, e -> t.assertFail("unreachable"))
             .is("string3");
         t.failedCheck("mark: mapClassConsumer10");
+    }
+
+    @Test
+    public void testMapToInt(Testing t) {
+        List<Recorder.Call> history;
+        Recorder.Failure failure;
+
+        history = Helpers.testHistory(t, TestObjectExaminer.class, "mapToInt1");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        t.examine(history.get(0)).isExactClass(Recorder.Failure.class);
+        failure = (Recorder.Failure) history.get(0);
+        t.examine(failure.check).is("mapToInt (not null)");
+        t.examine(failure.context).is(List.of(new Examined(null, "string1")));
+        t.assertTrue(Arrays.equals(failure.otherObjects, new Object[] { null }));
+
+        history = Helpers.testHistory(t, TestObjectExaminer.class, "mapToInt2");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        t.examine(history.get(0)).isExactClass(Recorder.Exception.class);
+        Recorder.Exception exception = (Recorder.Exception) history.get(0);
+        t.examine(exception.context)
+            .is(List.of(new Examined("context1", "string1")));
+        t.examine(exception.phase).is(ExceptionPhase.EXAMINER);
+        t.examine(exception.exception)
+            .isExactClass(UnsupportedOperationException.class);
+        t.examine(exception.exception.getMessage()).is("expected");
+
+        // Check that TestAlreadyFailed from the mapping function is
+        // not recorded separately.
+        history = Helpers.testHistory(t, TestObjectExaminer.class, "mapToInt3");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        t.examine(history.get(0)).isExactClass(Recorder.Failure.class);
+        failure = (Recorder.Failure) history.get(0);
+        t.examine(failure.check).is("equals");
+        t.examine(failure.context).is(List.of(new Examined(null, true)));
+        t.assertTrue(Arrays.equals(
+                failure.otherObjects, new Object[] { false }));
+
+        // Check that TestFailure from the mapping function is
+        // not recorded separately.
+        history = Helpers.testHistory(t, TestObjectExaminer.class, "mapToInt4");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        t.examine(history.get(0)).isExactClass(Recorder.Exception.class);
+        exception = (Recorder.Exception) history.get(0);
+        t.examine(exception.context).is(List.of());
+        t.examine(exception.phase).is(ExceptionPhase.EXECUTION);
+        t.examine(exception.exception)
+            .isExactClass(TestFailure.class);
+        t.examine(exception.exception.getMessage()).is("expected");
+
+        // Working barrier.
+        history = Helpers.testHistory(
+            t, TestObjectExaminer.class, "mapToInt5");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(3);
+        t.examine(history.get(0)).isExactClass(Recorder.Failure.class);
+        failure = (Recorder.Failure) history.get(0);
+        t.examine(failure.check).is("equals");
+        t.examine(failure.context).is(
+            List.of(new Examined("context1", "string1")));
+        t.examine(failure.otherObjects.length).is(1);
+        t.examine(failure.otherObjects[0]).is("string2");
+        t.examine(history.get(1)).isExactClass(Recorder.Failure.class);
+        failure = (Recorder.Failure) history.get(1);
+        t.examine(failure.check).is("mark: mapToInt5");
+    }
+
+    @Test
+    public void mapToInt0(Testing t) {
+        t.examine((Integer) 17)
+            .mapToInt(i -> i + 1)
+            .is(18);
+    }
+
+    public void mapToInt1(Testing t) {
+        t.examine("string1")
+            .mapToInt((ToIntFunction<Object>) null)
+            .is(17);
+    }
+
+    public void mapToInt2(Testing t) {
+        t.examine("string1")
+            .context("context1")
+            .mapToInt(
+                s -> { throw new UnsupportedOperationException("expected"); })
+            .is(17);
+    }
+
+    public void mapToInt3(Testing t) {
+        t.examine("string1")
+            .context("context1")
+            .mapToInt(s -> {
+                    t.examine(true).is(false);
+                    t.fullBarrier();
+                    return 17; // Not reached.
+                })
+            .is(17);
+    }
+
+    public void mapToInt4(Testing t) {
+        t.examine("string1")
+            .context("context1")
+            .mapToInt(s -> {
+                    t.assertFail("expected");
+                    return 17; // Not reached.
+                })
+            .is(17);
+    }
+
+    public void mapToInt5(Testing t) {
+        t.examine("string1")
+            .context("context1")
+            .is("string2")
+            .barrier()
+            .mapToInt(s -> {
+                    t.assertFail("unreachable");
+                    return 17;
+                })
+            .is(17);
+        t.failedCheck("mark: mapToInt5");
+    }
+
+    @Test
+    public void mapToInt6(Testing t) {
+        var counter = t.counter();
+        t.examine((Integer) null)
+            .mapToInt(s -> {
+                    counter.increment();
+                    t.examine(s).isNull();
+                    return 17;
+                })
+            .is(17);
+        counter.checkTarget();
     }
 
     @Test

@@ -3,6 +3,7 @@ package enyo.testing;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.ToIntFunction;
 
 /**
  * Wrapper for an object reference that is being examined during a test.
@@ -81,6 +82,15 @@ public interface Examiner<T> {
      * @see #map(Class)
      */
     <U extends T> Examiner<T> map(Class<U> cls, Consumer<Examiner<U>> consumer);
+
+    /**
+     * Derives a new {@code int} examiner from this examiner.
+     * @param map the function that converts this examiner's object
+     *   to the {@code int} value for the new examiner
+     * @return the new examiner
+     * @see #map(Function)
+     */
+    OfInt mapToInt(ToIntFunction<? super T> map);
 
     /**
      * Inspects this examiner's value using a consumer.

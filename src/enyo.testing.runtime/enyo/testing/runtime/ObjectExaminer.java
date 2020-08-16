@@ -8,6 +8,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.ToIntFunction;
 
 class ObjectExaminer<T> extends ExaminerBase implements Examiner<T> {
     final T value;
@@ -157,6 +158,30 @@ class ObjectExaminer<T> extends ExaminerBase implements Examiner<T> {
             }
         }
         return this;
+    }
+
+    @Override
+    public Examiner.OfInt mapToInt(ToIntFunction<? super T> map) {
+        if (barrier)
+            return forceFailed(new IntExaminer(t, this, 0));
+        if (map == null) {
+            failure("mapToInt (not null)", map);
+            return forceFailed(new IntExaminer(t, this, 0));
+        } else {
+            int newValue ;
+            try {
+                newValue = map.applyAsInt(value);
+            } catch (TestFailure e) {
+                // Abort the test.
+                throw e;
+            } catch (Exception e) {
+                // Do not catch errors here, assuming that they should
+                // be fatal.
+                t.recordException(this, e);
+                return forceFailed(new IntExaminer(t, this, 0));
+            }
+            return transfer(new IntExaminer(t, this, newValue));
+        }
     }
 
     @Override
