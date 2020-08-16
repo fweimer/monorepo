@@ -409,6 +409,98 @@ public final class TestIntExaminer {
     }
 
     @Test
+    public void testInspect(Testing t) {
+        List<Recorder.Call> history;
+
+        // Test that the barrier is effective.
+        history = Helpers.testHistory(t, getClass(), "inspect1");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(3);
+        Recorder.examineFailure(t.examine(history.get(0)),
+            check -> check.is("=="),
+            context -> context.is(List.of(new Examined(null, 17))),
+            objects -> objects.check(Checks.arrayEquals(18)));
+        Recorder.examineFailure(t.examine(history.get(1)),
+            check -> check.is("mark: inspect1"),
+            context -> context.check(Checks.empty()),
+            objects -> objects.check(Checks.arrayEquals()));
+
+        history = Helpers.testHistory(t, getClass(), "inspect2");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(3);
+        Recorder.examineException(t.examine(history.get(0)),
+            context -> context.is(List.of(new Examined(null, 17))),
+            phase -> phase.is(ExceptionPhase.EXAMINER),
+            exception -> exception
+            .isExactClass(UnsupportedOperationException.class)
+            .map(Throwable::getMessage)
+            .is("expected"));
+        Recorder.examineFailure(t.examine(history.get(1)),
+            check -> check.is("mark: inspect2"),
+            context -> context.check(Checks.empty()),
+            objects -> objects.check(Checks.arrayEquals()));
+
+        history = Helpers.testHistory(t, getClass(), "inspect3");
+        Recorder.examineFailure(t.examine(history.get(0)),
+            check -> check.is("inspect (not null)"),
+            context -> context.is(List.of(new Examined(null, 17))),
+            objects -> objects.check(Checks.arrayEquals((Object) null)));
+        Recorder.examineFailure(t.examine(history.get(1)),
+            check -> check.is("mark: inspect3"),
+            context -> context.check(Checks.empty()),
+            objects -> objects.check(Checks.arrayEquals()));
+    }
+
+    @Test
+    public void inspect0(Testing t) {
+        var counter = t.counter();
+        t.examine(17)
+            .map(i -> i + 1)
+            .inspect(s -> {
+                    t.examine(s).is(18);
+                    counter.increment();
+                })
+            .is(18);
+        counter.checkTarget();
+    }
+
+    public void inspect1(Testing t) {
+        var counter = t.counter();
+        t.examine(17)
+            .is(18)
+            .barrier()
+            .inspect(s -> counter.increment())
+            .is(19);
+        t.examine(counter.value()).is(0);
+        t.failedCheck("mark: inspect1");
+    }
+
+    public void inspect2(Testing t) {
+        var c1 = t.counter();
+        var c2 = t.counter();
+        t.examine(17)
+            .is(17)
+            .inspect(s -> {
+                    c1.increment();
+                    throw new UnsupportedOperationException("expected");
+                })
+            .inspect(s -> c2.increment()); // Should still be called.
+        c1.checkTarget();
+        c2.checkTarget();
+        t.failedCheck("mark: inspect2");
+    }
+
+    public void inspect3(Testing t) {
+        var c1 = t.counter();
+        t.examine(17)
+            .is(17)
+            .inspect(null)
+            .inspect(s -> c1.increment()); // Should still be called.
+        c1.checkTarget();
+        t.failedCheck("mark: inspect3");
+    }
+
+    @Test
     public void testIs(Testing t) {
         List<Recorder.Call> history;
         Recorder.Failure failure;

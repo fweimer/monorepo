@@ -5,6 +5,7 @@ import enyo.testing.TestFailure;
 
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 import java.util.function.IntUnaryOperator;
 
 class IntExaminer extends ExaminerBase implements Examiner.OfInt {
@@ -87,6 +88,25 @@ class IntExaminer extends ExaminerBase implements Examiner.OfInt {
                 // examiner, providing details about the examined
                 // value.
                 t.recordException(newExaminer, e);
+            }
+        }
+        return this;
+    }
+
+    @Override
+    public Examiner.OfInt inspect(IntConsumer consumer) {
+        if (barrier)
+            return this;
+        if (consumer == null)
+            failureWithObjects("inspect (not null)", consumer);
+        else {
+            try {
+                consumer.accept(value);
+            } catch (TestFailure e) {
+                // Abort the test.
+                throw e;
+            } catch (Exception e) {
+                t.recordException(this, e);
             }
         }
         return this;
