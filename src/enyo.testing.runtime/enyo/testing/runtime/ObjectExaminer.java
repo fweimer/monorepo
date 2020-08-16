@@ -95,6 +95,33 @@ class ObjectExaminer<T> extends ExaminerBase implements Examiner<T> {
     }
 
     @Override
+    public <U extends T> Examiner<U> map(Class<U> cls) {
+        if (barrier)
+            return forceFailed(new ObjectExaminer<U>(t, this, null));
+        if (cls == null) {
+            failureWithObjects("map Class (not null)", cls);
+            return forceFailed(new ObjectExaminer<U>(t, this, null));
+        } else {
+            U newValue;
+            try {
+                newValue = cls.cast(value);
+            } catch (ClassCastException e) {
+                t.recordException(this, e);
+                return forceFailed(new ObjectExaminer<U>(t, this, null));
+            }
+            // Since we performed a cast, the value is unchanged, so
+            // base this examiner on this examiner's base, unless this
+            // examiner provides some context.
+            ExaminerBase newBase;
+            if (context == null)
+                newBase = base;
+            else
+                newBase = this;
+            return transfer(new ObjectExaminer<>(t, newBase, newValue));
+        }
+    }
+
+    @Override
     public <U extends T> Examiner<T> map(Class<U> cls,
         Consumer<Examiner<U>> consumer) {
         if (barrier)

@@ -200,7 +200,7 @@ public final class TestObjectExaminer {
 
     public void map1(Testing t) {
         t.examine("string1")
-            .map(null)
+            .map((Function<Object,Boolean>) null)
             .is(false);
     }
 
@@ -487,40 +487,16 @@ public final class TestObjectExaminer {
         t.examine(history.size()).is(2);
         t.examine(history.get(0)).isExactClass(Recorder.Failure.class);
         failure = (Recorder.Failure) history.get(0);
-        t.examine(failure.check).is("map (not null)");
+        t.examine(failure.check).is("map Class (not null)");
         t.examine(failure.context).is(List.of(new Examined(null, "string1")));
-        t.examine(failure.otherObjects.length).is(2);
+        t.examine(failure.otherObjects.length).is(1);
         t.examine(failure.otherObjects[0]).isNull();
-        t.assertTrue(failure.otherObjects[1] instanceof Consumer);
 
-        // Null consumer.
-        history = Helpers.testHistory(
-            t, TestObjectExaminer.class, "mapClass2");
-        t.examine(Helpers.isSuccess(t, history)).is(false);
-        t.examine(history.size()).is(2);
-        t.examine(history.get(0)).isExactClass(Recorder.Failure.class);
-        failure = (Recorder.Failure) history.get(0);
-        t.examine(failure.check).is("map (not null)");
-        t.examine(failure.context).is(List.of(new Examined(null, "string1")));
-        t.assertTrue(Arrays.equals(
-                failure.otherObjects, new Object[] { String.class, null }));
-
-        // Null class and null consumer.
-        history = Helpers.testHistory(
-            t, TestObjectExaminer.class, "mapClass3");
-        t.examine(Helpers.isSuccess(t, history)).is(false);
-        t.examine(history.size()).is(2);
-        t.examine(history.get(0)).isExactClass(Recorder.Failure.class);
-        failure = (Recorder.Failure) history.get(0);
-        t.examine(failure.check).is("map (not null)");
-        t.examine(failure.context).is(List.of(new Examined(null, "string1")));
-        t.assertTrue(Arrays.equals(failure.otherObjects, new Object[2]));
-
-        // Exception in function.
+        // Barrier after failed cast.
         history = Helpers.testHistory(
             t, TestObjectExaminer.class, "mapClass4");
         t.examine(Helpers.isSuccess(t, history)).is(false);
-        t.examine(history.size()).is(2);
+        t.examine(history.size()).is(3);
         t.examine(history.get(0)).isExactClass(Recorder.Exception.class);
         exception = (Recorder.Exception) history.get(0);
         t.examine(exception.context)
@@ -530,46 +506,9 @@ public final class TestObjectExaminer {
             .isExactClass(ClassCastException.class);
         t.examine(exception.exception.getMessage())
             .is("Cannot cast java.lang.String to java.lang.Integer");
-
-        // Exception in consumer.
-        history = Helpers.testHistory(
-            t, TestObjectExaminer.class, "mapClass5");
-        t.examine(Helpers.isSuccess(t, history)).is(false);
-        t.examine(history.size()).is(2);
-        t.examine(history.get(0)).isExactClass(Recorder.Exception.class);
-        exception = (Recorder.Exception) history.get(0);
-        t.examine(exception.context)
-            .is(List.of(new Examined("context1", "string1"),
-                    new Examined("context2", "string1")));
-        t.examine(exception.phase).is(ExceptionPhase.EXAMINER);
-        t.examine(exception.exception)
-            .isExactClass(UnsupportedOperationException.class);
-        t.examine(exception.exception.getMessage()).is("expected");
-
-        // Ignored barrier exception in consumer.
-        history = Helpers.testHistory(
-            t, TestObjectExaminer.class, "mapClass8");
-        t.examine(Helpers.isSuccess(t, history)).is(false);
-        t.examine(history.size()).is(2);
-        t.examine(history.get(0)).isExactClass(Recorder.Failure.class);
-        failure = (Recorder.Failure) history.get(0);
-        t.examine(failure.check).is("equals");
-        t.examine(failure.context).is(List.of(new Examined(null, true)));
-        t.assertTrue(Arrays.equals(
-                failure.otherObjects, new Object[] { false }));
-
-        // Ignored test failure exception in consumer.
-        history = Helpers.testHistory(
-            t, TestObjectExaminer.class, "mapClass9");
-        t.examine(Helpers.isSuccess(t, history)).is(false);
-        t.examine(history.size()).is(2);
-        t.examine(history.get(0)).isExactClass(Recorder.Exception.class);
-        exception = (Recorder.Exception) history.get(0);
-        t.examine(exception.context).is(List.of());
-        t.examine(exception.phase).is(ExceptionPhase.EXECUTION);
-        t.examine(exception.exception)
-            .isExactClass(TestFailure.class);
-        t.examine(exception.exception.getMessage()).is("expected");
+        t.examine(history.get(1)).isExactClass(Recorder.Failure.class);
+        failure = (Recorder.Failure) history.get(1);
+        t.examine(failure.check).is("mark: mapClass4");
 
         // Working barrier.
         history = Helpers.testHistory(
@@ -591,62 +530,22 @@ public final class TestObjectExaminer {
     @Test
     public void mapClass0(Testing t) {
         t.<Object>examine("string1")
-            .map(String.class, e -> e.map(String::length).is(7))
+            .map(String.class)
             .is("string1");
     }
 
     public void mapClass1(Testing t) {
         t.<Object>examine("string1")
-            .map((Class<String>) null, e -> e.is("string1"))
-            .is("string1");
-    }
-
-    public void mapClass2(Testing t) {
-        t.<Object>examine("string1")
-            .map(String.class, null)
-            .is("string1");
-    }
-
-    public void mapClass3(Testing t) {
-        t.<Object>examine("string1")
-            .map((Class<String>) null, null)
+            .map((Class<String>) null)
             .is("string1");
     }
 
     public void mapClass4(Testing t) {
         t.<Object>examine("string1")
             .context("context1")
-            .map(Integer.class, e -> t.assertFail("unreachable"))
-            .is("string1");
-    }
-
-    public void mapClass5(Testing t) {
-        t.<Object>examine("string1")
-            .context("context1")
-            .map(String.class,
-                e -> {
-                    e.context("context2");
-                    throw new UnsupportedOperationException("expected");
-                })
-            .is("string1");
-    }
-
-    public void mapClass8(Testing t) {
-        t.<Object>examine("string1")
-            .context("context1")
-            .map(String.class,
-                e -> {
-                    t.examine(true).is(false);
-                    t.fullBarrier();
-                })
-            .is("string1");
-    }
-
-    public void mapClass9(Testing t) {
-        t.<Object>examine("string1")
-            .context("context1")
-            .map(String.class, e -> t.assertFail("expected"))
-            .is("string1");
+            .map(Integer.class)
+            .inspect(e -> t.assertFail("unreachable"));
+        t.failedCheck("mark: mapClass4");
     }
 
     public void mapClass10(Testing t) {
@@ -657,6 +556,202 @@ public final class TestObjectExaminer {
             .map(String.class, e -> t.assertFail("unreachable"))
             .is("string3");
         t.failedCheck("mark: mapClass10");
+    }
+
+    @Test
+    public void mapClass11(Testing t) {
+        // Null examined value.
+        var counter = t.counter();
+        t.<Object>examine(null)
+            .map(String.class)
+            .inspect(e -> counter.increment())
+            .isNull();
+        counter.checkTarget();
+    }
+
+    @Test
+    public void testMapClassConsumer(Testing t) {
+        List<Recorder.Call> history;
+        Recorder.Failure failure;
+        Recorder.Exception exception;
+
+        // Null class.
+        history = Helpers.testHistory(
+            t, TestObjectExaminer.class, "mapClassConsumer1");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        t.examine(history.get(0)).isExactClass(Recorder.Failure.class);
+        failure = (Recorder.Failure) history.get(0);
+        t.examine(failure.check).is("map (not null)");
+        t.examine(failure.context).is(List.of(new Examined(null, "string1")));
+        t.examine(failure.otherObjects.length).is(2);
+        t.examine(failure.otherObjects[0]).isNull();
+        t.assertTrue(failure.otherObjects[1] instanceof Consumer);
+
+        // Null consumer.
+        history = Helpers.testHistory(
+            t, TestObjectExaminer.class, "mapClassConsumer2");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        t.examine(history.get(0)).isExactClass(Recorder.Failure.class);
+        failure = (Recorder.Failure) history.get(0);
+        t.examine(failure.check).is("map (not null)");
+        t.examine(failure.context).is(List.of(new Examined(null, "string1")));
+        t.assertTrue(Arrays.equals(
+                failure.otherObjects, new Object[] { String.class, null }));
+
+        // Null class and null consumer.
+        history = Helpers.testHistory(
+            t, TestObjectExaminer.class, "mapClassConsumer3");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        t.examine(history.get(0)).isExactClass(Recorder.Failure.class);
+        failure = (Recorder.Failure) history.get(0);
+        t.examine(failure.check).is("map (not null)");
+        t.examine(failure.context).is(List.of(new Examined(null, "string1")));
+        t.assertTrue(Arrays.equals(failure.otherObjects, new Object[2]));
+
+        // Exception in function.
+        history = Helpers.testHistory(
+            t, TestObjectExaminer.class, "mapClassConsumer4");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        t.examine(history.get(0)).isExactClass(Recorder.Exception.class);
+        exception = (Recorder.Exception) history.get(0);
+        t.examine(exception.context)
+            .is(List.of(new Examined("context1", "string1")));
+        t.examine(exception.phase).is(ExceptionPhase.EXAMINER);
+        t.examine(exception.exception)
+            .isExactClass(ClassCastException.class);
+        t.examine(exception.exception.getMessage())
+            .is("Cannot cast java.lang.String to java.lang.Integer");
+
+        // Exception in consumer.
+        history = Helpers.testHistory(
+            t, TestObjectExaminer.class, "mapClassConsumer5");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        t.examine(history.get(0)).isExactClass(Recorder.Exception.class);
+        exception = (Recorder.Exception) history.get(0);
+        t.examine(exception.context)
+            .is(List.of(new Examined("context1", "string1"),
+                    new Examined("context2", "string1")));
+        t.examine(exception.phase).is(ExceptionPhase.EXAMINER);
+        t.examine(exception.exception)
+            .isExactClass(UnsupportedOperationException.class);
+        t.examine(exception.exception.getMessage()).is("expected");
+
+        // Ignored barrier exception in consumer.
+        history = Helpers.testHistory(
+            t, TestObjectExaminer.class, "mapClassConsumer8");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        t.examine(history.get(0)).isExactClass(Recorder.Failure.class);
+        failure = (Recorder.Failure) history.get(0);
+        t.examine(failure.check).is("equals");
+        t.examine(failure.context).is(List.of(new Examined(null, true)));
+        t.assertTrue(Arrays.equals(
+                failure.otherObjects, new Object[] { false }));
+
+        // Ignored test failure exception in consumer.
+        history = Helpers.testHistory(
+            t, TestObjectExaminer.class, "mapClassConsumer9");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        t.examine(history.get(0)).isExactClass(Recorder.Exception.class);
+        exception = (Recorder.Exception) history.get(0);
+        t.examine(exception.context).is(List.of());
+        t.examine(exception.phase).is(ExceptionPhase.EXECUTION);
+        t.examine(exception.exception)
+            .isExactClass(TestFailure.class);
+        t.examine(exception.exception.getMessage()).is("expected");
+
+        // Working barrier.
+        history = Helpers.testHistory(
+            t, TestObjectExaminer.class, "mapClassConsumer10");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(3);
+        t.examine(history.get(0)).isExactClass(Recorder.Failure.class);
+        failure = (Recorder.Failure) history.get(0);
+        t.examine(failure.check).is("equals");
+        t.examine(failure.context).is(
+            List.of(new Examined("context1", "string1")));
+        t.examine(failure.otherObjects.length).is(1);
+        t.examine(failure.otherObjects[0]).is("string2");
+        t.examine(history.get(1)).isExactClass(Recorder.Failure.class);
+        failure = (Recorder.Failure) history.get(1);
+        t.examine(failure.check).is("mark: mapClassConsumer10");
+    }
+
+    @Test
+    public void mapClassConsumer0(Testing t) {
+        t.<Object>examine("string1")
+            .map(String.class, e -> e.map(String::length).is(7))
+            .is("string1");
+    }
+
+    public void mapClassConsumer1(Testing t) {
+        t.<Object>examine("string1")
+            .map((Class<String>) null, e -> e.is("string1"))
+            .is("string1");
+    }
+
+    public void mapClassConsumer2(Testing t) {
+        t.<Object>examine("string1")
+            .map(String.class, null)
+            .is("string1");
+    }
+
+    public void mapClassConsumer3(Testing t) {
+        t.<Object>examine("string1")
+            .map((Class<String>) null, null)
+            .is("string1");
+    }
+
+    public void mapClassConsumer4(Testing t) {
+        t.<Object>examine("string1")
+            .context("context1")
+            .map(Integer.class, e -> t.assertFail("unreachable"))
+            .is("string1");
+    }
+
+    public void mapClassConsumer5(Testing t) {
+        t.<Object>examine("string1")
+            .context("context1")
+            .map(String.class,
+                e -> {
+                    e.context("context2");
+                    throw new UnsupportedOperationException("expected");
+                })
+            .is("string1");
+    }
+
+    public void mapClassConsumer8(Testing t) {
+        t.<Object>examine("string1")
+            .context("context1")
+            .map(String.class,
+                e -> {
+                    t.examine(true).is(false);
+                    t.fullBarrier();
+                })
+            .is("string1");
+    }
+
+    public void mapClassConsumer9(Testing t) {
+        t.<Object>examine("string1")
+            .context("context1")
+            .map(String.class, e -> t.assertFail("expected"))
+            .is("string1");
+    }
+
+    public void mapClassConsumer10(Testing t) {
+        t.<Object>examine("string1")
+            .context("context1")
+            .is("string2")
+            .barrier()
+            .map(String.class, e -> t.assertFail("unreachable"))
+            .is("string3");
+        t.failedCheck("mark: mapClassConsumer10");
     }
 
     @Test

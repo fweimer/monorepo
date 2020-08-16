@@ -58,6 +58,18 @@ public interface Examiner<T> {
 
     /**
      * Derives a new examiner from this examiner, for a specific type.
+     * If the examined object cannot be assigned to {@code cls},
+     * a test failure is reported, and new examiner is marked
+     * as failed with an active {@linkplain #barrier() barrier}.
+     * @param cls the expected type for this examiner's value
+     * @return the new examiner
+     * @param <U> the object type of the new examiner
+     * @see #map(Class,Consumer)
+     */
+    <U extends T> Examiner<U> map(Class<U> cls);
+
+    /**
+     * Derives a new examiner from this examiner, for a specific type.
      * If the current object cannot be assigned to {@code cls},
      * a test failure is reported.
      * Examination of the old value continues after the consumer
@@ -66,7 +78,7 @@ public interface Examiner<T> {
       *@param consumer the consumer that receives the new examiner
      * @return this object
      * @param <U> the object type of the new examiner
-     * @see #map(Function)
+     * @see #map(Class)
      */
     <U extends T> Examiner<T> map(Class<U> cls, Consumer<Examiner<U>> consumer);
 
