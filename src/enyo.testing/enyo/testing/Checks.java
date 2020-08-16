@@ -37,6 +37,29 @@ public final class Checks {
     }
 
     /**
+     * Returns a check for an {@code byte} array containing the
+     * specified elements.
+     * @param values the expected array elements
+     * @return a check for {@code byte} arrays
+     * @throws NullPointerException if {@code values} is null
+     */
+    public static Check<byte[]> byteArrayEquals(byte... values) {
+        Objects.requireNonNull(values, "values");
+        return (byte[] array) -> {
+            if (Arrays.equals(array, values))
+                return null;
+            else {
+                String check;
+                if (array == null)
+                    check = "byteArrayEquals (not null)";
+                else
+                    check = "byteArrayEquals";
+                return new Check.Failure(check, values);
+            }
+        };
+    }
+
+    /**
      * Returns a check for an {@code int} array containing the
      * specified elements.
      * @param values the expected array elements
