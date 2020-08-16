@@ -16,26 +16,27 @@ public final class TestIntExaminer {
     @Test
     public void testContext(Testing t) {
         List<Recorder.Call> history;
-        Recorder.Failure failure;
 
         history = Helpers.testHistory(t, TestIntExaminer.class, "context1");
         t.examine(Helpers.isSuccess(t, history)).is(false);
         t.examine(history.size()).is(2);
         t.examine(history.get(0)).isExactClass(Recorder.Failure.class);
-        failure = (Recorder.Failure) history.get(0);
-        t.examine(failure.context).is(List.of(new Examined("context1", 0)));
-        t.assertTrue(Arrays.equals(failure.otherObjects, new Object[] { 1 }));
+        Recorder.examineFailure(t.examine(history.get(0)),
+            chk -> chk.is("=="),
+            ctx -> ctx.is(List.of(new Examined("context1", 0))),
+            obj -> obj.check(Checks.arrayEquals(new Object[] { 1 })));
 
         history = Helpers.testHistory(t, TestIntExaminer.class, "context3");
         t.examine(Helpers.isSuccess(t, history)).is(false);
         t.examine(history.size()).is(3);
-        t.examine(history.get(0)).isExactClass(Recorder.Failure.class);
-        failure = (Recorder.Failure) history.get(0);
-        t.examine(failure.context).is(List.of(new Examined("context1", 0)));
-        t.assertTrue(Arrays.equals(failure.otherObjects, new Object[] { 2 }));
-        failure = (Recorder.Failure) history.get(1);
-        t.examine(failure.context).is(List.of(new Examined("context1", 0)));
-        t.assertTrue(Arrays.equals(failure.otherObjects, new Object[] { 3 }));
+        Recorder.examineFailure(t.examine(history.get(0)),
+            chk -> chk.is("=="),
+            ctx -> ctx.is(List.of(new Examined("context1", 0))),
+            obj -> obj.check(Checks.arrayEquals(new Object[] { 2 })));
+        Recorder.examineFailure(t.examine(history.get(1)),
+            chk -> chk.is("=="),
+            ctx -> ctx.is(List.of(new Examined("context1", 0))),
+            obj -> obj.check(Checks.arrayEquals(new Object[] { 3 })));
     }
 
     // No @Test due to expect test failure.
@@ -61,72 +62,55 @@ public final class TestIntExaminer {
         history = Helpers.testHistory(t, getClass(), "map1");
         t.examine(Helpers.isSuccess(t, history)).is(false);
         t.examine(history.size()).is(2);
-        t.examine(history.get(0))
-            .map(Recorder.Failure.class)
-            .map(call -> call.check, e -> e.is("map (not null)"))
-            .map(call -> call.context,
-                e -> e.is(List.of(new Examined(null, 17))))
-            .map(call -> call.otherObjects,
-                e-> e.check(Checks.arrayEquals(new Object[] { null })));
+        Recorder.examineFailure(t.examine(history.get(0)),
+            chk -> chk.is("map (not null)"),
+            ctx -> ctx.is(List.of(new Examined(null, 17))),
+            obj -> obj.check(Checks.arrayEquals(new Object[] { null })));
 
         history = Helpers.testHistory(t, getClass(), "map2");
         t.examine(Helpers.isSuccess(t, history)).is(false);
         t.examine(history.size()).is(2);
-        t.examine(history.get(0))
-            .map(Recorder.Exception.class)
-            .map(call -> call.context,
-                e -> e.is(List.of(new Examined("context1", 17))))
-            .map(call -> call.phase,
-                e -> e.is(ExceptionPhase.EXAMINER))
-            .map(call -> call.exception,
-                e -> e
-                .isExactClass(UnsupportedOperationException.class)
-                .map(Throwable::getMessage)
-                .is("expected"));
+        Recorder.examineException(t.examine(history.get(0)),
+            ctx -> ctx.is(List.of(new Examined("context1", 17))),
+            phs -> phs.is(ExceptionPhase.EXAMINER),
+            exc -> exc.isExactClass(UnsupportedOperationException.class)
+            .map(Throwable::getMessage)
+            .is("expected"));
 
         // Check that TestAlreadyFailed from the mapping function is
         // not recorded separately.
         history = Helpers.testHistory(t, getClass(), "map3");
         t.examine(Helpers.isSuccess(t, history)).is(false);
         t.examine(history.size()).is(2);
-        t.examine(history.get(0))
-            .map(Recorder.Failure.class)
-            .map(call -> call.check, e -> e.is("equals"))
-            .map(call -> call.context,
-                e -> e.is(List.of(new Examined(null, true))))
-            .map(call -> call.otherObjects,
-                e -> e.check(Checks.arrayEquals(false)));
+        Recorder.examineFailure(t.examine(history.get(0)),
+            chk -> chk.is("equals"),
+            ctx -> ctx.is(List.of(new Examined(null, true))),
+            obj -> obj.check(Checks.arrayEquals(new Object[] { false })));
 
         // Check that TestFailure from the mapping function is
         // not recorded separately.
         history = Helpers.testHistory(t, getClass(), "map4");
         t.examine(Helpers.isSuccess(t, history)).is(false);
         t.examine(history.size()).is(2);
-        t.examine(history.get(0))
-            .map(Recorder.Exception.class)
-            .map(call -> call.context, e -> e.is(List.of()))
-            .map(call -> call.phase, e -> e.is(ExceptionPhase.EXECUTION))
-            .map(call -> call.exception,
-                e -> e
-                .isExactClass(TestFailure.class)
-                .map(Throwable::getMessage)
-                .is("expected"));
+        Recorder.examineException(t.examine(history.get(0)),
+            ctx -> ctx.is(List.of()),
+            phs -> phs.is(ExceptionPhase.EXECUTION),
+            exc -> exc.isExactClass(TestFailure.class)
+            .map(Throwable::getMessage)
+            .is("expected"));
 
         // Working barrier.
         history = Helpers.testHistory(t, getClass(), "map5");
         t.examine(Helpers.isSuccess(t, history)).is(false);
         t.examine(history.size()).is(3);
-        t.examine(history.get(0))
-            .map(Recorder.Failure.class)
-            .map(call -> call.check, e -> e.is("=="))
-            .map(call -> call.context,
-                e -> e.is(List.of(new Examined("context1", 17))))
-            .map(call -> call.otherObjects,
-                e -> e.check(Checks.arrayEquals(18)));
-        t.examine(history.get(1))
-            .map(Recorder.Failure.class)
-            .map(call -> call.check)
-            .is("mark: map5");
+        Recorder.examineFailure(t.examine(history.get(0)),
+            chk -> chk.is("=="),
+            ctx -> ctx.is(List.of(new Examined("context1", 17))),
+            obj -> obj.check(Checks.arrayEquals(new Object[] {18 })));
+        Recorder.examineFailure(t.examine(history.get(1)),
+            chk -> chk.is("mark: map5"),
+            ctx -> ctx.is(List.of()),
+            obj -> obj.check(Checks.arrayEquals()));
     }
 
     @Test
@@ -502,18 +486,15 @@ public final class TestIntExaminer {
 
     @Test
     public void testIs(Testing t) {
-        List<Recorder.Call> history;
-        Recorder.Failure failure;
-
         // Test that the barrier is effective.
-        history = Helpers.testHistory(t, TestIntExaminer.class, "is1");
+         List<Recorder.Call> history = Helpers.testHistory(
+             t, getClass(), "is1");
         t.examine(Helpers.isSuccess(t, history)).is(false);
         t.examine(history.size()).is(2);
-        t.examine(history.get(0)).isExactClass(Recorder.Failure.class);
-        failure = (Recorder.Failure) history.get(0);
-        t.examine(failure.check).is("==");
-        t.examine(failure.context).is(List.of(new Examined(null, 1)));
-        t.assertTrue(Arrays.equals(failure.otherObjects, new Object[] { 2 }));
+        Recorder.examineFailure(t.examine(history.get(0)),
+            chk -> chk.is("=="),
+            ctx -> ctx.is(List.of(new Examined(null, 1))),
+            obj -> obj.check(Checks.arrayEquals(new Object[] { 2 })));
     }
 
     // No @Test due to expect test failure.
@@ -527,18 +508,15 @@ public final class TestIntExaminer {
 
     @Test
     public void testIsnt(Testing t) {
-        List<Recorder.Call> history;
-        Recorder.Failure failure;
-
         // Test that the barrier is effective.
-        history = Helpers.testHistory(t, TestIntExaminer.class, "isnt1");
+        List<Recorder.Call> history = Helpers.testHistory(
+            t, getClass(), "isnt1");
         t.examine(Helpers.isSuccess(t, history)).is(false);
         t.examine(history.size()).is(2);
-        t.examine(history.get(0)).isExactClass(Recorder.Failure.class);
-        failure = (Recorder.Failure) history.get(0);
-        t.examine(failure.check).is("!=");
-        t.examine(failure.context).is(List.of(new Examined(null, 1)));
-        t.assertTrue(Arrays.equals(failure.otherObjects, new Object[] { 1 }));
+        Recorder.examineFailure(t.examine(history.get(0)),
+            chk -> chk.is("!="),
+            ctx -> ctx.is(List.of(new Examined(null, 1))),
+            obj -> obj.check(Checks.arrayEquals(new Object[] { 1 })));
     }
 
     // No @Test due to expect test failure.
