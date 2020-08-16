@@ -54,10 +54,7 @@ public final class Checks {
                     check = "intArrayEquals (not null)";
                 else
                     check = "intArrayEquals";
-                Object[] boxed = new Object[values.length];
-                for (int i = 0; i < values.length; ++i)
-                    boxed[i] = values[i];
-                return new Check.Failure(check, boxed);
+                return new Check.Failure(check, values);
             }
         };
     }

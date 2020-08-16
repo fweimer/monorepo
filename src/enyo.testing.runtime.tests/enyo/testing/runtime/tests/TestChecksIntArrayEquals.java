@@ -46,7 +46,9 @@ public final class TestChecksIntArrayEquals {
                         "intArrayEquals (not null)"))
                 .map(call -> call.context.get(0).context(), Examiner::isNull)
                 .map(call -> call.context.get(0).value(), Examiner::isNull)
-                .map(call -> call.otherObjects.length, e1 -> e1.is(0)));
+                .map(call -> call.otherObjects.length, e1 -> e1.is(1))
+                .map(call -> call.otherObjects[0])
+                .map(int[].class, e1 -> e1.map(e2 -> e2.length).is(0)));
     }
 
     public void examinedNull(Testing t) {
@@ -56,7 +58,7 @@ public final class TestChecksIntArrayEquals {
 
     @Test
     public void testZeroEmpty(Testing t) {
-        checkOneFailure(t, "zeroEmpty", new int[1], new Integer[0]);
+        checkOneFailure(t, "zeroEmpty", new int[1], new int[0]);
     }
 
     public void zeroEmpty(Testing t) {
@@ -66,7 +68,7 @@ public final class TestChecksIntArrayEquals {
 
     @Test
     public void testEmptyZero(Testing t) {
-        checkOneFailure(t, "emptyZero", new int[0], new Integer[] { 0 });
+        checkOneFailure(t, "emptyZero", new int[0], new int[] { 0 });
     }
 
     public void emptyZero(Testing t) {
@@ -76,7 +78,7 @@ public final class TestChecksIntArrayEquals {
 
     @Test
     public void testZeroOne(Testing t) {
-        checkOneFailure(t, "zeroOne", new int[1], new Integer[] { 1 });
+        checkOneFailure(t, "zeroOne", new int[1], new int[] { 1 });
     }
 
     public void zeroOne(Testing t) {
@@ -86,7 +88,7 @@ public final class TestChecksIntArrayEquals {
 
     @Test
     public void testZeroZeroOne(Testing t) {
-        checkOneFailure(t, "zeroZeroOne", new int[1], new Integer[] { 0, 1 });
+        checkOneFailure(t, "zeroZeroOne", new int[1], new int[] { 0, 1 });
     }
 
     public void zeroZeroOne(Testing t) {
@@ -95,7 +97,7 @@ public final class TestChecksIntArrayEquals {
     }
 
     private void checkOneFailure(Testing t, String methodName,
-        int[] examinedArray, Integer[] otherArray) {
+        int[] examinedArray, int[] otherArray) {
         List<Recorder.Call> history = Helpers.testHistory(
             t, getClass(), methodName);
         t.examine(Helpers.isSuccess(t, history)).is(false);
@@ -110,8 +112,9 @@ public final class TestChecksIntArrayEquals {
                     .map(array -> array.length,
                         e2 -> e2.is(examinedArray.length))
                     .test(array -> Arrays.equals(examinedArray, array)))
-                .map(call -> call.otherObjects,
-                    e1 -> e1
+                .map(call -> call.otherObjects.length, e1 -> e1.is(1))
+                .map(call -> call.otherObjects[0])
+                .map(int[].class, e1 -> e1
                     .map(array -> array.length,
                         e2 -> e2.is(otherArray.length))
                     .test(array -> Arrays.equals(otherArray, array))));
