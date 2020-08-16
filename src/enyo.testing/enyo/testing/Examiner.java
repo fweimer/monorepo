@@ -121,6 +121,18 @@ public interface Examiner<T> {
     Examiner<T> test(String check, Predicate<? super T> predicate);
 
     /**
+     * Checks that the examined value does not match the predicate.
+     * A test failure is reported if {@code predicate} returns true.
+     * <p>Good check descriptions describe the test expectation
+     * (e.g., <i>argument is an even integer</i>), not the cause of the test
+     * failure (which might be <i>argument is odd</i> in the example).
+     * @param check a short string identifying the failed check (not null)
+     * @param predicate the predicate to evaluate at the test value (not null)
+     * @return this object
+     */
+    Examiner<T> testNot(String check, Predicate<? super T> predicate);
+
+    /**
      * Performs the specified check against this examiner's value.
      * A test failure is reported if the check fails.
      * @param check the check to perform
