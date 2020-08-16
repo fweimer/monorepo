@@ -14,6 +14,7 @@ import enyo.lang.classfile.Method;
 import enyo.lang.classfile.NamedElementValue;
 import enyo.util.StringFilter;
 
+import enyo.testing.Checks;
 import enyo.testing.Test;
 import enyo.testing.Testing;
 
@@ -118,12 +119,11 @@ public final class TestClassFile {
         }
 
         {
-            Set<String> strings = cf.utf8Strings().collect(Collectors.toSet());
-            t.assertTrue(strings.contains(className));
-            t.assertTrue(strings.contains(testName));
-
-            t.assertTrue(strings.contains(
-                    ClassFile.class.getName().replace('.', '/')));
+            t.examine(cf.utf8Strings().collect(Collectors.toSet()))
+                .check(Checks.contains(className))
+                .check(Checks.contains(testName))
+                .check(Checks.contains(
+                        ClassFile.class.getName().replace('.', '/')));
 
             t.assertTrue(cf.utf8MatchesAny(StringFilter.of(className)));
             t.assertTrue(cf.utf8MatchesAny(StringFilter.of(testName)));
@@ -230,14 +230,13 @@ public final class TestClassFile {
                             cf.annotations())
                             .flatMap(Function.identity())
                             .forEach(ann -> {
-                                    t.assertTrue(ann.descriptor(),
-                                        ann.descriptor().length() > 2);
-                                    t.assertTrue(ann.descriptor(),
-                                        ann.descriptor().startsWith("L"));
-                                    t.assertTrue(ann.descriptor(),
-                                        ann.descriptor().endsWith(";"));
-                                    t.assertTrue(ann.descriptor(),
-                                        ann.values().count() >= 0);
+                                    t.examine(ann.descriptor())
+                                        .test(desc -> desc.length() > 2)
+                                        .check(Checks.startsWith("L"))
+                                        .check(Checks.endsWith(";"));
+                                    t.examine(ann)
+                                        .map(Annotation::values)
+                                        .map(Stream::count);
                                 });
                     } catch (Throwable e) {
                         throw new AssertionError(name, e);
