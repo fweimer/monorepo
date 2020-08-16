@@ -1,5 +1,6 @@
 package enyo.testing.runtime.tests;
 
+import enyo.testing.Examiner;
 import enyo.testing.Testing;
 import enyo.testing.introspect.TestMethodLocator;
 import enyo.testing.runtime.Examined;
@@ -8,6 +9,7 @@ import enyo.testing.runtime.Results;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 final class Recorder implements Results {
     static abstract class Call {
@@ -67,6 +69,17 @@ final class Recorder implements Results {
         }
     }
 
+    static Examiner<Call> examineFailure(
+        Examiner<Call> e,
+        Consumer<Examiner<String>> check,
+        Consumer<Examiner<List<Examined>>> context,
+        Consumer<Examiner<Object[]>> otherObjects) {
+        return e.map(Failure.class, e1 -> e1
+            .map(call -> call.check, check)
+            .map(call -> call.context, context)
+            .map(call -> call.otherObjects, otherObjects));
+    }
+
     static final class Exception extends ContextCall {
         final ExceptionPhase phase;
         final Throwable exception;
@@ -87,6 +100,18 @@ final class Recorder implements Results {
             t.examine(phase).isNotNull();
             t.examine(exception).isNotNull();
         }
+    }
+
+    static Examiner<Call> examineException(
+        Examiner<Call> e,
+        Consumer<Examiner<List<Examined>>> context,
+        Consumer<Examiner<ExceptionPhase>> phase,
+        Consumer<Examiner<Throwable>> exception) {
+        return e.map(Exception.class, e1 -> e1
+            .map(call -> call.context, context)
+            .map(call -> call.phase, phase)
+            .map(call -> call.exception, exception)
+            .map(call -> call.expected, e2 -> e2.isNull()));
     }
 
     static final class Completed extends Call {
