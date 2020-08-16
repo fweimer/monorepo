@@ -6,6 +6,7 @@ import enyo.testing.TestFailure;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
+import java.util.function.IntFunction;
 import java.util.function.IntUnaryOperator;
 
 class IntExaminer extends ExaminerBase implements Examiner.OfInt {
@@ -91,6 +92,30 @@ class IntExaminer extends ExaminerBase implements Examiner.OfInt {
             }
         }
         return this;
+    }
+
+    @Override
+    public <T> Examiner<T> mapToObj(IntFunction<? extends T> map) {
+        if (barrier)
+            return forceFailed(new ObjectExaminer<>(t, this, null));
+        if (map == null) {
+            failure("mapToObj (not null)", map);
+            return forceFailed(new ObjectExaminer<>(t, this, null));
+        } else {
+            T newValue;
+            try {
+                newValue = map.apply(value);
+            } catch (TestFailure e) {
+                // Abort the test.
+                throw e;
+            } catch (Exception e) {
+                // Do not catch errors here, assuming that they should
+                // be fatal.
+                t.recordException(this, e);
+                return forceFailed(new ObjectExaminer<>(t, this, null));
+            }
+            return transfer(new ObjectExaminer<>(t, this, newValue));
+        }
     }
 
     @Override

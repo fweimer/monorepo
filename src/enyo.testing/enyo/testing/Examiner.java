@@ -3,6 +3,7 @@ package enyo.testing;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.IntConsumer;
+import java.util.function.IntFunction;
 import java.util.function.IntUnaryOperator;
 import java.util.function.Predicate;
 import java.util.function.ToIntFunction;
@@ -283,6 +284,16 @@ public interface Examiner<T> {
          * @see #map(Function)
          */
         OfInt map(IntUnaryOperator map, Consumer<OfInt> consumer);
+
+        /**
+         * Derives a new object examiner from this examiner.
+         * @param map the function that converts this examiner's value
+         *   to theobject for the new examiner
+         * @param <T> the object type of the new examiner
+         * @return the new object examiner
+         * @see #map(Function)
+         */
+        <T> Examiner<T> mapToObj(IntFunction<? extends T> map);
 
         /**
          * Inspects this examiner's value using a consumer.

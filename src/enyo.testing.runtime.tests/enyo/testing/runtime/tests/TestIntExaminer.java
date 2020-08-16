@@ -1,6 +1,7 @@
 package enyo.testing.runtime.tests;
 
 import enyo.testing.Checks;
+import enyo.testing.Examiner;
 import enyo.testing.Test;
 import enyo.testing.TestFailure;
 import enyo.testing.Testing;
@@ -10,6 +11,7 @@ import enyo.testing.runtime.ExceptionPhase;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.IntFunction;
 import java.util.function.IntUnaryOperator;
 
 public final class TestIntExaminer {
@@ -391,6 +393,117 @@ public final class TestIntExaminer {
             .is(19);
         t.failedCheck("mark: mapConsumer10");
     }
+
+    @Test
+    public void testMapToObj(Testing t) {
+        List<Recorder.Call> history;
+
+        history = Helpers.testHistory(t, getClass(), "mapToObj1");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        Recorder.examineFailure(t.examine(history.get(0)),
+            chk -> chk.is("mapToObj (not null)"),
+            ctx -> ctx.is(List.of(new Examined(null, 17))),
+            obj -> obj.check(Checks.arrayEquals(new Object[] { null })));
+
+        history = Helpers.testHistory(t, getClass(), "mapToObj2");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        Recorder.examineException(t.examine(history.get(0)),
+            ctx -> ctx.is(List.of(new Examined("context1", 17))),
+            phs -> phs.is(ExceptionPhase.EXAMINER),
+            exc -> exc.isExactClass(UnsupportedOperationException.class)
+            .map(Throwable::getMessage)
+            .is("expected"));
+
+        // Check that TestAlreadyFailed from the mapping function is
+        // not recorded separately.
+        history = Helpers.testHistory(t, getClass(), "mapToObj3");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        Recorder.examineFailure(t.examine(history.get(0)),
+            chk -> chk.is("equals"),
+            ctx -> ctx.is(List.of(new Examined(null, true))),
+            obj -> obj.check(Checks.arrayEquals(new Object[] { false })));
+
+        // Check that TestFailure from the mapping function is
+        // not recorded separately.
+        history = Helpers.testHistory(t, getClass(), "mapToObj4");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        Recorder.examineException(t.examine(history.get(0)),
+            ctx -> ctx.is(List.of()),
+            phs -> phs.is(ExceptionPhase.EXECUTION),
+            exc -> exc.isExactClass(TestFailure.class)
+            .map(Throwable::getMessage)
+            .is("expected"));
+
+        // Working barrier.
+        history = Helpers.testHistory(t, getClass(), "mapToObj5");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(3);
+        Recorder.examineFailure(t.examine(history.get(0)),
+            chk -> chk.is("=="),
+            ctx -> ctx.is(List.of(new Examined("context1", 17))),
+            obj -> obj.check(Checks.arrayEquals(new Object[] {18 })));
+        Recorder.examineFailure(t.examine(history.get(1)),
+            chk -> chk.is("mark: mapToObj5"),
+            ctx -> ctx.is(List.of()),
+            obj -> obj.check(Checks.arrayEquals()));
+    }
+
+    @Test
+    public void mapToObj0(Testing t) {
+        t.examine(17)
+            .mapToObj(Integer::toString)
+            .is("17");
+    }
+
+    public void mapToObj1(Testing t) {
+        t.examine(17)
+            .mapToObj((IntFunction<String>) null)
+            .is("17");
+    }
+
+    public void mapToObj2(Testing t) {
+        t.examine(17)
+            .context("context1")
+            .mapToObj(
+                i -> { throw new UnsupportedOperationException("expected"); })
+            .is(17);
+    }
+
+    public void mapToObj3(Testing t) {
+        t.examine(17)
+            .context("context1")
+            .mapToObj(s -> {
+                    t.examine(true).is(false);
+                    t.fullBarrier();
+                    return "null"; // Not reached.
+                })
+            .is("18"); // Protected by barrier.
+    }
+
+    public void mapToObj4(Testing t) {
+        t.examine(17)
+            .context("context1")
+            .mapToObj(s -> {
+                    t.assertFail("expected");
+                    return "null"; // Not reached.
+                })
+            .is("18"); // Protected by barrier.
+    }
+
+    public void mapToObj5(Testing t) {
+        t.examine(17)
+            .context("context1")
+            .is(18)
+            .barrier()
+            .<String>mapToObj(s -> t.assertFail("unreachable"))
+            .is("19");
+        t.failedCheck("mark: mapToObj5");
+    }
+
 
     @Test
     public void testInspect(Testing t) {
