@@ -1,5 +1,6 @@
 package enyo.testing.runtime.tests;
 
+import enyo.testing.Checks;
 import enyo.testing.Order;
 import enyo.testing.Test;
 import enyo.testing.Testing;
@@ -1155,6 +1156,16 @@ public final class TestObjectExaminer {
         t.examine(history.get(1))
             .map(Recorder.Failure.class, e -> e
                 .map(call -> call.check, e1 -> e1.is("mark: inspect2")));
+
+        history = Helpers.testHistory(t, getClass(), "inspect3");
+        Recorder.examineFailure(t.examine(history.get(0)),
+            check -> check.is("inspect (not null)"),
+            context -> context.is(List.of(new Examined(null, "string1"))),
+            objects -> objects.check(Checks.arrayEquals((Object) null)));
+        Recorder.examineFailure(t.examine(history.get(1)),
+            check -> check.is("mark: inspect3"),
+            context -> context.check(Checks.empty()),
+            objects -> objects.check(Checks.arrayEquals()));
     }
 
     @Test
@@ -1197,6 +1208,16 @@ public final class TestObjectExaminer {
         t.failedCheck("mark: inspect2");
     }
 
+    public void inspect3(Testing t) {
+        var c1 = t.counter();
+        t.examine("string1")
+            .is("string1")
+            .inspect(null)
+            .inspect(s -> c1.increment()); // Should still be called.
+        c1.checkTarget();
+        t.failedCheck("mark: inspect3");
+    }
+
     @Test
     public void testInspectClass(Testing t) {
         List<Recorder.Call> history;
@@ -1228,6 +1249,39 @@ public final class TestObjectExaminer {
         t.examine(history.get(1))
             .map(Recorder.Failure.class, e -> e
                 .map(call -> call.check, e1 -> e1.is("mark: inspectClass2")));
+
+        history = Helpers.testHistory(t, getClass(), "inspectClass3");
+        Recorder.examineFailure(t.examine(history.get(0)),
+            check -> check.is("inspect (not null)"),
+            context -> context.is(List.of(new Examined(null, "string1"))),
+            objects -> objects.check(Checks.arrayEquals(String.class, null)));
+        Recorder.examineFailure(t.examine(history.get(1)),
+            check -> check.is("mark: inspectClass3"),
+            context -> context.check(Checks.empty()),
+            objects -> objects.check(Checks.arrayEquals()));
+
+        history = Helpers.testHistory(t, getClass(), "inspectClass4");
+        Recorder.examineFailure(t.examine(history.get(0)),
+            check -> check.is("inspect (not null)"),
+            context -> context.is(List.of(new Examined(null, "string1"))),
+            objects -> objects
+            .test(array -> array.length == 2)
+            .test(array -> array[0] == null)
+            .test(array -> array[1] instanceof Consumer));
+        Recorder.examineFailure(t.examine(history.get(1)),
+            check -> check.is("mark: inspectClass4"),
+            context -> context.check(Checks.empty()),
+            objects -> objects.check(Checks.arrayEquals()));
+
+        history = Helpers.testHistory(t, getClass(), "inspectClass5");
+        Recorder.examineFailure(t.examine(history.get(0)),
+            check -> check.is("inspect (not null)"),
+            context -> context.is(List.of(new Examined(null, "string1"))),
+            objects -> objects.check(Checks.arrayEquals(null, null)));
+        Recorder.examineFailure(t.examine(history.get(1)),
+            check -> check.is("mark: inspectClass5"),
+            context -> context.check(Checks.empty()),
+            objects -> objects.check(Checks.arrayEquals()));
     }
 
     @Test
@@ -1270,6 +1324,39 @@ public final class TestObjectExaminer {
         c1.checkTarget();
         c2.checkTarget();
         t.failedCheck("mark: inspectClass2");
+    }
+
+    public void inspectClass3(Testing t) {
+        var c1 = t.counter();
+        t.examine("string1")
+            .is("string1")
+            .inspect(String.class, null)
+            // Should still be called.
+            .inspect(String.class, s -> c1.increment());
+        c1.checkTarget();
+        t.failedCheck("mark: inspectClass3");
+    }
+
+    public void inspectClass4(Testing t) {
+        var c1 = t.counter();
+        t.examine("string1")
+            .is("string1")
+            .inspect(null, s -> t.assertFail("unreachable"))
+            // Should still be called.
+            .inspect(String.class, s -> c1.increment());
+        c1.checkTarget();
+        t.failedCheck("mark: inspectClass4");
+    }
+
+    public void inspectClass5(Testing t) {
+        var c1 = t.counter();
+        t.examine("string1")
+            .is("string1")
+            .inspect(null, null)
+            // Should still be called.
+            .inspect(String.class, s -> c1.increment());
+        c1.checkTarget();
+        t.failedCheck("mark: inspectClass5");
     }
 
     @Test

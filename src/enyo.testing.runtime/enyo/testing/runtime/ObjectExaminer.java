@@ -225,7 +225,7 @@ class ObjectExaminer<T> extends ExaminerBase implements Examiner<T> {
         if (barrier)
             return this;
         if (consumer == null)
-            failureWithObjects("map (not null)", consumer);
+            failureWithObjects("inspect (not null)", consumer);
         else {
             try {
                 consumer.accept(value);
@@ -244,8 +244,8 @@ class ObjectExaminer<T> extends ExaminerBase implements Examiner<T> {
         Class<U> cls, Consumer<? super U> consumer) {
         if (barrier)
             return this;
-        if (consumer == null)
-            failureWithObjects("map (not null)", consumer);
+        if (cls == null || consumer == null)
+            failureWithObjects("inspect (not null)", cls, consumer);
         else {
             U newValue;
             try {
