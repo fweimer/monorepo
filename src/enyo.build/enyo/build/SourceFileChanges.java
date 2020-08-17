@@ -61,6 +61,13 @@ final class SourceFileChanges {
          * immediately.
          */
         public void cancel();
+
+        /**
+         * Returns the source code paths associated with this change waiter.
+         *
+         * @return an immutable map
+         */
+        public Map<Path, FileIdentity> sources();
     }
 
     /**
@@ -122,8 +129,11 @@ final class SourceFileChanges {
             try {
                 try {
                     return Files.walk(dirs.sources())
-                        .filter(path ->
-                            path.getFileName().toString().endsWith(".java"))
+                        .filter(path -> {
+                                String fileName = path.getFileName().toString();
+                                return fileName.endsWith(".java")
+                                    || BuildNative.nativeSource(fileName);
+                            })
                         .collect(FileIdentity.mapToFileIdentity());
                 } catch (UncheckedIOException e) {
                     throw e.getCause();
@@ -231,11 +241,16 @@ final class SourceFileChanges {
                 throw new UncheckedIOException(exception);
         }
 
+        @Override
+        public Map<Path, FileIdentity> sources() {
+            return oldSources;
+        }
+
         private ChangeBlocker(DirectoryLayout dirs,
             Map<Path, FileIdentity> oldSources,
             Function<Map<Path, FileIdentity>, Map<Path, FileIdentity>> filter) {
             this.dirs = dirs;
-            this.oldSources = filter.apply(oldSources);
+            this.oldSources = Map.copyOf(filter.apply(oldSources));
             this.filter = filter;
         }
 

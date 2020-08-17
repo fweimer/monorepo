@@ -20,6 +20,39 @@ import javax.tools.ToolProvider;
 
 /**
  * The Enyo build tool.
+ *
+ * <h2>Native library support</h2>
+ *
+ * Source code for native libraries resides in the module source tree
+ * under <code>src/<i>module</i>/</code>.  Sources files must have the
+ * extensions {@code .cpp}, {@code .cc}, or {@code .c}.  These source
+ * files are compiled using the system C++ compiler (including {@code .c}
+ * files).  All compiled native sources for one module are linked into
+ * one shared object, written to
+ * <code>build/l<i>0</i>/libjni-<i>module</i>.so</code>.  Here,
+ * <code><i>0</i></code> is the internal build generation number, and
+ * <code><i>module</i></code> is the module name.  For convenience,
+ * the last successful native build also has a symbolic link,
+ * <code>build/latest-native</code>, which links to the approriate
+ * <code>build/l<i>0/</i></code> directory.
+ *
+ * <p>At run time, if a class is located in the package that has the
+ * same name as its module, it may load the native module components
+ * like this:
+ * <pre>
+ * static {
+ *     System.loadLibrary("jni-" + Control.class.getPackage().getName());
+ * }
+ * </pre>
+ *
+ * Note the lack of the {@code lib} prefix and the {@code .so} suffix.
+ * This load operation assumes that when the application is installed,
+ * its native component is installed in the default library search
+ * path (usually {@code /usr/lib/jvm/}).
+ *
+ * <p>During testing, the appropriate <code>build/l<i>0/</i></code>
+ * directory is placed on the library search path, in the {@code
+ * java.library.path} system property.
  */
 public final class Main {
     /**
@@ -77,6 +110,7 @@ public final class Main {
                         if (!rebootstrapCheck.unchanged(dirs))
                             System.err.println(
                                 "warning: New bootstrap required");
+                        BuildNative.build(dirs, changeWaiter.sources());
                         document(dirs, modules);
                         if (options.testSameVm())
                             invokeRunTests(dirs, modules);
@@ -104,6 +138,9 @@ public final class Main {
                             System.err.println(
                                 "warning: New bootstrap required");
                     }
+                    if (!BuildNative.build(dirs, changeWaiter.sources()))
+                        return
+                            SourceFileChanges.Result.CONTINUE_COMPILE_FAILURE;
                     document(dirs, modules);
                     if (options.testSameVm())
                         invokeRunTests(dirs, modules);
@@ -140,7 +177,9 @@ public final class Main {
             .filter(path -> {
                     String fileName = path.getFileName().toString();
                     if (fileName.startsWith("g")
-                        || fileName.startsWith("d")) {
+                        || fileName.startsWith("d")
+                        || fileName.startsWith("h")
+                        || fileName.startsWith("l")) {
                         try {
                             Integer.parseInt(fileName.substring(1));
                             return true;
@@ -176,6 +215,7 @@ public final class Main {
                 "-Xlint:all",
                 "-Xdiags:verbose",
                 "-d", targetPath.toString(),
+                "-h", dirs.headerGeneration().toString(),
                 "--module-source-path", "src",
                 "--module", modulesString,
             });

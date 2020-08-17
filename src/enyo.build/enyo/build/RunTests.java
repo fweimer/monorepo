@@ -7,6 +7,7 @@ import enyo.testing.introspect.TestMethodLocator;
 import enyo.testing.runtime.InvokeTest;
 import enyo.testing.runtime.Testing;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.invoke.MethodType;
 import java.lang.module.Configuration;
@@ -243,6 +244,11 @@ public final class RunTests {
 
                 ArrayList<String> args = new ArrayList<>();
                 args.add(RelaunchVM.defaultLauncher());
+                {
+                    Path libpath = dirs.libraryGeneration();
+                    if (Files.isDirectory(libpath))
+                        args.add("-Djava.library.path=" + libpath.toString());
+                }
                 args.addAll(additionalVmArguments);
                 args.add("--module-path");
                 args.add(dirs.buildGeneration().toString());

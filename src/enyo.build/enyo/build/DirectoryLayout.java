@@ -45,6 +45,18 @@ final class DirectoryLayout {
         return build().resolve("g" + generation);
     }
 
+    Path headerGeneration() {
+        return build().resolve("h" + generation);
+    }
+
+    /**
+     * Returns the per-generation directory for native shared objects.
+     * @return a path to a directory under {@link #build()}
+     */
+    Path libraryGeneration() {
+        return build().resolve("l" + generation);
+    }
+
     Path docGeneration() {
         return build().resolve("d" + generation);
     }
