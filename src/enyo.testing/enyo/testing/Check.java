@@ -18,6 +18,20 @@ public interface Check<T> {
     Failure test(T object);
 
     /**
+     * A check for an {@code int} value.
+     */
+    @FunctionalInterface
+    interface OfInt {
+        /**
+         * Performs a check on an {@code int} value.
+         * @param value the value to check
+         * @return null if the check passes, or a {@link Failure} instance
+         *   describing the failure
+         */
+        Failure test(int value);
+    }
+
+    /**
      * Description of a {@link Check} failure.
      */
     static final class Failure {

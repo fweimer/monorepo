@@ -1,5 +1,6 @@
 package enyo.testing.runtime.tests;
 
+import enyo.testing.Check;
 import enyo.testing.Checks;
 import enyo.testing.Examiner;
 import enyo.testing.Test;
@@ -823,6 +824,122 @@ public final class TestIntExaminer {
             .inspect(s -> c1.increment()); // Should still be called.
         c1.checkTarget();
         t.failedCheck("mark: inspect3");
+    }
+
+    @Test
+    public void testCheckPass(Testing t) {
+        var c1 = t.counter();
+        t.examine(1)
+            .check(i -> {
+                    t.examine(i).is(1);
+                    c1.increment();
+                    return null;
+                });
+        c1.checkTarget();
+    }
+
+    @Test
+    public void testCheckFail(Testing t) {
+        // Checks failure reporting and barrier effectiveness.
+        List<Recorder.Call> history = Helpers.testHistory(
+            t, getClass(), "checkFail");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(3);
+        Recorder.examineFailure(t.examine(history.get(0)),
+            chk -> chk.is("my check"),
+            ctx -> ctx.is(List.of(new Examined(null, 1))),
+            obj -> obj.check(Checks.arrayEquals(1, 2, 3)));
+        Recorder.examineFailure(t.examine(history.get(1)),
+            chk -> chk.is("mark: checkFail"),
+            ctx -> ctx.is(List.of()),
+            obj -> obj.check(Checks.arrayEquals()));
+    }
+
+    public void checkFail(Testing t) {
+        var c1 = t.counter();
+        var c2 = t.counter();
+        t.examine(1)
+            .check(i -> {
+                    t.examine(i).is(1);
+                    c1.increment();
+                    return new Check.Failure("my check", 1, 2, 3);
+                })
+            .check(i -> {
+                    t.examine(i).is(1);
+                    c2.increment();
+                    return null;
+                })
+            .barrier()
+            .check(i -> t.assertFail("unreachable"));
+        c1.checkTarget();
+        c2.checkTarget();
+        t.failedCheck("mark: checkFail");
+    }
+
+    @Test
+    public void testCheckNull(Testing t) {
+        List<Recorder.Call> history = Helpers.testHistory(
+            t, getClass(), "checkNull");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(3);
+        Recorder.examineFailure(t.examine(history.get(0)),
+            chk -> chk.is("check (not null)"),
+            ctx -> ctx.is(List.of(new Examined(null, 17))),
+            obj -> obj.check(Checks.arrayEquals()));
+        Recorder.examineFailure(t.examine(history.get(1)),
+            chk -> chk.is("mark: checkNull"),
+            ctx -> ctx.is(List.of()),
+            obj -> obj.check(Checks.arrayEquals()));
+    }
+
+    public void checkNull(Testing t) {
+        t.examine(17)
+            .check(null);
+        t.failedCheck("mark: checkNull");
+    }
+
+    @Test
+    public void testCheckAssertFail(Testing t) {
+        List<Recorder.Call> history = Helpers.testHistory(
+            t, getClass(), "checkAssertFail");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        Recorder.examineException(t.examine(history.get(0)),
+            ctx -> ctx.is(List.of()),
+            phs -> phs.is(ExceptionPhase.EXECUTION),
+            exc -> exc.isExactClass(TestFailure.class)
+            .map(Throwable::getMessage)
+            .is("expected"));
+    }
+
+    public void checkAssertFail(Testing t) {
+        t.examine(17)
+            .context("context1")
+            .check(i -> t.assertFail("expected"));
+        t.failedCheck("not reached");
+    }
+
+    @Test
+    public void testCheckFullBarrier(Testing t) {
+        List<Recorder.Call> history = Helpers.testHistory(
+            t, getClass(), "checkFullBarrier");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+        t.examine(history.size()).is(2);
+        Recorder.examineFailure(t.examine(history.get(0)),
+            chk -> chk.is("=="),
+            ctx -> ctx.is(List.of(new Examined("context1", 17))),
+            obj -> obj.check(Checks.arrayEquals(18)));
+    }
+
+    public void checkFullBarrier(Testing t) {
+        t.examine(17)
+            .context("context1")
+            .is(18)
+            .check(i -> {
+                    t.fullBarrier();
+                    return null; // Not reached.
+                });
+        t.failedCheck("not reached");
     }
 
     @Test

@@ -1,5 +1,6 @@
 package enyo.testing.runtime;
 
+import enyo.testing.Check;
 import enyo.testing.Examiner;
 import enyo.testing.TestFailure;
 
@@ -169,6 +170,29 @@ class IntExaminer extends ExaminerBase implements Examiner.OfInt {
             } catch (Exception e) {
                 t.recordException(this, e);
             }
+        }
+        return this;
+    }
+
+    @Override
+    public Examiner.OfInt check(Check.OfInt check) {
+        if (barrier)
+            return this;
+        if (check == null)
+            failure("check (not null)");
+        else {
+            Check.Failure result;
+            try {
+                result = check.test(value);
+            } catch (TestFailure e) {
+                // Abort the test.
+                throw e;
+            } catch (Exception e) {
+                t.recordException(this, e);
+                return this;
+            }
+            if (result != null)
+                failureWithObjects(result.check(), result.objects());
         }
         return this;
     }

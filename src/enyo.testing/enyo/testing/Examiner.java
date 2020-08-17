@@ -322,6 +322,15 @@ public interface Examiner<T> {
         OfInt inspect(IntConsumer consumer);
 
         /**
+         * Performs the specified check against this examiner's value.
+         * A test failure is reported if the check fails.
+         * @param check the check to perform
+         * @return this object
+         * @see Examiner#check(Check)
+         */
+        OfInt check(Check.OfInt check);
+
+        /**
          * Reports an error if the two values are not equal.
          * @param other the other value under comparison
          * @return this object
