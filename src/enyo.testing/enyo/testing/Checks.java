@@ -321,6 +321,162 @@ public final class Checks {
     }
 
     /**
+     * Returns a check that tests if an {@code int} value is less
+     * than a specified value.
+     * @param reference the reference value for this check
+     * @return a check for an {@code int} value
+     * @throws NullPointerException if the reference is null
+     */
+    public static Check.OfInt lessThan(int reference) {
+        return value -> {
+            if (value < reference)
+                return null;
+            else
+                return new Check.Failure("lessThan", reference);
+        };
+    }
+
+    /**
+     * Returns a check that tests if an {@code int} value is less than
+     * or equal to a specified value.
+     * @param reference the reference value for this check
+     * @return a check for an {@code int} value
+     * @throws NullPointerException if the reference is null
+     */
+    public static Check.OfInt lessThanOrEquals(int reference) {
+        return value -> {
+            if (value <= reference)
+                return null;
+            else
+                return new Check.Failure("lessThanOrEquals", reference);
+        };
+    }
+
+    /**
+     * Returns a check that tests if an {@code int} value is greater
+     * than a specified value.
+     * @param reference the reference value for this check
+     * @return a check for an {@code int} value
+     * @throws NullPointerException if the reference is null
+     */
+    public static Check.OfInt greaterThan(int reference) {
+        return value -> {
+            if (value > reference)
+                return null;
+            else
+                return new Check.Failure("greaterThan", reference);
+        };
+    }
+
+    /**
+     * Returns a check that tests if an {@code int} value is greater
+     * than or equal to a specified value.
+     * @param reference the reference value for this check
+     * @return a check for an {@code int} value
+     * @throws NullPointerException if the reference is null
+     */
+    public static Check.OfInt greaterThanOrEquals(int reference) {
+        return value -> {
+            if (value >= reference)
+                return null;
+            else
+                return new Check.Failure("greaterThanOrEquals", reference);
+        };
+    }
+
+    /**
+     * Returns a check that tests if an {@code int} value falls within
+     * a range.
+     * @param low the lower bound of the range (inclusive)
+     * @param high the lower bound of the range (exclusive)
+     * @return a check for an {@code int} value
+     * @throws NullPointerException if an argument is null
+     * @throws IllegalArgumentException
+     *   if {@code low} is greater than {@code high}
+     */
+    public static Check.OfInt inRange(int low, int high) {
+        if (low > high)
+            throw new IllegalArgumentException(
+                "inRange: low end greater than high end");
+        return value -> {
+            if (value < low)
+                return new Check.Failure("inRange low", low, high);
+            else if (value >= high)
+                return new Check.Failure("inRange high", low, high);
+            else
+                return null;
+        };
+    }
+
+    /**
+     * Returns a check that tests if an {@code int} value falls within
+     * a closed range.
+     * @param low the lower bound of the range (inclusive)
+     * @param high the lower bound of the range (inclusive)
+     * @return a check for an {@code int} value
+     * @throws NullPointerException if an argument is null
+     * @throws IllegalArgumentException
+     *   if {@code low} is greater than {@code high}
+     */
+    public static Check.OfInt inRangeClosed(int low, int high) {
+        if (low > high)
+            throw new IllegalArgumentException(
+                "inRangeClosed: low end greater than high end");
+        return value -> {
+            if (value < low)
+                return new Check.Failure("inRangeClosed low", low, high);
+            else if (value > high)
+                return new Check.Failure("inRangeClosed high", low, high);
+            else
+                return null;
+        };
+    }
+
+    /**
+     * Returns a check that tests if an {@code int} value does not fall
+     * within a range.
+     * @param low the lower bound of the range (inclusive)
+     * @param high the lower bound of the range (exclusive)
+     * @return a check for an {@code int} value
+     * @throws NullPointerException if an argument is null
+     * @throws IllegalArgumentException
+     *   if {@code low} is greater than {@code high}
+     */
+    public static Check.OfInt notInRange(int low, int high) {
+        if (low > high)
+            throw new IllegalArgumentException(
+                "notInRange: low end greater than high end");
+        return value -> {
+            if (low <= value && value < high)
+                return new Check.Failure("notInRange", low, high);
+            else
+                return null;
+        };
+    }
+
+    /**
+     * Returns a check that tests if an {@code int} value does not fall
+     * within a closed range.
+     * @param low the lower bound of the range (inclusive)
+     * @param high the lower bound of the range (inclusive)
+     * @return a check for an {@code int} value
+     * @throws NullPointerException if an argument is null
+     * @throws IllegalArgumentException
+     *   if {@code low} is greater than {@code high}
+     */
+    public static Check.OfInt notInRangeClosed(int low, int high) {
+        if (low > high)
+            throw new IllegalArgumentException(
+                "notInRangeClosed: low end greater than high end");
+        return value -> {
+            if (low <= value && value <= high)
+                return new Check.Failure("notInRangeClosed", low, high);
+            else
+                return null;
+        };
+    }
+
+    /**
      * Returns a check that tests if a string has the specified prefix.
      * @param prefix the prefix string to check for
      * @return a check for a string
