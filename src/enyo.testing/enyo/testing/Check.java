@@ -32,6 +32,20 @@ public interface Check<T> {
     }
 
     /**
+     * A check for an {@code long} value.
+     */
+    @FunctionalInterface
+    interface OfLong {
+        /**
+         * Performs a check on an {@code long} value.
+         * @param value the value to check
+         * @return null if the check passes, or a {@link Failure} instance
+         *   describing the failure
+         */
+        Failure test(long value);
+    }
+
+    /**
      * Description of a {@link Check} failure.
      */
     static final class Failure {

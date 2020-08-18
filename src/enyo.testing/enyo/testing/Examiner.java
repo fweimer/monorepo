@@ -5,6 +5,9 @@ import java.util.function.Function;
 import java.util.function.IntConsumer;
 import java.util.function.IntFunction;
 import java.util.function.IntUnaryOperator;
+import java.util.function.LongConsumer;
+import java.util.function.LongFunction;
+import java.util.function.LongUnaryOperator;
 import java.util.function.Predicate;
 import java.util.function.ToIntFunction;
 
@@ -369,6 +372,73 @@ public interface Examiner<T> {
          * @return this object
          */
         OfLong barrier();
+
+        /**
+         * Derives a new {@code long} examiner from this examiner.
+         * @param map the function that converts this examiner's value
+         *   to the {@code long} value for the new examiner
+         * @return the new {@code long} examiner
+         * @see #map(Function)
+         */
+        OfLong map(LongUnaryOperator map);
+
+        /**
+         * Derives a new {@code long} examiner from this examiner.
+         * Examination of the old value continues after the consumer
+         * for the new examiner returns.
+         * @param map the function that converts this examiner's value
+         *   to the {@code long} value for the new examiner
+         * @param consumer the consumer that receives
+         *   the new {@code long} examiner
+         * @return this object
+         * @see #map(Function)
+         */
+        OfLong map(LongUnaryOperator map, Consumer<OfLong> consumer);
+
+        /**
+         * Derives a new object examiner from this examiner.
+         * @param map the function that converts this examiner's value
+         *   to theobject for the new examiner
+         * @param <T> the object type of the new examiner
+         * @return the new object examiner
+         * @see #map(Function)
+         * @see #mapToObj(LongFunction,Consumer)
+         */
+        <T> Examiner<T> mapToObj(LongFunction<? extends T> map);
+
+        /**
+         * Derives a new object examiner from this examiner.
+         * Examination of the old value continues after the consumer
+         * for the new examiner returns.
+         * @param map the function that converts this examiner's value
+         *   to the object for the new examiner
+         * @param consumer the consumer that receives
+         *   the new object examiner
+         * @param <T> the object type of the new examiner
+         * @return this object
+         * @see #map(LongUnaryOperator,Consumer)
+         * @see #mapToObj(LongFunction)
+         */
+        <T> OfLong mapToObj(LongFunction<? extends T> map,
+            Consumer<Examiner<T>> consumer);
+
+        /**
+         * Inspects this examiner's value using a consumer.
+         * Examination of the value continues after the consumer
+         * returns.
+         * @param consumer the consumer that receives this examiner's value
+         * @return this object
+         */
+        OfLong inspect(LongConsumer consumer);
+
+        /**
+         * Performs the specified check against this examiner's value.
+         * A test failure is reported if the check fails.
+         * @param check the check to perform
+         * @return this object
+         * @see Examiner#check(Check)
+         */
+        OfLong check(Check.OfLong check);
 
         /**
          * Reports an error if the two values are not equal.
