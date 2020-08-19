@@ -50,6 +50,34 @@ public class Result<T, E> {
         return new ResultError<T, E>(error);
     }
 
+
+    /**
+     * Returns either n enum constant or the original integer value.
+     * If possible, an enum is return which has a matching
+     * {@link Enum#ordinal()} value.
+     *
+     * @param <T> the enum type
+     * @param type the reified enum type
+     * @param value the enum ordinal value to convert
+     * @return a result with an enum constant whose ordinal is equal
+     *   to {@code value}, or an error with the integer {@code value}
+     *   if there is no match
+     * @throws IllegalArgumentException if {@code type} does not
+     *   refer to an enum type
+     * @throws NullPointerException if {@code type} is null
+     */
+    public static <T extends Enum<T>> Result<T, Integer> ofEnumOrdinal(
+        Class<T> type, int value) {
+        if (!type.isEnum())
+            throw new IllegalArgumentException(
+                "Not an enum: " + type.getName());
+        T[] values = type.getEnumConstants();
+        if (value >= 0 && value < values.length)
+            return Result.of(values[value]);
+        else
+            return Result.ofError(value);
+    }
+
     /**
      * Returns true if this result contains a non-exceptional value.
      * @return true if a value is present, false if an error is present

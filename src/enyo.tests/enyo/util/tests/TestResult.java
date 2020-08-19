@@ -268,4 +268,50 @@ public final class TestResult {
             .collect(Collectors.toList());
         t.examine(actual).is(expected);
     }
+
+    @Test
+    public static void testOfEnumOrdinalNull(Testing t) {
+        t.expect(() -> Result.ofEnumOrdinal(null, 0),
+            NullPointerException.class);
+        t.expect(() -> Result.ofEnumOrdinal(null, 1),
+            NullPointerException.class);
+        t.expect(() -> Result.ofEnumOrdinal(null, -1),
+            NullPointerException.class);
+    }
+
+    enum EmptyEnum { }
+
+    @Test
+    public static void testOfEnumOrdinalEmpty(Testing t) {
+        IntStream.rangeClosed(-1, 1).forEach(i ->
+            t.examine(i)
+            .mapToObj(i1 -> Result.ofEnumOrdinal(EmptyEnum.class, i1))
+            .is(Result.ofError(i)));
+    }
+
+    enum OneEnum { E1 }
+
+    @Test
+    public static void testOfEnumOrdinalOne(Testing t) {
+        t.examine(Result.ofEnumOrdinal(OneEnum.class, 0))
+            .is(Result.of(OneEnum.E1));
+        List.of(-1, 1).forEach(i ->
+            t.examine(i)
+            .map(i1 -> Result.ofEnumOrdinal(OneEnum.class, i1))
+            .is(Result.ofError(i)));
+    }
+
+    enum TwoEnum { E1, E2 }
+
+    @Test
+    public static void testOfEnumOrdinalTwo(Testing t) {
+        t.examine(Result.ofEnumOrdinal(TwoEnum.class, 0))
+            .is(Result.of(TwoEnum.E1));
+        t.examine(Result.ofEnumOrdinal(TwoEnum.class, 1))
+            .is(Result.of(TwoEnum.E2));
+        List.of(-2, -1, 2, 3).forEach(i ->
+            t.examine(i)
+            .map(i1 -> Result.ofEnumOrdinal(TwoEnum.class, i1))
+            .is(Result.ofError(i)));
+    }
 }
