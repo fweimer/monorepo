@@ -118,22 +118,23 @@ public final class RunTests {
         TestResults results = new TestResults();
 
         AtomicLong errors = new AtomicLong();
-        modules.stream()
-            .flatMap(IOFunction.of(mod -> FindTests.tests(dirs, mod)))
-            .filter(method -> method.hasTestAnnotation)
-            .forEach(method -> {
-                    if (method.error != null)
-                        System.err.format("%s %s %s: %s%n",
-                            method.classDetails.module,
-                            method.classDetails.clazz.className(),
-                            method.method.name(),
-                            method.error);
-                    else {
-                        Testing t = new Testing(method.locator(), results);
-                        if (!InvokeTest.invokeTest(testLayer, t))
-                            errors.incrementAndGet();
-                    }
-                });
+        try (Stream<TestMethodDetails> stream = modules.stream()
+            .flatMap(IOFunction.of(mod -> FindTests.tests(dirs, mod)))) {
+            stream.filter(method -> method.hasTestAnnotation)
+                .forEach(method -> {
+                        if (method.error != null)
+                            System.err.format("%s %s %s: %s%n",
+                                method.classDetails.module,
+                                method.classDetails.clazz.className(),
+                                method.method.name(),
+                                method.error);
+                        else {
+                            Testing t = new Testing(method.locator(), results);
+                            if (!InvokeTest.invokeTest(testLayer, t))
+                                errors.incrementAndGet();
+                        }
+                    });
+        }
         runTestsTail(nanoStart, errors);
     }
 

@@ -74,12 +74,13 @@ final class FindTests {
     static Result.Collected<ArrayList<UnscheduledTest>, ArrayList<String>>
         collectedTests(DirectoryLayout dirs, List<String> modules) {
         AtomicInteger idSource = new AtomicInteger();
-        return modules.stream()
+        try (Stream<TestClassDetails> stream = modules.stream()
             .flatMap(IOFunction.of(moduleName ->
-                    FindTests.potentialTestClasses(dirs,
-                        FindTests.classFiles(dirs, moduleName), moduleName)))
+                    potentialTestClasses(dirs,
+                        classFiles(dirs, moduleName), moduleName)))) {
             // Split into classes with and without errors.
-            .<Result<TestClassDetails, TestClassDetails>>map(classDetails -> {
+            return stream.<Result<TestClassDetails, TestClassDetails>>map(
+                classDetails -> {
                     if (classDetails.hasErrors())
                         return Result.ofError(classDetails);
                     else
@@ -120,6 +121,7 @@ final class FindTests {
                         method.cost)))
             .collect(Result.Collectors.toCollection(
                     ArrayList::new, ArrayList::new));
+        }
     }
 
     private static final StringFilter testClassFilter =

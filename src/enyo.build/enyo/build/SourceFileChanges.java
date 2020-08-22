@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 final class SourceFileChanges {
     /**
@@ -127,13 +128,12 @@ final class SourceFileChanges {
         throws IOException {
         while (true)
             try {
-                try {
-                    return Files.walk(dirs.sources())
-                        .filter(path -> {
-                                String fileName = path.getFileName().toString();
-                                return fileName.endsWith(".java")
-                                    || BuildNative.nativeSource(fileName);
-                            })
+                try (Stream<Path> stream = Files.walk(dirs.sources())) {
+                    return stream.filter(path -> {
+                            String fileName = path.getFileName().toString();
+                            return fileName.endsWith(".java")
+                                || BuildNative.nativeSource(fileName);
+                        })
                         .collect(FileIdentity.mapToFileIdentity());
                 } catch (UncheckedIOException e) {
                     throw e.getCause();
@@ -162,9 +162,8 @@ final class SourceFileChanges {
      */
     static void registerSourceDirectories(DirectoryLayout dirs,
         WatchService watcher) throws IOException {
-        try {
-            Files.walk(dirs.sources())
-                .filter(path -> Files.isDirectory(
+        try (Stream<Path> stream = Files.walk(dirs.sources())) {
+            stream.filter(path -> Files.isDirectory(
                         path, LinkOption.NOFOLLOW_LINKS))
                 .forEach(IOConsumer.of(path -> path.register(watcher,
                             StandardWatchEventKinds.ENTRY_CREATE,

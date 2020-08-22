@@ -9,6 +9,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 
@@ -43,11 +44,13 @@ public final class Bootstrap {
     private static void removeTree(Path root) throws IOException {
         if (!Files.exists(root))
             return;
-        for (Path path : Files.walk(root)
-                 // Delete more deeply nested files first.
-                 .sorted(Comparator.reverseOrder())
-                 .collect(Collectors.toList()))
-            Files.delete(path);;
+        try (Stream<Path> stream = Files.walk(root)) {
+            for (Path path :
+                     // Delete more deeply nested files first.
+                     stream.sorted(Comparator.reverseOrder())
+                     .collect(Collectors.toList()))
+            Files.delete(path);
+        }
     }
 
     /**
@@ -86,11 +89,12 @@ public final class Bootstrap {
 
             // Pick up the newly built modules.
             int previousModulesCount = modules.size();
-            Files.list(targetPath)
-                .filter(Files::isDirectory)
+            try (Stream<Path> stream = Files.list(targetPath)) {
+                stream .filter(Files::isDirectory)
                 .map(Path::getFileName)
                 .map(Path::toString)
                 .forEach(modules::add);
+            }
             if (previousModulesCount >= modules.size())
                 // No more modules were discoved.
                 return 0;

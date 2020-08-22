@@ -14,6 +14,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.tools.DocumentationTool;
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
@@ -156,16 +157,21 @@ public final class Main {
     }
 
     static List<String> listModules(DirectoryLayout dirs) throws IOException {
-        return Files.list(dirs.sources())
-            .filter(Files::isDirectory)
-            .filter(IOPredicate.of(path -> Files.walk(path)
-                    .map(Path::getFileName)
-                    .map(Path::toString)
-                    .anyMatch(pathString -> pathString.endsWith(".java"))))
+        try (Stream<Path> stream = Files.list(dirs.sources())) {
+            return stream.filter(Files::isDirectory)
+            .filter(IOPredicate.of(path -> {
+                        try (Stream<Path> stream1 = Files.walk(path)) {
+                            return stream1.map(Path::getFileName)
+                                .map(Path::toString)
+                                .anyMatch(pathString ->
+                                    pathString.endsWith(".java"));
+                        }
+                    }))
             .map(Path::getFileName)
             .map(Path::toString)
             .sorted()
             .collect(Collectors.toList());
+        }
     }
 
     /**
@@ -173,8 +179,8 @@ public final class Main {
      * invocations.
      */
     static void clearGenerations(DirectoryLayout dirs) throws IOException {
-        Files.list(dirs.build())
-            .filter(path -> {
+        try (Stream<Path> stream = Files.list(dirs.build())) {
+            stream.filter(path -> {
                     String fileName = path.getFileName().toString();
                     if (fileName.startsWith("g")
                         || fileName.startsWith("d")
@@ -190,6 +196,7 @@ public final class Main {
                     return false;
                 })
             .forEach(IOConsumer.of(Main::removeTree));
+        }
     }
 
     /**
@@ -310,11 +317,13 @@ public final class Main {
     private static void removeTree(Path root) throws IOException {
         if (!Files.exists(root))
             return;
-        for (Path path : Files.walk(root)
-                 // Delete more deeply nested files first.
-                 .sorted(Comparator.reverseOrder())
-                 .collect(Collectors.toList()))
-            Files.delete(path);;
+        try (Stream<Path> stream = Files.walk(root)) {
+            for (Path path :
+                     // Delete more deeply nested files first.
+                     stream.sorted(Comparator.reverseOrder())
+                     .collect(Collectors.toList()))
+                Files.delete(path);;
+        }
     }
 
     private static final String PUBLIC_API =

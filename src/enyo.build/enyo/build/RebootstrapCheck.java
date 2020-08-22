@@ -29,10 +29,11 @@ final class RebootstrapCheck {
      * Computes digests of the bootstrap classes for later comparison.
      */
     RebootstrapCheck(DirectoryLayout dirs) throws IOException {
-        bootstrapClasses = classFiles(dirs.bootstrapBuild())
-            .collect(Collectors.toUnmodifiableMap(
+        try (Stream<Path> stream = classFiles(dirs.bootstrapBuild())) {
+            bootstrapClasses = stream.collect(Collectors.toUnmodifiableMap(
                     path -> dirs.bootstrapBuild().relativize(path),
                     IOFunction.of(RebootstrapCheck::fileDigest)));
+        }
         bootstrapModules = bootstrapClasses.keySet().stream()
             .map(path -> path.getName(0))
             .collect(Collectors.toUnmodifiableSet());
@@ -47,9 +48,8 @@ final class RebootstrapCheck {
         Path root = dirs.buildGeneration();
         // Restrict the class list to classes in the bootstrap modules.
         List<Path> currentClasses;
-        try {
-            currentClasses = bootstrapModules.stream()
-            .flatMap(IOFunction.of(module ->
+        try (Stream<Path> stream = bootstrapModules.stream()) {
+            currentClasses = stream.flatMap(IOFunction.of(module ->
                     classFiles(root.resolve(module))))
                 .collect(Collectors.toList());
         } catch (UncheckedIOException e) {

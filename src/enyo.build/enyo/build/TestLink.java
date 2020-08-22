@@ -240,10 +240,11 @@ final class TestLink implements Closeable {
      */
     private static void cleanup(DirectoryLayout dirs, Path lock)
         throws IOException {
-        Files.list(dirs.testLink())
+        try (Stream<Path> stream = Files.list(dirs.testLink())) {
             // Do not delete the lock file.
-            .filter(p -> !p.equals(lock))
-            .forEach(IOConsumer.of(Files::delete));
+            stream.filter(p -> !p.equals(lock))
+                .forEach(IOConsumer.of(Files::delete));
+        }
     }
 
     private static void writeTestMethodLocator(DataOutput out,
