@@ -29,6 +29,13 @@ import java.util.stream.Collectors;
  */
 public final class Order<T> {
     /**
+     * Creates a new order checker.
+     * Initially, there are no ordeded elements.
+     */
+    public Order() {
+    }
+
+    /**
      * Adds an element that is not equal to any other element.
      * Conceptually, this indicates that the equivalence class of the
      * value is a singleton set.
