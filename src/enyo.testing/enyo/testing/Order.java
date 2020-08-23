@@ -96,6 +96,9 @@ public final class Order<T> {
             currentGroup = null;
             ++index;
         }
+
+        private Group() {
+        }
     }
 
     /**
