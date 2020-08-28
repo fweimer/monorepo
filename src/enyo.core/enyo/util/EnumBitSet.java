@@ -46,7 +46,7 @@ public interface EnumBitSet<E extends Enum<E>> {
      * Determines if an enum constant is contained in this set.
      * @param e the enum constant whose presence is to be checked
      * @return true if the constant is contained in this set
-     *   (even if its ordinal value has been added using {@link #add(i)}),
+     *   (even if its ordinal value has been added using {@link #add(int)}),
      *   or false if it is absent
      * @throws ClassCastException if {@code e} is not of the
      *   {@linkplain #type() enum type of this bit set}
@@ -60,7 +60,7 @@ public interface EnumBitSet<E extends Enum<E>> {
      * Determines if an enum constant is contained in this set.
      * @param value the integer whose presence is to be checked
      * @return true if the constant is contained in this set
-     *   (even if its ordinal value has been added using {@link #add(i)}),
+     *   (even if its ordinal value has been added using {@link #add(int)}),
      *   or false if it is absent
      * @throws IllegalArgumentException if {@code value} is negative
      * @see #contains(Enum)
