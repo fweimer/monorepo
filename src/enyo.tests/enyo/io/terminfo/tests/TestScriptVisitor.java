@@ -631,9 +631,9 @@ public final class TestScriptVisitor {
     public void testInterestingCaps(Testing t) {
         // Check that all string capabilities with parameters are also
         // listed in INTERESTING_CAPS.
-        StringCapability.values().stream()
-            .filter(e -> e.parameters() > 0)
-            .map(t::examine)
-            .map(ex -> ex.test(e -> INTERESTING_CAPS.contains(e)));
+        for (StringCapability cap : StringCapability.values())
+            if (cap.parameters() > 0 && !INTERESTING_CAPS.contains(cap))
+                t.failedCheck("INTERESTING_CAPS coverage",
+                    cap.toString(), cap.terminfoName(), cap.parameters());
     }
 }

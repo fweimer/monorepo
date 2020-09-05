@@ -96,7 +96,7 @@ public enum UntypedStringCapability implements StringCapability {
 
     /**
      */
-    DELETE_LINE(22, "dl1", 1),
+    DELETE_LINE(22, "dl1"),
 
     /**
      */
@@ -120,7 +120,7 @@ public enum UntypedStringCapability implements StringCapability {
 
     /**
      */
-    ENTER_CA_MODE(28, "smcup", 2),
+    ENTER_CA_MODE(28, "smcup"),
 
     /**
      */
@@ -168,7 +168,7 @@ public enum UntypedStringCapability implements StringCapability {
 
     /**
      */
-    EXIT_CA_MODE(40, "rmcup", 2),
+    EXIT_CA_MODE(40, "rmcup"),
 
     /**
      */
