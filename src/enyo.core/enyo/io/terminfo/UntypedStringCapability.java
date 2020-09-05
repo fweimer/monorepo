@@ -1,5 +1,8 @@
 package enyo.io.terminfo;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -336,18 +339,6 @@ public enum UntypedStringCapability implements StringCapability {
 
     /**
      */
-    PKEY_KEY(115, "pfkey", 2),
-
-    /**
-     */
-    PKEY_LOCAL(116, "pfloc", 2),
-
-    /**
-     */
-    PKEY_XMIT(117, "pfx", 2),
-
-    /**
-     */
     PRINT_SCREEN(118, "mc0"),
 
     /**
@@ -441,10 +432,6 @@ public enum UntypedStringCapability implements StringCapability {
     /**
      */
     ACS_CHARS(146, "acsc"),
-
-    /**
-     */
-    PLAB_NORM(147, "pln", 2),
 
     /**
      */
@@ -1011,7 +998,15 @@ public enum UntypedStringCapability implements StringCapability {
     // Maximum across all defined string capabilities, plus one.
     static final int COUNT = 394;
 
-    static final List<StringCapability> VALUES = List.of(values());
+    // List of all string capabilities (excluding key capabilities).
+    static final List<StringCapability> VALUES;
+    static {
+        ArrayList<StringCapability> list = new ArrayList<>();
+        list.addAll(Arrays.asList(values()));
+        list.addAll(Arrays.asList(IntStr.values()));
+        list.sort(Comparator.comparing(StringCapability::index));
+        VALUES = List.copyOf(list);
+    }
 
     private UntypedStringCapability(int index, String terminfoName,
         int parameters) {

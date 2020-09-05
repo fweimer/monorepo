@@ -447,21 +447,6 @@ public interface StringCapability {
 
     /**
      */
-    static final StringCapability PKEY_KEY =
-        UntypedStringCapability.PKEY_KEY;
-
-    /**
-     */
-    static final StringCapability PKEY_LOCAL =
-        UntypedStringCapability.PKEY_LOCAL;
-
-    /**
-     */
-    static final StringCapability PKEY_XMIT =
-        UntypedStringCapability.PKEY_XMIT;
-
-    /**
-     */
     static final StringCapability PRINT_SCREEN =
         UntypedStringCapability.PRINT_SCREEN;
 
@@ -579,11 +564,6 @@ public interface StringCapability {
      */
     static final StringCapability ACS_CHARS =
         UntypedStringCapability.ACS_CHARS;
-
-    /**
-     */
-    static final StringCapability PLAB_NORM =
-        UntypedStringCapability.PLAB_NORM;
 
     /**
      */
@@ -1286,9 +1266,59 @@ public interface StringCapability {
         } catch (IllegalArgumentException e) {
         }
         try {
+            return IntStr.valueOf(name);
+        } catch (IllegalArgumentException e) {
+        }
+        try {
             return KeyCapability.valueOf(name);
         } catch (IllegalArgumentException e) {
         }
         throw new IllegalArgumentException(name);
+    }
+
+    /**
+     * String capabilities which accept an integer and a string
+     * parameter.
+     */
+    enum IntStr implements StringCapability {
+        /**
+         */
+        PKEY_KEY(115, "pfkey"),
+
+        /**
+         */
+        PKEY_LOCAL(116, "pfloc"),
+
+        /**
+         */
+        PKEY_XMIT(117, "pfx"),
+
+        /**
+         */
+        PLAB_NORM(147, "pln"),
+        ;
+
+        @Override
+        public int index() {
+            return index;
+        }
+
+        @Override
+        public int parameters() {
+            return 2;
+        }
+
+        @Override
+        public String terminfoName() {
+            return terminfoName;
+        }
+
+        private final int index;
+        private final String terminfoName;
+
+        private IntStr(int index, String terminfoName) {
+            this.index = index;
+            this.terminfoName = terminfoName;
+        }
     }
 }

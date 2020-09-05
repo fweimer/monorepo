@@ -1,6 +1,7 @@
 package enyo.io.terminfo.tests;
 
 import enyo.io.TempDirectory;
+import enyo.io.terminfo.KeyCapability;
 import enyo.io.terminfo.StringCapability;
 import enyo.io.terminfo.TermFile;
 
@@ -13,12 +14,15 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public final class TestStringCapability {
     @Test
@@ -28,6 +32,39 @@ public final class TestStringCapability {
         t.examine(StringCapability.values())
             .check(Checks.strictlyMonotonic(Comparator.comparing(
                         StringCapability::index)));
+
+        // Test that all indices are less than the total number of
+        // capabilities.
+        int count = 394;
+        StringCapability.values().stream()
+            .forEach(cap ->
+                t.examine(cap)
+                .mapToInt(StringCapability::index)
+                .check(Checks.inRange(0, count)));
+
+        // Check that there are no gaps.
+        HashSet<Integer> missing = IntStream.range(0, count)
+            .boxed()
+            .collect(Collectors.toCollection(HashSet::new));
+        StringCapability.values().stream()
+            .map(StringCapability::index)
+            .forEach(missing::remove);
+        Arrays.stream(KeyCapability.values())
+            .map(KeyCapability::index)
+            .forEach(missing::remove);
+        for (int i : missing)
+            t.failedCheck("missing string capability", i);
+    }
+
+    @Test
+    public static void testOf(Testing t) {
+        for (StringCapability cap : StringCapability.values()) {
+            t.examine(cap)
+                .map(StringCapability::toString)
+                .is(cap.name())
+                .map(StringCapability::of)
+                .is(cap);
+        }
     }
 
     @Test
