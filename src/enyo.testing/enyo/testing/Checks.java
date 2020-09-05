@@ -1,7 +1,9 @@
 package enyo.testing;
 
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Objects;
 
 /**
@@ -629,6 +631,221 @@ public final class Checks {
                 return new Check.Failure("notInRangeClosed", low, high);
             else
                 return null;
+        };
+    }
+
+    /**
+     * Returns a check that tests if an array's elements are in
+     * increasing order.
+     * The natural ordering according to {@link Comparable} is used.
+     * Elements which are equal are permitted.
+     * @param <T> the type of the array elements
+     * @return a check for arrays
+     * @see #strictlyMonotonicArray()
+     * @see #monotonicArray(Comparator)
+     * @see #monotonic()
+     */
+    public static <T extends Comparable<T>> Check<T[]> monotonicArray() {
+        return value -> {
+            for (int i = 1; i < value.length; ++i)
+                if (value[i - 1].compareTo(value[i]) > 0)
+                    return new Check.Failure("monotonicArray",
+                        i - 1, value[i - 1], value[i]);
+            return null;
+        };
+    }
+
+    /**
+     * Returns a check that tests if an array's elements are in
+     * strictly increasing order.
+     * The natural ordering according to {@link Comparable} is used.
+     * Elements which are equal not permitted.
+     * @param <T> the type of the array elements
+     * @return a check for arrays
+     * @see #monotonicArray()
+     * @see #strictlyMonotonicArray(Comparator)
+     * @see #strictlyMonotonic()
+     */
+    public static <T extends Comparable<T>> Check<T[]>
+        strictlyMonotonicArray() {
+        return value -> {
+            for (int i = 1; i < value.length; ++i)
+                if (value[i - 1].compareTo(value[i]) >= 0)
+                    return new Check.Failure("strictlyMonotonicArray",
+                        i - 1, value[i - 1], value[i]);
+            return null;
+        };
+    }
+
+    /**
+     * Returns a check that tests if an array's elements are in
+     * increasing order.
+     * Elements which are equal are permitted.
+     * @param <T> the type of the array elements
+     * @param comparator the comparator that determines the ordering
+     * @return a check for arrays
+     * @throws NullPointerException if the argument is null
+     * @see #strictlyMonotonicArray(Comparator)
+     * @see #monotonicArray()
+     * @see #monotonic(Comparator)
+     */
+    public static <T> Check<T[]> monotonicArray(
+        Comparator<? super T> comparator) {
+        Objects.requireNonNull(comparator);
+        return value -> {
+            for (int i = 1; i < value.length; ++i)
+                if (comparator.compare(value[i - 1], value[i]) > 0)
+                    return new Check.Failure("monotonicArray",
+                        i - 1, value[i - 1], value[i]);
+            return null;
+        };
+    }
+
+    /**
+     * Returns a check that tests if an array's elements are in
+     * strictly increasing order.
+     * Elements which are equal are not permitted.
+     * @param <T> the type of the array elements
+     * @param comparator the comparator that determines the ordering
+     * @return a check for arrays
+     * @throws NullPointerException if the argument is null
+     * @see #monotonicArray(Comparator)
+     * @see #strictlyMonotonicArray()
+     * @see #strictlyMonotonic(Comparator)
+     */
+    public static <T> Check<T[]> strictlyMonotonicArray(
+        Comparator<? super T> comparator) {
+        Objects.requireNonNull(comparator);
+        return value -> {
+            for (int i = 1; i < value.length; ++i)
+                if (comparator.compare(value[i - 1], value[i]) >= 0)
+                    return new Check.Failure("strictlyMonotonicArray",
+                        i - 1, value[i - 1], value[i]);
+            return null;
+        };
+    }
+
+    /**
+     * Returns a check that tests if an iterable is in increasing order.
+     * The natural ordering according to {@link Comparable} is used.
+     * Elements which are equal are permitted.
+     * @param <T> the type of elements over which the iteration happens
+     * @return a check for iterables
+     * @see #strictlyMonotonic()
+     * @see #monotonic(Comparator)
+     * @see #monotonicArray()
+     */
+    public static <T extends Comparable<T>> Check<Iterable<T>> monotonic() {
+        return value -> {
+            Iterator<T> it = value.iterator();
+            if (!it.hasNext())
+                return null;
+            T previous = it.next();
+            int i = 0;
+            while (it.hasNext()) {
+                T current = it.next();
+                if (previous.compareTo(current) > 0)
+                    return new Check.Failure("monotonic",
+                        i, previous, current);
+                previous = current;
+                ++i;
+            }
+            return null;
+        };
+    }
+
+    /**
+     * Returns a check that tests if an iterable is in strictly
+     * increasing order.  The natural ordering according to {@link
+     * Comparable} is used.  Elements which are equal are not
+     * permitted.
+     * @param <T> the type of elements over which the iteration happens
+     * @return a check for iterables
+     * @see #monotonic()
+     * @see #strictlyMonotonic(Comparator)
+     * @see #strictlyMonotonicArray()
+     */
+    public static <T extends Comparable<T>> Check<Iterable<T>>
+        strictlyMonotonic() {
+        return value -> {
+            Iterator<T> it = value.iterator();
+            if (!it.hasNext())
+                return null;
+            T previous = it.next();
+            int i = 0;
+            while (it.hasNext()) {
+                T current = it.next();
+                if (previous.compareTo(current) >= 0)
+                    return new Check.Failure("strictlyMonotonic",
+                        i, previous, current);
+                previous = current;
+                ++i;
+            }
+            return null;
+        };
+    }
+
+    /**
+     * Returns a check that tests if an iterable is in increasing order.
+     * Elements which are equal are permitted.
+     * @param <T> the type of elements over which the iteration happens
+     * @param comparator the comparator that determines the ordering
+     * @return a check for iterables
+     * @throws NullPointerException if the argument is null
+     * @see #strictlyMonotonic(Comparator)
+     * @see #monotonic()
+     * @see #monotonicArray(Comparator)
+     */
+    public static <T> Check<Iterable<T>> monotonic(
+        Comparator<? super T> comparator) {
+        Objects.requireNonNull(comparator);
+        return value -> {
+            Iterator<T> it = value.iterator();
+            if (!it.hasNext())
+                return null;
+            T previous = it.next();
+            int i = 0;
+            while (it.hasNext()) {
+                T current = it.next();
+                if (comparator.compare(previous, current) > 0)
+                    return new Check.Failure("monotonic",
+                        i, previous, current);
+                previous = current;
+                ++i;
+            }
+            return null;
+        };
+    }
+
+    /**
+     * Returns a check that tests if an iterable is in strictly
+     * increasing order.  Elements which are equal are not permitted.
+     * @param <T> the type of elements over which the iteration happens
+     * @param comparator the comparator that determines the ordering
+     * @return a check for iterables
+     * @throws NullPointerException if the argument is null
+     * @see #monotonic(Comparator)
+     * @see #strictlyMonotonic()
+     * @see #strictlyMonotonicArray(Comparator)
+     */
+    public static <T> Check<Collection<T>> strictlyMonotonic(
+        Comparator<? super T> comparator) {
+        Objects.requireNonNull(comparator);
+        return value -> {
+            Iterator<T> it = value.iterator();
+            if (!it.hasNext())
+                return null;
+            T previous = it.next();
+            int i = 0;
+            while (it.hasNext()) {
+                T current = it.next();
+                if (comparator.compare(previous, current) >= 0)
+                    return new Check.Failure("strictlyMonotonic",
+                        i, previous, current);
+                previous = current;
+                ++i;
+            }
+            return null;
         };
     }
 
