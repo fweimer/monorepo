@@ -43,10 +43,6 @@ public enum UntypedStringCapability implements StringCapability {
 
     /**
      */
-    COLUMN_ADDRESS(8, "hpa", 1),
-
-    /**
-     */
     COMMAND_CHARACTER(9, "cmdch"),
 
     /**
@@ -156,10 +152,6 @@ public enum UntypedStringCapability implements StringCapability {
     /**
      */
     ENTER_UNDERLINE_MODE(36, "smul"),
-
-    /**
-     */
-    ERASE_CHARS(37, "ech", 1),
 
     /**
      */
@@ -299,46 +291,6 @@ public enum UntypedStringCapability implements StringCapability {
 
     /**
      */
-    PARM_DCH(105, "dch", 1),
-
-    /**
-     */
-    PARM_DELETE_LINE(106, "dl", 1),
-
-    /**
-     */
-    PARM_DOWN_CURSOR(107, "cud", 1),
-
-    /**
-     */
-    PARM_ICH(108, "ich", 1),
-
-    /**
-     */
-    PARM_INDEX(109, "indn", 1),
-
-    /**
-     */
-    PARM_INSERT_LINE(110, "il", 1),
-
-    /**
-     */
-    PARM_LEFT_CURSOR(111, "cub", 1),
-
-    /**
-     */
-    PARM_RIGHT_CURSOR(112, "cuf", 1),
-
-    /**
-     */
-    PARM_RINDEX(113, "rin", 1),
-
-    /**
-     */
-    PARM_UP_CURSOR(114, "cuu", 1),
-
-    /**
-     */
     PRINT_SCREEN(118, "mc0"),
 
     /**
@@ -375,10 +327,6 @@ public enum UntypedStringCapability implements StringCapability {
 
     /**
      */
-    ROW_ADDRESS(127, "vpa", 1),
-
-    /**
-     */
     SAVE_CURSOR(128, "sc"),
 
     /**
@@ -407,10 +355,6 @@ public enum UntypedStringCapability implements StringCapability {
 
     /**
      */
-    TO_STATUS_LINE(135, "tsl", 1),
-
-    /**
-     */
     UNDERLINE_CHAR(136, "uc"),
 
     /**
@@ -420,10 +364,6 @@ public enum UntypedStringCapability implements StringCapability {
     /**
      */
     INIT_PROG(138, "iprog"),
-
-    /**
-     */
-    PRTR_NON(144, "mc5p", 1),
 
     /**
      */
@@ -603,26 +543,6 @@ public enum UntypedStringCapability implements StringCapability {
 
     /**
      */
-    SET_COLOR_PAIR(301, "scp", 1),
-
-    /**
-     */
-    SET_FOREGROUND(302, "setf", 1),
-
-    /**
-     */
-    SET_BACKGROUND(303, "setb", 1),
-
-    /**
-     */
-    CHANGE_CHAR_PITCH(304, "cpi", 1),
-
-    /**
-     */
-    CHANGE_LINE_PITCH(305, "lpi", 1),
-
-    /**
-     */
     CHANGE_RES_HORZ(306, "chr", 1),
 
     /**
@@ -727,10 +647,6 @@ public enum UntypedStringCapability implements StringCapability {
 
     /**
      */
-    MICRO_ROW_ADDRESS(332, "mvpa", 1),
-
-    /**
-     */
     MICRO_UP(333, "mcuu1"),
 
     /**
@@ -755,31 +671,11 @@ public enum UntypedStringCapability implements StringCapability {
 
     /**
      */
-    SELECT_CHAR_SET(339, "scs", 1),
-
-    /**
-     */
     SET_BOTTOM_MARGIN(340, "smgb"),
 
     /**
      */
-    SET_BOTTOM_MARGIN_PARM(341, "smgbp", 1),
-
-    /**
-     */
-    SET_LEFT_MARGIN_PARM(342, "smglp", 1),
-
-    /**
-     */
-    SET_RIGHT_MARGIN_PARM(343, "smgrp", 1),
-
-    /**
-     */
     SET_TOP_MARGIN(344, "smgt"),
-
-    /**
-     */
-    SET_TOP_MARGIN_PARM(345, "smgtp", 1),
 
     /**
      */
@@ -814,10 +710,6 @@ public enum UntypedStringCapability implements StringCapability {
     ZERO_MOTION(353, "zerom"),
 
     /**
-     */
-    CHAR_SET_NAMES(354, "csnm", 1),
-
-    /**
      * Prefix of a mouse position peport.  Usually {@code "\033[M"} if
      * defined.
      */
@@ -830,18 +722,6 @@ public enum UntypedStringCapability implements StringCapability {
     /**
      */
     REQ_MOUSE_POS(357, "reqmp"),
-
-    /**
-     */
-    GET_MOUSE(358, "getm", 1),
-
-    /**
-     */
-    SET_A_FOREGROUND(359, "setaf", 1),
-
-    /**
-     */
-    SET_A_BACKGROUND(360, "setab", 1),
 
     /**
      */
@@ -910,10 +790,6 @@ public enum UntypedStringCapability implements StringCapability {
     /**
      */
     SET_PAGE_LENGTH(377, "slines", 1),
-
-    /**
-     */
-    DISPLAY_PC_CHAR(378, "dispc", 1),
 
     /**
      */
@@ -1003,6 +879,7 @@ public enum UntypedStringCapability implements StringCapability {
     static {
         ArrayList<StringCapability> list = new ArrayList<>();
         list.addAll(Arrays.asList(values()));
+        list.addAll(Arrays.asList(Int.values()));
         list.addAll(Arrays.asList(IntStr.values()));
         list.sort(Comparator.comparing(StringCapability::index));
         VALUES = List.copyOf(list);
