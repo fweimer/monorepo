@@ -9,8 +9,8 @@ public enum BooleanCapability {
     // Order must match the terminal file layout.
 
     /**
-     * {@link StringCapability#CURSOR_LEFT} moves the cursor back from
-     * the first to the last column.
+     * {@link UntypedStringCapability#CURSOR_LEFT} moves the cursor
+     * back from the first to the last column.
      */
     AUTO_LEFT_MARGIN,
 
