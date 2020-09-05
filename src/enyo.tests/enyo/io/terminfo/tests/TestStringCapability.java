@@ -19,6 +19,14 @@ import java.util.stream.Collectors;
 
 public final class TestStringCapability {
     @Test
+    public static void testIndex(Testing t) {
+        for (StringCapability cap : StringCapability.values())
+            t.examine(cap)
+                .mapToInt(StringCapability::index)
+                .is(cap.ordinal());
+    }
+
+    @Test
     public static void testTerminfoCollision(Testing t) {
         Map<String, List<StringCapability>> byTerminfo =
             Arrays.stream(StringCapability.values())

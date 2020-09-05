@@ -465,7 +465,7 @@ public final class TermFile {
     }
 
     private byte[] get0(StringCapability cap) {
-        int index = cap.ordinal();
+        int index = cap.index();
         if (index < strings.length)
             return strings[index];
         else
