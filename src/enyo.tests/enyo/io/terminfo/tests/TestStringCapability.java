@@ -3,6 +3,7 @@ package enyo.io.terminfo.tests;
 import enyo.io.TempDirectory;
 import enyo.io.terminfo.StringCapability;
 import enyo.io.terminfo.TermFile;
+
 import enyo.testing.Checks;
 import enyo.testing.Test;
 import enyo.testing.Testing;
@@ -13,17 +14,32 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public final class TestStringCapability {
     @Test
     public static void testIndex(Testing t) {
+        // Check that the capabilities are sorted in increasing order
+        // of their indices.
+        t.examine(StringCapability.values())
+            .check(Checks.strictlyMonotonicArray(Comparator.comparing(
+                        StringCapability::index)));
+    }
+
+    @Test
+    public static void testKey(Testing t) {
+        // Check that no capabilities start with KEY_.
         for (StringCapability cap : StringCapability.values())
             t.examine(cap)
-                .mapToInt(StringCapability::index)
-                .is(cap.ordinal());
+                .map(StringCapability::toString)
+                // KEY_MOUSE is not really a key, it's a prefix of the
+                // escape sequence that starts a mouse position report.
+                .test(s -> s.equals("KEY_MOUSE") || !s.startsWith("KEY_"));
     }
 
     @Test
@@ -46,17 +62,22 @@ public final class TestStringCapability {
     public static void testAgainstTic(Testing t)
         throws IOException, InterruptedException {
         // Use terminfo identifiers in the terminfo source file.
-        testAgainstTic(t, false);
+        testAgainstTic(t, StringCapability.class,
+            StringCapability::terminfoName, TermFile::get, false);
     }
 
     @Test
     public static void testAgainstTicC(Testing t)
         throws IOException, InterruptedException {
         // Use C identifiers in the terminfo source file.
-        testAgainstTic(t, true);
+        testAgainstTic(t, StringCapability.class,
+            StringCapability::terminfoName, TermFile::get, true);
     }
 
-    private static void testAgainstTic(Testing t, boolean cMode)
+    static <E extends Enum<E>> void testAgainstTic(Testing t,
+        Class<E> cls, Function<E, String> terminfoName,
+        BiFunction<TermFile, E, byte[]> getCapability,
+        boolean cMode)
         throws IOException, InterruptedException {
         try (TempDirectory dir = TempDirectory.withPrefix("terminfo-")) {
             // Create a terminfo source file with all string
@@ -65,12 +86,12 @@ public final class TestStringCapability {
             try (BufferedWriter wr = Files.newBufferedWriter(src)) {
                 wr.write("test|terminal test,");
                 wr.newLine();
-                for (StringCapability cap : StringCapability.values()) {
+                for (E cap : cls.getEnumConstants()) {
                     wr.write('\t');
                     if (cMode)
                         wr.write(cap.name().toLowerCase());
                     else
-                        wr.write(cap.terminfoName());
+                        wr.write(terminfoName.apply(cap));
                     wr.write('=');
                     // Use a numeric capability for testing because
                     // the full capability names would exceed the
@@ -113,9 +134,9 @@ public final class TestStringCapability {
             // values.
             TermFile term = TermFile.of(
                 Files.readAllBytes(dir.resolve("t").resolve("test")));
-            for (StringCapability cap : StringCapability.values()) {
+            for (E cap : cls.getEnumConstants()) {
                 t.examine(cap)
-                    .map(term::get)
+                    .map(cap1 -> getCapability.apply(term, cap1))
                     .isNotNull()
                     .barrier()
                     .map(String::new)

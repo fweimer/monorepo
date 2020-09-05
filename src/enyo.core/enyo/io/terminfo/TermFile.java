@@ -278,7 +278,23 @@ public final class TermFile {
      *  capability is not present
      */
     public byte[] get(StringCapability cap) {
-        byte[] result = get0(cap);
+        byte[] result = get0(cap.index());
+        if (result != null)
+            return result.clone();
+        else
+            return null;
+    }
+
+    /**
+     * Returns the bytes of the specified key string capability.
+     *
+     * @param cap the capability to return
+     * @return the byte array with the capability string,
+     *  excluding the terminating null byte, or {@code null} if the
+     *  capability is not present
+     */
+    public byte[] get(KeyCapability cap) {
+        byte[] result = get0(cap.index());
         if (result != null)
             return result.clone();
         else
@@ -464,8 +480,7 @@ public final class TermFile {
         return TermFile.of(data);
     }
 
-    private byte[] get0(StringCapability cap) {
-        int index = cap.index();
+    private byte[] get0(int index) {
         if (index < strings.length)
             return strings[index];
         else
