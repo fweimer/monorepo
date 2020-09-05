@@ -33,23 +33,7 @@ public final class FindTypeConflicts {
     @Cost(0.3)
     @Resources(memory=50)
     public void test(Testing t) throws IOException {
-        List<Path> roots =
-            List.of("/lib/terminfo", "/usr/share/terminfo")
-            .stream()
-            .map(Path::of)
-            .filter(Files::isDirectory)
-            .collect(Collectors.toList());
-
-        List<Path> paths;
-        try (Stream<Path> stream = roots.stream()
-            .flatMap(IOFunction.of(Files::walk))) {
-            paths = stream
-                .filter(Files::isRegularFile)
-                .unordered()
-                .distinct()
-                .sorted()
-                .collect(Collectors.toList());
-        }
+        List<Path> paths = paths();
         if (paths.isEmpty()) {
             t.unsupported("No terminfo files found");
             return;
@@ -72,6 +56,27 @@ public final class FindTypeConflicts {
                 "error: type conflict for %s: %s has %s, %s has %s%n",
                 cap, left.path, left.analysis.parameterTypes(),
                 right.path, right.analysis.parameterTypes()));
+    }
+
+    static List<Path> paths() throws IOException {
+        List<Path> roots =
+            List.of("/lib/terminfo", "/usr/share/terminfo")
+            .stream()
+            .map(Path::of)
+            .filter(Files::isDirectory)
+            .collect(Collectors.toList());
+
+        List<Path> paths;
+        try (Stream<Path> stream = roots.stream()
+            .flatMap(IOFunction.of(Files::walk))) {
+            paths = stream
+                .filter(Files::isRegularFile)
+                .unordered()
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+        }
+        return paths;
     }
 
     interface ReportIncompatibility {
@@ -164,17 +169,21 @@ public final class FindTypeConflicts {
         return true;
     }
 
-    private static final class Parsed {
-        private final Path path;
-        private final StringCapability cap;
-        private final byte[] blob;
-        private final ScriptAnalysis analysis;
+    static final class Parsed {
+        final Path path;
+        final StringCapability cap;
+        final byte[] blob;
+        final ScriptAnalysis analysis;
 
-        private Parsed(Path path, StringCapability cap, byte[] blob) {
+        Parsed(Path path, StringCapability cap, byte[] blob) {
             this.path = path;
             this.cap = cap;
             this.blob = blob;
-            this.analysis = new ScriptAnalysis(blob);
+            try {
+                this.analysis = new ScriptAnalysis(blob);
+            } catch (TerminalScriptException e) {
+                throw new TerminalScriptException(path + ": " + cap, e);
+            }
         }
     }
 
