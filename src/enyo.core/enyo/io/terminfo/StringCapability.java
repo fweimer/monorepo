@@ -10,1576 +10,1580 @@ public enum StringCapability {
 
     /**
      */
-    BACK_TAB,
+    BACK_TAB("cbt"),
 
     /**
      */
-    BELL,
+    BELL("bel"),
 
 
     /**
      */
-    CARRIAGE_RETURN,
+    CARRIAGE_RETURN("cr"),
 
     /**
      */
-    CHANGE_SCROLL_REGION(2),
+    CHANGE_SCROLL_REGION("csr", 2),
 
     /**
      */
-    CLEAR_ALL_TABS,
+    CLEAR_ALL_TABS("tbc"),
 
     /**
      */
-    CLEAR_SCREEN,
+    CLEAR_SCREEN("clear"),
 
     /**
      */
-    CLR_EOL,
+    CLR_EOL("el"),
 
     /**
      */
-    CLR_EOS,
+    CLR_EOS("ed"),
 
     /**
      */
-    COLUMN_ADDRESS(1),
+    COLUMN_ADDRESS("hpa", 1),
 
     /**
      */
-    COMMAND_CHARACTER,
+    COMMAND_CHARACTER("cmdch"),
 
     /**
      */
-    CURSOR_ADDRESS(2),
+    CURSOR_ADDRESS("cup", 2),
 
     /**
      */
-    CURSOR_DOWN,
+    CURSOR_DOWN("cud1"),
 
     /**
      */
-    CURSOR_HOME,
+    CURSOR_HOME("home"),
 
     /**
      */
-    CURSOR_INVISIBLE,
+    CURSOR_INVISIBLE("civis"),
 
     /**
      */
-    CURSOR_LEFT,
+    CURSOR_LEFT("cub1"),
 
     /**
      */
-    CURSOR_MEM_ADDRESS(2),
+    CURSOR_MEM_ADDRESS("mrcup", 2),
 
     /**
      */
-    CURSOR_NORMAL,
+    CURSOR_NORMAL("cnorm"),
 
     /**
      */
-    CURSOR_RIGHT,
+    CURSOR_RIGHT("cuf1"),
 
     /**
      */
-    CURSOR_TO_LL,
+    CURSOR_TO_LL("ll"),
 
     /**
      */
-    CURSOR_UP,
+    CURSOR_UP("cuu1"),
 
     /**
      */
-    CURSOR_VISIBLE,
+    CURSOR_VISIBLE("cvvis"),
 
     /**
      */
-    DELETE_CHARACTER,
+    DELETE_CHARACTER("dch1"),
 
     /**
      */
-    DELETE_LINE(1),
+    DELETE_LINE("dl1", 1),
 
     /**
      */
-    DIS_STATUS_LINE,
+    DIS_STATUS_LINE("dsl"),
 
     /**
      */
-    DOWN_HALF_LINE,
+    DOWN_HALF_LINE("hd"),
 
     /**
      */
-    ENTER_ALT_CHARSET_MODE,
+    ENTER_ALT_CHARSET_MODE("smacs"),
 
     /**
      */
-    ENTER_BLINK_MODE,
+    ENTER_BLINK_MODE("blink"),
 
     /**
      */
-    ENTER_BOLD_MODE,
+    ENTER_BOLD_MODE("bold"),
 
     /**
      */
-    ENTER_CA_MODE(2),
+    ENTER_CA_MODE("smcup", 2),
 
     /**
      */
-    ENTER_DELETE_MODE,
+    ENTER_DELETE_MODE("smdc"),
 
     /**
      */
-    ENTER_DIM_MODE,
+    ENTER_DIM_MODE("dim"),
 
     /**
      */
-    ENTER_INSERT_MODE,
+    ENTER_INSERT_MODE("smir"),
 
     /**
      */
-    ENTER_SECURE_MODE,
+    ENTER_SECURE_MODE("invis"),
 
     /**
      */
-    ENTER_PROTECTED_MODE,
+    ENTER_PROTECTED_MODE("prot"),
 
     /**
      */
-    ENTER_REVERSE_MODE,
+    ENTER_REVERSE_MODE("rev"),
 
     /**
      */
-    ENTER_STANDOUT_MODE,
+    ENTER_STANDOUT_MODE("smso"),
 
     /**
      */
-    ENTER_UNDERLINE_MODE,
+    ENTER_UNDERLINE_MODE("smul"),
 
     /**
      */
-    ERASE_CHARS(1),
+    ERASE_CHARS("ech", 1),
 
     /**
      */
-    EXIT_ALT_CHARSET_MODE,
+    EXIT_ALT_CHARSET_MODE("rmacs"),
 
     /**
      */
-    EXIT_ATTRIBUTE_MODE,
+    EXIT_ATTRIBUTE_MODE("sgr0"),
 
     /**
      */
-    EXIT_CA_MODE(2),
+    EXIT_CA_MODE("rmcup", 2),
 
     /**
      */
-    EXIT_DELETE_MODE,
+    EXIT_DELETE_MODE("rmdc"),
 
     /**
      */
-    EXIT_INSERT_MODE,
+    EXIT_INSERT_MODE("rmir"),
 
     /**
      */
-    EXIT_STANDOUT_MODE,
+    EXIT_STANDOUT_MODE("rmso"),
 
     /**
      */
-    EXIT_UNDERLINE_MODE,
+    EXIT_UNDERLINE_MODE("rmul"),
 
     /**
      */
-    FLASH_SCREEN,
+    FLASH_SCREEN("flash"),
 
     /**
      */
-    FORM_FEED,
+    FORM_FEED("ff"),
 
     /**
      */
-    FROM_STATUS_LINE,
+    FROM_STATUS_LINE("fsl"),
 
     /**
      */
-    INIT_1STRING,
+    INIT_1STRING("is1"),
 
     /**
      */
-    INIT_2STRING,
+    INIT_2STRING("is2"),
 
     /**
      */
-    INIT_3STRING,
+    INIT_3STRING("is3"),
 
     /**
      */
-    INIT_FILE,
+    INIT_FILE("if"),
 
     /**
      */
-    INSERT_CHARACTER,
+    INSERT_CHARACTER("ich1"),
 
     /**
      */
-    INSERT_LINE,
+    INSERT_LINE("il1"),
 
     /**
      */
-    INSERT_PADDING,
+    INSERT_PADDING("ip"),
 
     /**
      */
-    KEY_BACKSPACE,
+    KEY_BACKSPACE("kbs"),
 
     /**
      */
-    KEY_CATAB,
+    KEY_CATAB("ktbc"),
 
     /**
      */
-    KEY_CLEAR,
+    KEY_CLEAR("kclr"),
 
     /**
      */
-    KEY_CTAB,
+    KEY_CTAB("kctab"),
 
     /**
      */
-    KEY_DC,
+    KEY_DC("kdch1"),
 
     /**
      */
-    KEY_DL,
+    KEY_DL("kdl1"),
 
     /**
      */
-    KEY_DOWN,
+    KEY_DOWN("kcud1"),
 
     /**
      */
-    KEY_EIC,
+    KEY_EIC("krmir"),
 
     /**
      */
-    KEY_EOL,
+    KEY_EOL("kel"),
 
     /**
      */
-    KEY_EOS,
+    KEY_EOS("ked"),
 
     /**
      */
-    KEY_F0,
+    KEY_F0("kf0"),
 
     /**
      */
-    KEY_F1,
+    KEY_F1("kf1"),
 
     /**
      */
-    KEY_F10,
+    KEY_F10("kf10"),
 
     /**
      */
-    KEY_F2,
+    KEY_F2("kf2"),
 
     /**
      */
-    KEY_F3,
+    KEY_F3("kf3"),
 
     /**
      */
-    KEY_F4,
+    KEY_F4("kf4"),
 
     /**
      */
-    KEY_F5,
+    KEY_F5("kf5"),
 
     /**
      */
-    KEY_F6,
+    KEY_F6("kf6"),
 
     /**
      */
-    KEY_F7,
+    KEY_F7("kf7"),
 
     /**
      */
-    KEY_F8,
+    KEY_F8("kf8"),
 
     /**
      */
-    KEY_F9,
+    KEY_F9("kf9"),
 
     /**
      */
-    KEY_HOME,
+    KEY_HOME("khome"),
 
     /**
      */
-    KEY_IC,
+    KEY_IC("kich1"),
 
     /**
      */
-    KEY_IL,
+    KEY_IL("kil1"),
 
     /**
      */
-    KEY_LEFT,
+    KEY_LEFT("kcub1"),
 
     /**
      */
-    KEY_LL,
+    KEY_LL("kll"),
 
     /**
      */
-    KEY_NPAGE,
+    KEY_NPAGE("knp"),
 
     /**
      */
-    KEY_PPAGE,
+    KEY_PPAGE("kpp"),
 
     /**
      */
-    KEY_RIGHT,
+    KEY_RIGHT("kcuf1"),
 
     /**
      */
-    KEY_SF,
+    KEY_SF("kind"),
 
     /**
      */
-    KEY_SR,
+    KEY_SR("kri"),
 
     /**
      */
-    KEY_STAB,
+    KEY_STAB("khts"),
 
     /**
      */
-    KEY_UP,
+    KEY_UP("kcuu1"),
 
     /**
      */
-    KEYPAD_LOCAL,
+    KEYPAD_LOCAL("rmkx"),
 
     /**
      */
-    KEYPAD_XMIT,
+    KEYPAD_XMIT("smkx"),
 
     /**
      */
-    LAB_F0,
+    LAB_F0("lf0"),
 
     /**
      */
-    LAB_F1,
+    LAB_F1("lf1"),
 
     /**
      */
-    LAB_F10,
+    LAB_F10("lf10"),
 
     /**
      */
-    LAB_F2,
+    LAB_F2("lf2"),
 
     /**
      */
-    LAB_F3,
+    LAB_F3("lf3"),
 
     /**
      */
-    LAB_F4,
+    LAB_F4("lf4"),
 
     /**
      */
-    LAB_F5,
+    LAB_F5("lf5"),
 
     /**
      */
-    LAB_F6,
+    LAB_F6("lf6"),
 
     /**
      */
-    LAB_F7,
+    LAB_F7("lf7"),
 
     /**
      */
-    LAB_F8,
+    LAB_F8("lf8"),
 
     /**
      */
-    LAB_F9,
+    LAB_F9("lf9"),
 
     /**
      */
-    META_OFF,
+    META_OFF("rmm"),
 
     /**
      */
-    META_ON,
+    META_ON("smm"),
 
     /**
      */
-    NEWLINE,
+    NEWLINE("nel"),
 
     /**
      */
-    PAD_CHAR,
+    PAD_CHAR("pad"),
 
     /**
      */
-    PARM_DCH(1),
+    PARM_DCH("dch", 1),
 
     /**
      */
-    PARM_DELETE_LINE(1),
+    PARM_DELETE_LINE("dl", 1),
 
     /**
      */
-    PARM_DOWN_CURSOR(1),
+    PARM_DOWN_CURSOR("cud", 1),
 
     /**
      */
-    PARM_ICH(1),
+    PARM_ICH("ich", 1),
 
     /**
      */
-    PARM_INDEX(1),
+    PARM_INDEX("indn", 1),
 
     /**
      */
-    PARM_INSERT_LINE(1),
+    PARM_INSERT_LINE("il", 1),
 
     /**
      */
-    PARM_LEFT_CURSOR(1),
+    PARM_LEFT_CURSOR("cub", 1),
 
     /**
      */
-    PARM_RIGHT_CURSOR(1),
+    PARM_RIGHT_CURSOR("cuf", 1),
 
     /**
      */
-    PARM_RINDEX(1),
+    PARM_RINDEX("rin", 1),
 
     /**
      */
-    PARM_UP_CURSOR(1),
+    PARM_UP_CURSOR("cuu", 1),
 
     /**
      */
-    PKEY_KEY(2),
+    PKEY_KEY("pfkey", 2),
 
     /**
      */
-    PKEY_LOCAL(2),
+    PKEY_LOCAL("pfloc", 2),
 
     /**
      */
-    PKEY_XMIT(2),
+    PKEY_XMIT("pfx", 2),
 
     /**
      */
-    PRINT_SCREEN,
+    PRINT_SCREEN("mc0"),
 
     /**
      */
-    PRTR_OFF,
+    PRTR_OFF("mc4"),
 
     /**
      */
-    PRTR_ON,
+    PRTR_ON("mc5"),
 
     /**
      */
-    REPEAT_CHAR(2),
+    REPEAT_CHAR("rep", 2),
 
     /**
      */
-    RESET_1STRING,
+    RESET_1STRING("rs1"),
 
     /**
      */
-    RESET_2STRING,
+    RESET_2STRING("rs2"),
 
     /**
      */
-    RESET_3STRING,
+    RESET_3STRING("rs3"),
 
     /**
      */
-    RESET_FILE,
+    RESET_FILE("rf"),
 
     /**
      */
-    RESTORE_CURSOR,
+    RESTORE_CURSOR("rc"),
 
     /**
      */
-    ROW_ADDRESS(1),
+    ROW_ADDRESS("vpa", 1),
 
     /**
      */
-    SAVE_CURSOR,
+    SAVE_CURSOR("sc"),
 
     /**
      */
-    SCROLL_FORWARD,
+    SCROLL_FORWARD("ind"),
 
     /**
      */
-    SCROLL_REVERSE,
+    SCROLL_REVERSE("ri"),
 
     /**
      */
-    SET_ATTRIBUTES(9),
+    SET_ATTRIBUTES("sgr", 9),
 
     /**
      */
-    SET_TAB,
+    SET_TAB("hts"),
 
     /**
      */
-    SET_WINDOW(4),
+    SET_WINDOW("wind", 4),
 
     /**
      */
-    TAB,
+    TAB("ht"),
 
     /**
      */
-    TO_STATUS_LINE(1),
+    TO_STATUS_LINE("tsl", 1),
 
     /**
      */
-    UNDERLINE_CHAR,
+    UNDERLINE_CHAR("uc"),
 
     /**
      */
-    UP_HALF_LINE,
+    UP_HALF_LINE("hu"),
 
     /**
      */
-    INIT_PROG,
+    INIT_PROG("iprog"),
 
     /**
      */
-    KEY_A1,
+    KEY_A1("ka1"),
 
     /**
      */
-    KEY_A3,
+    KEY_A3("ka3"),
 
     /**
      */
-    KEY_B2,
+    KEY_B2("kb2"),
 
     /**
      */
-    KEY_C1,
+    KEY_C1("kc1"),
 
     /**
      */
-    KEY_C3,
+    KEY_C3("kc3"),
 
     /**
      */
-    PRTR_NON(1),
+    PRTR_NON("mc5p", 1),
 
     /**
      */
-    CHAR_PADDING,
+    CHAR_PADDING("rmp"),
 
     /**
      */
-    ACS_CHARS,
+    ACS_CHARS("acsc"),
 
     /**
      */
-    PLAB_NORM(2),
+    PLAB_NORM("pln", 2),
 
     /**
      */
-    KEY_BTAB,
+    KEY_BTAB("kcbt"),
 
     /**
      */
-    ENTER_XON_MODE,
+    ENTER_XON_MODE("smxon"),
 
     /**
      */
-    EXIT_XON_MODE,
+    EXIT_XON_MODE("rmxon"),
 
     /**
      */
-    ENTER_AM_MODE,
+    ENTER_AM_MODE("smam"),
 
     /**
      */
-    EXIT_AM_MODE,
+    EXIT_AM_MODE("rmam"),
 
     /**
      */
-    XON_CHARACTER,
+    XON_CHARACTER("xonc"),
 
     /**
      */
-    XOFF_CHARACTER,
+    XOFF_CHARACTER("xoffc"),
 
     /**
      */
-    ENA_ACS,
+    ENA_ACS("enacs"),
 
     /**
      */
-    LABEL_ON,
+    LABEL_ON("smln"),
 
     /**
      */
-    LABEL_OFF,
+    LABEL_OFF("rmln"),
 
     /**
      */
-    KEY_BEG,
+    KEY_BEG("kbeg"),
 
     /**
      */
-    KEY_CANCEL,
+    KEY_CANCEL("kcan"),
 
     /**
      */
-    KEY_CLOSE,
+    KEY_CLOSE("kclo"),
 
     /**
      */
-    KEY_COMMAND,
+    KEY_COMMAND("kcmd"),
 
     /**
      */
-    KEY_COPY,
+    KEY_COPY("kcpy"),
 
     /**
      */
-    KEY_CREATE,
+    KEY_CREATE("kcrt"),
 
     /**
      */
-    KEY_END,
+    KEY_END("kend"),
 
     /**
      */
-    KEY_ENTER,
+    KEY_ENTER("kent"),
 
     /**
      */
-    KEY_EXIT,
+    KEY_EXIT("kext"),
 
     /**
      */
-    KEY_FIND,
+    KEY_FIND("kfnd"),
 
     /**
      */
-    KEY_HELP,
+    KEY_HELP("khlp"),
 
     /**
      */
-    KEY_MARK,
+    KEY_MARK("kmrk"),
 
     /**
      */
-    KEY_MESSAGE,
+    KEY_MESSAGE("kmsg"),
 
     /**
      */
-    KEY_MOVE,
+    KEY_MOVE("kmov"),
 
     /**
      */
-    KEY_NEXT,
+    KEY_NEXT("knxt"),
 
     /**
      */
-    KEY_OPEN,
+    KEY_OPEN("kopn"),
 
     /**
      */
-    KEY_OPTIONS,
+    KEY_OPTIONS("kopt"),
 
     /**
      */
-    KEY_PREVIOUS,
+    KEY_PREVIOUS("kprv"),
 
     /**
      */
-    KEY_PRINT,
+    KEY_PRINT("kprt"),
 
     /**
      */
-    KEY_REDO,
+    KEY_REDO("krdo"),
 
     /**
      */
-    KEY_REFERENCE,
+    KEY_REFERENCE("kref"),
 
     /**
      */
-    KEY_REFRESH,
+    KEY_REFRESH("krfr"),
 
     /**
      */
-    KEY_REPLACE,
+    KEY_REPLACE("krpl"),
 
     /**
      */
-    KEY_RESTART,
+    KEY_RESTART("krst"),
 
     /**
      */
-    KEY_RESUME,
+    KEY_RESUME("kres"),
 
     /**
      */
-    KEY_SAVE,
+    KEY_SAVE("ksav"),
 
     /**
      */
-    KEY_SUSPEND,
+    KEY_SUSPEND("kspd"),
 
     /**
      */
-    KEY_UNDO,
+    KEY_UNDO("kund"),
 
     /**
      */
-    KEY_SBEG,
+    KEY_SBEG("kBEG"),
 
     /**
      */
-    KEY_SCANCEL,
+    KEY_SCANCEL("kCAN"),
 
     /**
      */
-    KEY_SCOMMAND,
+    KEY_SCOMMAND("kCMD"),
 
     /**
      */
-    KEY_SCOPY,
+    KEY_SCOPY("kCPY"),
 
     /**
      */
-    KEY_SCREATE,
+    KEY_SCREATE("kCRT"),
 
     /**
      */
-    KEY_SDC,
+    KEY_SDC("kDC"),
 
     /**
      */
-    KEY_SDL,
+    KEY_SDL("kDL"),
 
     /**
      */
-    KEY_SELECT,
+    KEY_SELECT("kslt"),
 
     /**
      */
-    KEY_SEND,
+    KEY_SEND("kEND"),
 
     /**
      */
-    KEY_SEOL,
+    KEY_SEOL("kEOL"),
 
     /**
      */
-    KEY_SEXIT,
+    KEY_SEXIT("kEXT"),
 
     /**
      */
-    KEY_SFIND,
+    KEY_SFIND("kFND"),
 
     /**
      */
-    KEY_SHELP,
+    KEY_SHELP("kHLP"),
 
     /**
      */
-    KEY_SHOME,
+    KEY_SHOME("kHOM"),
 
     /**
      */
-    KEY_SIC,
+    KEY_SIC("kIC"),
 
     /**
      */
-    KEY_SLEFT,
+    KEY_SLEFT("kLFT"),
 
     /**
      */
-    KEY_SMESSAGE,
+    KEY_SMESSAGE("kMSG"),
 
     /**
      */
-    KEY_SMOVE,
+    KEY_SMOVE("kMOV"),
 
     /**
      */
-    KEY_SNEXT,
+    KEY_SNEXT("kNXT"),
 
     /**
      */
-    KEY_SOPTIONS,
+    KEY_SOPTIONS("kOPT"),
 
     /**
      */
-    KEY_SPREVIOUS,
+    KEY_SPREVIOUS("kPRV"),
 
     /**
      */
-    KEY_SPRINT,
+    KEY_SPRINT("kPRT"),
 
     /**
      */
-    KEY_SREDO,
+    KEY_SREDO("kRDO"),
 
     /**
      */
-    KEY_SREPLACE,
+    KEY_SREPLACE("kRPL"),
 
     /**
      */
-    KEY_SRIGHT,
+    KEY_SRIGHT("kRIT"),
 
     /**
      */
-    KEY_SRSUME,
+    KEY_SRSUME("kRES"),
 
     /**
      */
-    KEY_SSAVE,
+    KEY_SSAVE("kSAV"),
 
     /**
      */
-    KEY_SSUSPEND,
+    KEY_SSUSPEND("kSPD"),
 
     /**
      */
-    KEY_SUNDO,
+    KEY_SUNDO("kUND"),
 
     /**
      */
-    REQ_FOR_INPUT,
+    REQ_FOR_INPUT("rfi"),
 
     /**
      */
-    KEY_F11,
+    KEY_F11("kf11"),
 
     /**
      */
-    KEY_F12,
+    KEY_F12("kf12"),
 
     /**
      */
-    KEY_F13,
+    KEY_F13("kf13"),
 
     /**
      */
-    KEY_F14,
+    KEY_F14("kf14"),
 
     /**
      */
-    KEY_F15,
+    KEY_F15("kf15"),
 
     /**
      */
-    KEY_F16,
+    KEY_F16("kf16"),
 
     /**
      */
-    KEY_F17,
+    KEY_F17("kf17"),
 
     /**
      */
-    KEY_F18,
+    KEY_F18("kf18"),
 
     /**
      */
-    KEY_F19,
+    KEY_F19("kf19"),
 
     /**
      */
-    KEY_F20,
+    KEY_F20("kf20"),
 
     /**
      */
-    KEY_F21,
+    KEY_F21("kf21"),
 
     /**
      */
-    KEY_F22,
+    KEY_F22("kf22"),
 
     /**
      */
-    KEY_F23,
+    KEY_F23("kf23"),
 
     /**
      */
-    KEY_F24,
+    KEY_F24("kf24"),
 
     /**
      */
-    KEY_F25,
+    KEY_F25("kf25"),
 
     /**
      */
-    KEY_F26,
+    KEY_F26("kf26"),
 
     /**
      */
-    KEY_F27,
+    KEY_F27("kf27"),
 
     /**
      */
-    KEY_F28,
+    KEY_F28("kf28"),
 
     /**
      */
-    KEY_F29,
+    KEY_F29("kf29"),
 
     /**
      */
-    KEY_F30,
+    KEY_F30("kf30"),
 
     /**
      */
-    KEY_F31,
+    KEY_F31("kf31"),
 
     /**
      */
-    KEY_F32,
+    KEY_F32("kf32"),
 
     /**
      */
-    KEY_F33,
+    KEY_F33("kf33"),
 
     /**
      */
-    KEY_F34,
+    KEY_F34("kf34"),
 
     /**
      */
-    KEY_F35,
+    KEY_F35("kf35"),
 
     /**
      */
-    KEY_F36,
+    KEY_F36("kf36"),
 
     /**
      */
-    KEY_F37,
+    KEY_F37("kf37"),
 
     /**
      */
-    KEY_F38,
+    KEY_F38("kf38"),
 
     /**
      */
-    KEY_F39,
+    KEY_F39("kf39"),
 
     /**
      */
-    KEY_F40,
+    KEY_F40("kf40"),
 
     /**
      */
-    KEY_F41,
+    KEY_F41("kf41"),
 
     /**
      */
-    KEY_F42,
+    KEY_F42("kf42"),
 
     /**
      */
-    KEY_F43,
+    KEY_F43("kf43"),
 
     /**
      */
-    KEY_F44,
+    KEY_F44("kf44"),
 
     /**
      */
-    KEY_F45,
+    KEY_F45("kf45"),
 
     /**
      */
-    KEY_F46,
+    KEY_F46("kf46"),
 
     /**
      */
-    KEY_F47,
+    KEY_F47("kf47"),
 
     /**
      */
-    KEY_F48,
+    KEY_F48("kf48"),
 
     /**
      */
-    KEY_F49,
+    KEY_F49("kf49"),
 
     /**
      */
-    KEY_F50,
+    KEY_F50("kf50"),
 
     /**
      */
-    KEY_F51,
+    KEY_F51("kf51"),
 
     /**
      */
-    KEY_F52,
+    KEY_F52("kf52"),
 
     /**
      */
-    KEY_F53,
+    KEY_F53("kf53"),
 
     /**
      */
-    KEY_F54,
+    KEY_F54("kf54"),
 
     /**
      */
-    KEY_F55,
+    KEY_F55("kf55"),
 
     /**
      */
-    KEY_F56,
+    KEY_F56("kf56"),
 
     /**
      */
-    KEY_F57,
+    KEY_F57("kf57"),
 
     /**
      */
-    KEY_F58,
+    KEY_F58("kf58"),
 
     /**
      */
-    KEY_F59,
+    KEY_F59("kf59"),
 
     /**
      */
-    KEY_F60,
+    KEY_F60("kf60"),
 
     /**
      */
-    KEY_F61,
+    KEY_F61("kf61"),
 
     /**
      */
-    KEY_F62,
+    KEY_F62("kf62"),
 
     /**
      */
-    KEY_F63,
+    KEY_F63("kf63"),
 
     /**
      */
-    CLR_BOL,
+    CLR_BOL("el1"),
 
     /**
      */
-    CLEAR_MARGINS,
+    CLEAR_MARGINS("mgc"),
 
     /**
      */
-    SET_LEFT_MARGIN,
+    SET_LEFT_MARGIN("smgl"),
 
     /**
      */
-    SET_RIGHT_MARGIN,
+    SET_RIGHT_MARGIN("smgr"),
 
     /**
      */
-    LABEL_FORMAT,
+    LABEL_FORMAT("fln"),
 
     /**
      */
-    SET_CLOCK(3),
+    SET_CLOCK("sclk", 3),
 
     /**
      */
-    DISPLAY_CLOCK,
+    DISPLAY_CLOCK("dclk"),
 
     /**
      */
-    REMOVE_CLOCK,
+    REMOVE_CLOCK("rmclk"),
 
     /**
      */
-    CREATE_WINDOW(5),
+    CREATE_WINDOW("cwin", 5),
 
     /**
      */
-    GOTO_WINDOW(1),
+    GOTO_WINDOW("wingo", 1),
 
     /**
      */
-    HANGUP,
+    HANGUP("hup"),
 
     /**
      */
-    DIAL_PHONE(1),
+    DIAL_PHONE("dial", 1),
 
     /**
      */
-    QUICK_DIAL(1),
+    QUICK_DIAL("qdial", 1),
 
     /**
      */
-    TONE,
+    TONE("tone"),
 
     /**
      */
-    PULSE,
+    PULSE("pulse"),
 
     /**
      */
-    FLASH_HOOK,
+    FLASH_HOOK("hook"),
 
     /**
      */
-    FIXED_PAUSE,
+    FIXED_PAUSE("pause"),
 
     /**
      */
-    WAIT_TONE,
+    WAIT_TONE("wait"),
 
     /**
      */
-    USER0,
+    USER0("u0"),
 
     /**
      */
-    USER1,
+    USER1("u1"),
 
     /**
      */
-    USER2,
+    USER2("u2"),
 
     /**
      */
-    USER3,
+    USER3("u3"),
 
     /**
      */
-    USER4,
+    USER4("u4"),
 
     /**
      */
-    USER5,
+    USER5("u5"),
 
     /**
      */
-    USER6,
+    USER6("u6"),
 
     /**
      */
-    USER7,
+    USER7("u7"),
 
     /**
      */
-    USER8,
+    USER8("u8"),
 
     /**
      */
-    USER9,
+    USER9("u9"),
 
     /**
      */
-    ORIG_PAIR,
+    ORIG_PAIR("op"),
 
     /**
      */
-    ORIG_COLORS,
+    ORIG_COLORS("oc"),
 
     /**
      */
-    INITIALIZE_COLOR(4),
+    INITIALIZE_COLOR("initc", 4),
 
     /**
      */
-    INITIALIZE_PAIR(7),
+    INITIALIZE_PAIR("initp", 7),
 
     /**
      */
-    SET_COLOR_PAIR(1),
+    SET_COLOR_PAIR("scp", 1),
 
     /**
      */
-    SET_FOREGROUND(1),
+    SET_FOREGROUND("setf", 1),
 
     /**
      */
-    SET_BACKGROUND(1),
+    SET_BACKGROUND("setb", 1),
 
     /**
      */
-    CHANGE_CHAR_PITCH(1),
+    CHANGE_CHAR_PITCH("cpi", 1),
 
     /**
      */
-    CHANGE_LINE_PITCH(1),
+    CHANGE_LINE_PITCH("lpi", 1),
 
     /**
      */
-    CHANGE_RES_HORZ(1),
+    CHANGE_RES_HORZ("chr", 1),
 
     /**
      */
-    CHANGE_RES_VERT(1),
+    CHANGE_RES_VERT("cvr", 1),
 
     /**
      */
-    DEFINE_CHAR(3),
+    DEFINE_CHAR("defc", 3),
 
     /**
      */
-    ENTER_DOUBLEWIDE_MODE,
+    ENTER_DOUBLEWIDE_MODE("swidm"),
 
     /**
      */
-    ENTER_DRAFT_QUALITY,
+    ENTER_DRAFT_QUALITY("sdrfq"),
 
     /**
      */
-    ENTER_ITALICS_MODE,
+    ENTER_ITALICS_MODE("sitm"),
 
     /**
      */
-    ENTER_LEFTWARD_MODE,
+    ENTER_LEFTWARD_MODE("slm"),
 
     /**
      */
-    ENTER_MICRO_MODE,
+    ENTER_MICRO_MODE("smicm"),
 
     /**
      */
-    ENTER_NEAR_LETTER_QUALITY,
+    ENTER_NEAR_LETTER_QUALITY("snlq"),
 
     /**
      */
-    ENTER_NORMAL_QUALITY,
+    ENTER_NORMAL_QUALITY("snrmq"),
 
     /**
      */
-    ENTER_SHADOW_MODE,
+    ENTER_SHADOW_MODE("sshm"),
 
     /**
      */
-    ENTER_SUBSCRIPT_MODE,
+    ENTER_SUBSCRIPT_MODE("ssubm"),
 
     /**
      */
-    ENTER_SUPERSCRIPT_MODE,
+    ENTER_SUPERSCRIPT_MODE("ssupm"),
 
     /**
      */
-    ENTER_UPWARD_MODE,
+    ENTER_UPWARD_MODE("sum"),
 
     /**
      */
-    EXIT_DOUBLEWIDE_MODE,
+    EXIT_DOUBLEWIDE_MODE("rwidm"),
 
     /**
      */
-    EXIT_ITALICS_MODE,
+    EXIT_ITALICS_MODE("ritm"),
 
     /**
      */
-    EXIT_LEFTWARD_MODE,
+    EXIT_LEFTWARD_MODE("rlm"),
 
     /**
      */
-    EXIT_MICRO_MODE,
+    EXIT_MICRO_MODE("rmicm"),
 
     /**
      */
-    EXIT_SHADOW_MODE,
+    EXIT_SHADOW_MODE("rshm"),
 
     /**
      */
-    EXIT_SUBSCRIPT_MODE,
+    EXIT_SUBSCRIPT_MODE("rsubm"),
 
     /**
      */
-    EXIT_SUPERSCRIPT_MODE,
+    EXIT_SUPERSCRIPT_MODE("rsupm"),
 
     /**
      */
-    EXIT_UPWARD_MODE,
+    EXIT_UPWARD_MODE("rum"),
 
     /**
      */
-    MICRO_COLUMN_ADDRESS,
+    MICRO_COLUMN_ADDRESS("mhpa"),
 
     /**
      */
-    MICRO_DOWN,
+    MICRO_DOWN("mcud1"),
 
     /**
      */
-    MICRO_LEFT,
+    MICRO_LEFT("mcub1"),
 
     /**
      */
-    MICRO_RIGHT,
+    MICRO_RIGHT("mcuf1"),
 
     /**
      */
-    MICRO_ROW_ADDRESS(1),
+    MICRO_ROW_ADDRESS("mvpa", 1),
 
     /**
      */
-    MICRO_UP,
+    MICRO_UP("mcuu1"),
 
     /**
      */
-    ORDER_OF_PINS,
+    ORDER_OF_PINS("porder"),
 
     /**
      */
-    PARM_DOWN_MICRO,
+    PARM_DOWN_MICRO("mcud"),
 
     /**
      */
-    PARM_LEFT_MICRO,
+    PARM_LEFT_MICRO("mcub"),
 
     /**
      */
-    PARM_RIGHT_MICRO,
+    PARM_RIGHT_MICRO("mcuf"),
 
     /**
      */
-    PARM_UP_MICRO,
+    PARM_UP_MICRO("mcuu"),
 
     /**
      */
-    SELECT_CHAR_SET(1),
+    SELECT_CHAR_SET("scs", 1),
 
     /**
      */
-    SET_BOTTOM_MARGIN,
+    SET_BOTTOM_MARGIN("smgb"),
 
     /**
      */
-    SET_BOTTOM_MARGIN_PARM(1),
+    SET_BOTTOM_MARGIN_PARM("smgbp", 1),
 
     /**
      */
-    SET_LEFT_MARGIN_PARM(1),
+    SET_LEFT_MARGIN_PARM("smglp", 1),
 
     /**
      */
-    SET_RIGHT_MARGIN_PARM(1),
+    SET_RIGHT_MARGIN_PARM("smgrp", 1),
 
     /**
      */
-    SET_TOP_MARGIN,
+    SET_TOP_MARGIN("smgt"),
 
     /**
      */
-    SET_TOP_MARGIN_PARM(1),
+    SET_TOP_MARGIN_PARM("smgtp", 1),
 
     /**
      */
-    START_BIT_IMAGE,
+    START_BIT_IMAGE("sbim"),
 
     /**
      */
-    START_CHAR_SET_DEF(2),
+    START_CHAR_SET_DEF("scsd", 2),
 
     /**
      */
-    STOP_BIT_IMAGE,
+    STOP_BIT_IMAGE("rbim"),
 
     /**
      */
-    STOP_CHAR_SET_DEF(1),
+    STOP_CHAR_SET_DEF("rcsd", 1),
 
     /**
      */
-    SUBSCRIPT_CHARACTERS,
+    SUBSCRIPT_CHARACTERS("subcs"),
 
     /**
      */
-    SUPERSCRIPT_CHARACTERS,
+    SUPERSCRIPT_CHARACTERS("supcs"),
 
     /**
      */
-    THESE_CAUSE_CR,
+    THESE_CAUSE_CR("docr"),
 
     /**
      */
-    ZERO_MOTION,
+    ZERO_MOTION("zerom"),
 
     /**
      */
-    CHAR_SET_NAMES(1),
+    CHAR_SET_NAMES("csnm", 1),
 
     /**
      */
-    KEY_MOUSE,
+    KEY_MOUSE("kmous"),
 
     /**
      */
-    MOUSE_INFO,
+    MOUSE_INFO("minfo"),
 
     /**
      */
-    REQ_MOUSE_POS,
+    REQ_MOUSE_POS("reqmp"),
 
     /**
      */
-    GET_MOUSE(1),
+    GET_MOUSE("getm", 1),
 
     /**
      */
-    SET_A_FOREGROUND(1),
+    SET_A_FOREGROUND("setaf", 1),
 
     /**
      */
-    SET_A_BACKGROUND(1),
+    SET_A_BACKGROUND("setab", 1),
 
     /**
      */
-    PKEY_PLAB(3),
+    PKEY_PLAB("pfxl", 3),
 
     /**
      */
-    DEVICE_TYPE,
+    DEVICE_TYPE("devt"),
 
     /**
      */
-    CODE_SET_INIT,
+    CODE_SET_INIT("csin"),
 
     /**
      */
-    SET0_DES_SEQ,
+    SET0_DES_SEQ("s0ds"),
 
     /**
      */
-    SET1_DES_SEQ,
+    SET1_DES_SEQ("s1ds"),
 
     /**
      */
-    SET2_DES_SEQ,
+    SET2_DES_SEQ("s2ds"),
 
     /**
      */
-    SET3_DES_SEQ,
+    SET3_DES_SEQ("s3ds"),
 
     /**
      */
-    SET_LR_MARGIN(2),
+    SET_LR_MARGIN("smglr", 2),
 
     /**
      */
-    SET_TB_MARGIN(2),
+    SET_TB_MARGIN("smgtb", 2),
 
     /**
      */
-    BIT_IMAGE_REPEAT(2),
+    BIT_IMAGE_REPEAT("birep", 2),
 
     /**
      */
-    BIT_IMAGE_NEWLINE,
+    BIT_IMAGE_NEWLINE("binel"),
 
     /**
      */
-    BIT_IMAGE_CARRIAGE_RETURN,
+    BIT_IMAGE_CARRIAGE_RETURN("bicr"),
 
     /**
      */
-    COLOR_NAMES(1),
+    COLOR_NAMES("colornm", 1),
 
     /**
      */
-    DEFINE_BIT_IMAGE_REGION,
+    DEFINE_BIT_IMAGE_REGION("defbi"),
 
     /**
      */
-    END_BIT_IMAGE_REGION,
+    END_BIT_IMAGE_REGION("endbi"),
 
     /**
      */
-    SET_COLOR_BAND(1),
+    SET_COLOR_BAND("setcolor", 1),
 
     /**
      */
-    SET_PAGE_LENGTH(1),
+    SET_PAGE_LENGTH("slines", 1),
 
     /**
      */
-    DISPLAY_PC_CHAR(1),
+    DISPLAY_PC_CHAR("dispc", 1),
 
     /**
      */
-    ENTER_PC_CHARSET_MODE,
+    ENTER_PC_CHARSET_MODE("smpch"),
 
     /**
      */
-    EXIT_PC_CHARSET_MODE,
+    EXIT_PC_CHARSET_MODE("rmpch"),
 
     /**
      */
-    ENTER_SCANCODE_MODE,
+    ENTER_SCANCODE_MODE("smsc"),
 
     /**
      */
-    EXIT_SCANCODE_MODE,
+    EXIT_SCANCODE_MODE("rmsc"),
 
     /**
      */
-    PC_TERM_OPTIONS,
+    PC_TERM_OPTIONS("pctrm"),
 
     /**
      */
-    SCANCODE_ESCAPE,
+    SCANCODE_ESCAPE("scesc"),
 
     /**
      */
-    ALT_SCANCODE_ESC,
+    ALT_SCANCODE_ESC("scesa"),
 
     /**
      */
-    ENTER_HORIZONTAL_HL_MODE,
+    ENTER_HORIZONTAL_HL_MODE("ehhlm"),
 
     /**
      */
-    ENTER_LEFT_HL_MODE,
+    ENTER_LEFT_HL_MODE("elhlm"),
 
     /**
      */
-    ENTER_LOW_HL_MODE,
+    ENTER_LOW_HL_MODE("elohlm"),
 
     /**
      */
-    ENTER_RIGHT_HL_MODE,
+    ENTER_RIGHT_HL_MODE("erhlm"),
 
     /**
      */
-    ENTER_TOP_HL_MODE,
+    ENTER_TOP_HL_MODE("ethlm"),
 
     /**
      */
-    ENTER_VERTICAL_HL_MODE,
+    ENTER_VERTICAL_HL_MODE("evhlm"),
 
     /**
      */
-    SET_A_ATTRIBUTES(6),
+    SET_A_ATTRIBUTES("sgr1", 6),
+
+    /**
+     */
+    SET_PGLEN_INCH("slength", 1),
     ;
 
     /**
@@ -1590,15 +1594,25 @@ public enum StringCapability {
         return parameters;
     }
 
+    /**
+     * Returns the name that is used in terminfo definitions.
+     * @return a non-empty string
+     */
+    public String terminfoName() {
+        return terminfoName;
+    }
+
+    private final String terminfoName;
     private final int parameters;
 
     static final int COUNT = values().length;
 
-    private StringCapability(int parameters) {
+    private StringCapability(String terminfoName, int parameters) {
+        this.terminfoName = terminfoName;
         this.parameters = parameters;
     }
 
-    private StringCapability() {
-        this(0);
+    private StringCapability(String terminfoName) {
+        this(terminfoName, 0);
     }
 }
