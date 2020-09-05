@@ -362,10 +362,12 @@ public enum UntypedStringCapability implements StringCapability {
     UP_HALF_LINE(137, "hu"),
 
     /**
+     * Unused.
      */
     INIT_PROG(138, "iprog"),
 
     /**
+     * Unused.
      */
     CHAR_PADDING(145, "rmp"),
 
@@ -434,6 +436,7 @@ public enum UntypedStringCapability implements StringCapability {
     LABEL_FORMAT(273, "fln"),
 
     /**
+     * Unused, parameter types unknown.
      */
     SET_CLOCK(274, "sclk", 3),
 
@@ -446,10 +449,12 @@ public enum UntypedStringCapability implements StringCapability {
     REMOVE_CLOCK(276, "rmclk"),
 
     /**
+     * Unused.  Parameter types unknown.
      */
     CREATE_WINDOW(277, "cwin", 5),
 
     /**
+     * Unused.  Parameter type unknown.
      */
     GOTO_WINDOW(278, "wingo", 1),
 
@@ -458,14 +463,17 @@ public enum UntypedStringCapability implements StringCapability {
     HANGUP(279, "hup"),
 
     /**
+     * Unused.  The parameter has type string.
      */
     DIAL_PHONE(280, "dial", 1),
 
     /**
+     * Unused.  Parameter type unknown.
      */
     QUICK_DIAL(281, "qdial", 1),
 
     /**
+     * Unused.
      */
     TONE(282, "tone"),
 
@@ -474,14 +482,17 @@ public enum UntypedStringCapability implements StringCapability {
     PULSE(283, "pulse"),
 
     /**
+     * Unused.
      */
     FLASH_HOOK(284, "hook"),
 
     /**
+     * Unused.
      */
     FIXED_PAUSE(285, "pause"),
 
     /**
+     * Unused.
      */
     WAIT_TONE(286, "wait"),
 
@@ -542,14 +553,19 @@ public enum UntypedStringCapability implements StringCapability {
     INITIALIZE_PAIR(300, "initp", 7),
 
     /**
+     * De-facto unused.  (Only use does not have parameters, but
+     * {@code tic} in ncurses expects one.)
      */
     CHANGE_RES_HORZ(306, "chr", 1),
 
     /**
+     * De-facto unused.  (Only use does not have parameters, but
+     * {@code tic} in ncurses expects one.)
      */
     CHANGE_RES_VERT(307, "cvr", 1),
 
     /**
+     * Unused, parameter types unknown.
      */
     DEFINE_CHAR(308, "defc", 3),
 
@@ -558,6 +574,7 @@ public enum UntypedStringCapability implements StringCapability {
     ENTER_DOUBLEWIDE_MODE(309, "swidm"),
 
     /**
+     * Unused.
      */
     ENTER_DRAFT_QUALITY(310, "sdrfq"),
 
@@ -566,6 +583,7 @@ public enum UntypedStringCapability implements StringCapability {
     ENTER_ITALICS_MODE(311, "sitm"),
 
     /**
+     * Unused.
      */
     ENTER_LEFTWARD_MODE(312, "slm"),
 
@@ -578,6 +596,7 @@ public enum UntypedStringCapability implements StringCapability {
     ENTER_NEAR_LETTER_QUALITY(314, "snlq"),
 
     /**
+     * Unused.
      */
     ENTER_NORMAL_QUALITY(315, "snrmq"),
 
@@ -586,18 +605,22 @@ public enum UntypedStringCapability implements StringCapability {
     ENTER_SHADOW_MODE(316, "sshm"),
 
     /**
+     * Unused.
      */
     ENTER_SUBSCRIPT_MODE(317, "ssubm"),
 
     /**
+     * Unused.
      */
     ENTER_SUPERSCRIPT_MODE(318, "ssupm"),
 
     /**
+     * Unused.
      */
     ENTER_UPWARD_MODE(319, "sum"),
 
     /**
+     * Unused.
      */
     EXIT_DOUBLEWIDE_MODE(320, "rwidm"),
 
@@ -606,6 +629,7 @@ public enum UntypedStringCapability implements StringCapability {
     EXIT_ITALICS_MODE(321, "ritm"),
 
     /**
+     * Unused.
      */
     EXIT_LEFTWARD_MODE(322, "rlm"),
 
@@ -618,18 +642,22 @@ public enum UntypedStringCapability implements StringCapability {
     EXIT_SHADOW_MODE(324, "rshm"),
 
     /**
+     * Unused.
      */
     EXIT_SUBSCRIPT_MODE(325, "rsubm"),
 
     /**
+     * Unused.
      */
     EXIT_SUPERSCRIPT_MODE(326, "rsupm"),
 
     /**
+     * Unused.
      */
     EXIT_UPWARD_MODE(327, "rum"),
 
     /**
+     * Unused.
      */
     MICRO_COLUMN_ADDRESS(328, "mhpa"),
 
@@ -650,6 +678,7 @@ public enum UntypedStringCapability implements StringCapability {
     MICRO_UP(333, "mcuu1"),
 
     /**
+     * Unused.
      */
     ORDER_OF_PINS(334, "porder"),
 
@@ -678,34 +707,42 @@ public enum UntypedStringCapability implements StringCapability {
     SET_TOP_MARGIN(344, "smgt"),
 
     /**
+     * Unused.
      */
     START_BIT_IMAGE(346, "sbim"),
 
     /**
+     * Unused.  Parameter types unknown.
      */
     START_CHAR_SET_DEF(347, "scsd", 2),
 
     /**
+     * Unused.
      */
     STOP_BIT_IMAGE(348, "rbim"),
 
     /**
+     * Unused, parameter type unknown.
      */
     STOP_CHAR_SET_DEF(349, "rcsd", 1),
 
     /**
+     * Unused.
      */
     SUBSCRIPT_CHARACTERS(350, "subcs"),
 
     /**
+     * Unused.
      */
     SUPERSCRIPT_CHARACTERS(351, "supcs"),
 
     /**
+     * Unused.
      */
     THESE_CAUSE_CR(352, "docr"),
 
     /**
+     * Unused.
      */
     ZERO_MOTION(353, "zerom"),
 
@@ -716,6 +753,7 @@ public enum UntypedStringCapability implements StringCapability {
     KEY_MOUSE(355, "kmous"),
 
     /**
+     * Unused.
      */
     MOUSE_INFO(356, "minfo"),
 
@@ -728,10 +766,12 @@ public enum UntypedStringCapability implements StringCapability {
     PKEY_PLAB(361, "pfxl", 3),
 
     /**
+     * Unused.
      */
     DEVICE_TYPE(362, "devt"),
 
     /**
+     * Unused.
      */
     CODE_SET_INIT(363, "csin"),
 
@@ -752,42 +792,52 @@ public enum UntypedStringCapability implements StringCapability {
     SET3_DES_SEQ(367, "s3ds"),
 
     /**
+     * Unused.  Parameter types unknown.
      */
     SET_LR_MARGIN(368, "smglr", 2),
 
     /**
+     * Unused.  Parameter types unknown.
      */
     SET_TB_MARGIN(369, "smgtb", 2),
 
     /**
+     * Unused, parameter types unknown.
      */
     BIT_IMAGE_REPEAT(370, "birep", 2),
 
     /**
+     * Unused.
      */
     BIT_IMAGE_NEWLINE(371, "binel"),
 
     /**
+     * Unused.
      */
     BIT_IMAGE_CARRIAGE_RETURN(372, "bicr"),
 
     /**
+     * Unused, parameter type unknown.
      */
     COLOR_NAMES(373, "colornm", 1),
 
     /**
+     * Unused.
      */
     DEFINE_BIT_IMAGE_REGION(374, "defbi"),
 
     /**
+     * Unused.
      */
     END_BIT_IMAGE_REGION(375, "endbi"),
 
     /**
+     * Unused, parameter type unknown.
      */
     SET_COLOR_BAND(376, "setcolor", 1),
 
     /**
+     * Unused, parameter type unknown.
      */
     SET_PAGE_LENGTH(377, "slines", 1),
 
@@ -812,42 +862,52 @@ public enum UntypedStringCapability implements StringCapability {
     PC_TERM_OPTIONS(383, "pctrm"),
 
     /**
+     * Unused.
      */
     SCANCODE_ESCAPE(384, "scesc"),
 
     /**
+     * Unused.
      */
     ALT_SCANCODE_ESC(385, "scesa"),
 
     /**
+     * Unused.
      */
     ENTER_HORIZONTAL_HL_MODE(386, "ehhlm"),
 
     /**
+     * Unused.
      */
     ENTER_LEFT_HL_MODE(387, "elhlm"),
 
     /**
+     * Unused.
      */
     ENTER_LOW_HL_MODE(388, "elohlm"),
 
     /**
+     * Unused.
      */
     ENTER_RIGHT_HL_MODE(389, "erhlm"),
 
     /**
+     * Unused.
      */
     ENTER_TOP_HL_MODE(390, "ethlm"),
 
     /**
+     * Unused.
      */
     ENTER_VERTICAL_HL_MODE(391, "evhlm"),
 
     /**
+     * Unused.  Parameter types unknown.
      */
     SET_A_ATTRIBUTES(392, "sgr1", 6),
 
     /**
+     * Unused, parameter type unknown.
      */
     SET_PGLEN_INCH(393, "slength", 1),
     ;
