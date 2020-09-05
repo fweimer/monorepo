@@ -1,5 +1,7 @@
 package enyo.io.terminfo;
 
+import java.util.List;
+
 /**
  * A string-value terminfo capability.
  *
@@ -8,1030 +10,1285 @@ package enyo.io.terminfo;
  *
  * @see TermFile#get(StringCapability)
  */
-public enum StringCapability {
-    // Order must match the terminal file layout.
-
+public interface StringCapability {
     /**
+     * The long name of the string capability.
+     * @return an upper-case identifier
      */
-    BACK_TAB(0, "cbt"),
-
-    /**
-     */
-    BELL(1, "bel"),
-
-    /**
-     */
-    CARRIAGE_RETURN(2, "cr"),
-
-    /**
-     */
-    CHANGE_SCROLL_REGION(3, "csr", 2),
-
-    /**
-     */
-    CLEAR_ALL_TABS(4, "tbc"),
-
-    /**
-     */
-    CLEAR_SCREEN(5, "clear"),
-
-    /**
-     */
-    CLR_EOL(6, "el"),
-
-    /**
-     */
-    CLR_EOS(7, "ed"),
-
-    /**
-     */
-    COLUMN_ADDRESS(8, "hpa", 1),
-
-    /**
-     */
-    COMMAND_CHARACTER(9, "cmdch"),
-
-    /**
-     */
-    CURSOR_ADDRESS(10, "cup", 2),
-
-    /**
-     */
-    CURSOR_DOWN(11, "cud1"),
-
-    /**
-     */
-    CURSOR_HOME(12, "home"),
-
-    /**
-     */
-    CURSOR_INVISIBLE(13, "civis"),
-
-    /**
-     */
-    CURSOR_LEFT(14, "cub1"),
-
-    /**
-     */
-    CURSOR_MEM_ADDRESS(15, "mrcup", 2),
-
-    /**
-     */
-    CURSOR_NORMAL(16, "cnorm"),
-
-    /**
-     */
-    CURSOR_RIGHT(17, "cuf1"),
-
-    /**
-     */
-    CURSOR_TO_LL(18, "ll"),
-
-    /**
-     */
-    CURSOR_UP(19, "cuu1"),
-
-    /**
-     */
-    CURSOR_VISIBLE(20, "cvvis"),
-
-    /**
-     */
-    DELETE_CHARACTER(21, "dch1"),
-
-    /**
-     */
-    DELETE_LINE(22, "dl1", 1),
-
-    /**
-     */
-    DIS_STATUS_LINE(23, "dsl"),
-
-    /**
-     */
-    DOWN_HALF_LINE(24, "hd"),
-
-    /**
-     */
-    ENTER_ALT_CHARSET_MODE(25, "smacs"),
-
-    /**
-     */
-    ENTER_BLINK_MODE(26, "blink"),
-
-    /**
-     */
-    ENTER_BOLD_MODE(27, "bold"),
-
-    /**
-     */
-    ENTER_CA_MODE(28, "smcup", 2),
-
-    /**
-     */
-    ENTER_DELETE_MODE(29, "smdc"),
-
-    /**
-     */
-    ENTER_DIM_MODE(30, "dim"),
-
-    /**
-     */
-    ENTER_INSERT_MODE(31, "smir"),
-
-    /**
-     */
-    ENTER_SECURE_MODE(32, "invis"),
-
-    /**
-     */
-    ENTER_PROTECTED_MODE(33, "prot"),
-
-    /**
-     */
-    ENTER_REVERSE_MODE(34, "rev"),
-
-    /**
-     */
-    ENTER_STANDOUT_MODE(35, "smso"),
-
-    /**
-     */
-    ENTER_UNDERLINE_MODE(36, "smul"),
-
-    /**
-     */
-    ERASE_CHARS(37, "ech", 1),
-
-    /**
-     */
-    EXIT_ALT_CHARSET_MODE(38, "rmacs"),
-
-    /**
-     */
-    EXIT_ATTRIBUTE_MODE(39, "sgr0"),
-
-    /**
-     */
-    EXIT_CA_MODE(40, "rmcup", 2),
-
-    /**
-     */
-    EXIT_DELETE_MODE(41, "rmdc"),
-
-    /**
-     */
-    EXIT_INSERT_MODE(42, "rmir"),
-
-    /**
-     */
-    EXIT_STANDOUT_MODE(43, "rmso"),
-
-    /**
-     */
-    EXIT_UNDERLINE_MODE(44, "rmul"),
-
-    /**
-     */
-    FLASH_SCREEN(45, "flash"),
-
-    /**
-     */
-    FORM_FEED(46, "ff"),
-
-    /**
-     */
-    FROM_STATUS_LINE(47, "fsl"),
-
-    /**
-     */
-    INIT_1STRING(48, "is1"),
-
-    /**
-     */
-    INIT_2STRING(49, "is2"),
-
-    /**
-     */
-    INIT_3STRING(50, "is3"),
-
-    /**
-     */
-    INIT_FILE(51, "if"),
-
-    /**
-     */
-    INSERT_CHARACTER(52, "ich1"),
-
-    /**
-     */
-    INSERT_LINE(53, "il1"),
-
-    /**
-     */
-    INSERT_PADDING(54, "ip"),
-
-    /**
-     */
-    KEYPAD_LOCAL(88, "rmkx"),
-
-    /**
-     */
-    KEYPAD_XMIT(89, "smkx"),
-
-    /**
-     */
-    LAB_F0(90, "lf0"),
-
-    /**
-     */
-    LAB_F1(91, "lf1"),
-
-    /**
-     */
-    LAB_F10(92, "lf10"),
-
-    /**
-     */
-    LAB_F2(93, "lf2"),
-
-    /**
-     */
-    LAB_F3(94, "lf3"),
-
-    /**
-     */
-    LAB_F4(95, "lf4"),
-
-    /**
-     */
-    LAB_F5(96, "lf5"),
-
-    /**
-     */
-    LAB_F6(97, "lf6"),
-
-    /**
-     */
-    LAB_F7(98, "lf7"),
-
-    /**
-     */
-    LAB_F8(99, "lf8"),
-
-    /**
-     */
-    LAB_F9(100, "lf9"),
-
-    /**
-     */
-    META_OFF(101, "rmm"),
-
-    /**
-     */
-    META_ON(102, "smm"),
-
-    /**
-     */
-    NEWLINE(103, "nel"),
-
-    /**
-     */
-    PAD_CHAR(104, "pad"),
-
-    /**
-     */
-    PARM_DCH(105, "dch", 1),
-
-    /**
-     */
-    PARM_DELETE_LINE(106, "dl", 1),
-
-    /**
-     */
-    PARM_DOWN_CURSOR(107, "cud", 1),
-
-    /**
-     */
-    PARM_ICH(108, "ich", 1),
-
-    /**
-     */
-    PARM_INDEX(109, "indn", 1),
-
-    /**
-     */
-    PARM_INSERT_LINE(110, "il", 1),
-
-    /**
-     */
-    PARM_LEFT_CURSOR(111, "cub", 1),
-
-    /**
-     */
-    PARM_RIGHT_CURSOR(112, "cuf", 1),
-
-    /**
-     */
-    PARM_RINDEX(113, "rin", 1),
-
-    /**
-     */
-    PARM_UP_CURSOR(114, "cuu", 1),
-
-    /**
-     */
-    PKEY_KEY(115, "pfkey", 2),
-
-    /**
-     */
-    PKEY_LOCAL(116, "pfloc", 2),
-
-    /**
-     */
-    PKEY_XMIT(117, "pfx", 2),
-
-    /**
-     */
-    PRINT_SCREEN(118, "mc0"),
-
-    /**
-     */
-    PRTR_OFF(119, "mc4"),
-
-    /**
-     */
-    PRTR_ON(120, "mc5"),
-
-    /**
-     */
-    REPEAT_CHAR(121, "rep", 2),
-
-    /**
-     */
-    RESET_1STRING(122, "rs1"),
-
-    /**
-     */
-    RESET_2STRING(123, "rs2"),
-
-    /**
-     */
-    RESET_3STRING(124, "rs3"),
-
-    /**
-     */
-    RESET_FILE(125, "rf"),
-
-    /**
-     */
-    RESTORE_CURSOR(126, "rc"),
-
-    /**
-     */
-    ROW_ADDRESS(127, "vpa", 1),
-
-    /**
-     */
-    SAVE_CURSOR(128, "sc"),
-
-    /**
-     */
-    SCROLL_FORWARD(129, "ind"),
-
-    /**
-     */
-    SCROLL_REVERSE(130, "ri"),
-
-    /**
-     */
-    SET_ATTRIBUTES(131, "sgr", 9),
-
-    /**
-     */
-    SET_TAB(132, "hts"),
-
-    /**
-     */
-    SET_WINDOW(133, "wind", 4),
-
-    /**
-     */
-    TAB(134, "ht"),
-
-    /**
-     */
-    TO_STATUS_LINE(135, "tsl", 1),
-
-    /**
-     */
-    UNDERLINE_CHAR(136, "uc"),
-
-    /**
-     */
-    UP_HALF_LINE(137, "hu"),
-
-    /**
-     */
-    INIT_PROG(138, "iprog"),
-
-    /**
-     */
-    PRTR_NON(144, "mc5p", 1),
-
-    /**
-     */
-    CHAR_PADDING(145, "rmp"),
-
-    /**
-     */
-    ACS_CHARS(146, "acsc"),
-
-    /**
-     */
-    PLAB_NORM(147, "pln", 2),
-
-    /**
-     */
-    ENTER_XON_MODE(149, "smxon"),
-
-    /**
-     */
-    EXIT_XON_MODE(150, "rmxon"),
-
-    /**
-     */
-    ENTER_AM_MODE(151, "smam"),
-
-    /**
-     */
-    EXIT_AM_MODE(152, "rmam"),
-
-    /**
-     */
-    XON_CHARACTER(153, "xonc"),
-
-    /**
-     */
-    XOFF_CHARACTER(154, "xoffc"),
-
-    /**
-     */
-    ENA_ACS(155, "enacs"),
-
-    /**
-     */
-    LABEL_ON(156, "smln"),
-
-    /**
-     */
-    LABEL_OFF(157, "rmln"),
-
-    /**
-     */
-    REQ_FOR_INPUT(215, "rfi"),
-
-    /**
-     */
-    CLR_BOL(269, "el1"),
-
-    /**
-     */
-    CLEAR_MARGINS(270, "mgc"),
-
-    /**
-     */
-    SET_LEFT_MARGIN(271, "smgl"),
-
-    /**
-     */
-    SET_RIGHT_MARGIN(272, "smgr"),
-
-    /**
-     */
-    LABEL_FORMAT(273, "fln"),
-
-    /**
-     */
-    SET_CLOCK(274, "sclk", 3),
-
-    /**
-     */
-    DISPLAY_CLOCK(275, "dclk"),
-
-    /**
-     */
-    REMOVE_CLOCK(276, "rmclk"),
-
-    /**
-     */
-    CREATE_WINDOW(277, "cwin", 5),
-
-    /**
-     */
-    GOTO_WINDOW(278, "wingo", 1),
-
-    /**
-     */
-    HANGUP(279, "hup"),
-
-    /**
-     */
-    DIAL_PHONE(280, "dial", 1),
-
-    /**
-     */
-    QUICK_DIAL(281, "qdial", 1),
-
-    /**
-     */
-    TONE(282, "tone"),
-
-    /**
-     */
-    PULSE(283, "pulse"),
-
-    /**
-     */
-    FLASH_HOOK(284, "hook"),
-
-    /**
-     */
-    FIXED_PAUSE(285, "pause"),
-
-    /**
-     */
-    WAIT_TONE(286, "wait"),
-
-    /**
-     */
-    USER0(287, "u0"),
-
-    /**
-     */
-    USER1(288, "u1"),
-
-    /**
-     */
-    USER2(289, "u2"),
-
-    /**
-     */
-    USER3(290, "u3"),
-
-    /**
-     */
-    USER4(291, "u4"),
-
-    /**
-     */
-    USER5(292, "u5"),
-
-    /**
-     */
-    USER6(293, "u6"),
-
-    /**
-     */
-    USER7(294, "u7"),
-
-    /**
-     */
-    USER8(295, "u8"),
-
-    /**
-     */
-    USER9(296, "u9"),
-
-    /**
-     */
-    ORIG_PAIR(297, "op"),
-
-    /**
-     */
-    ORIG_COLORS(298, "oc"),
-
-    /**
-     */
-    INITIALIZE_COLOR(299, "initc", 4),
-
-    /**
-     */
-    INITIALIZE_PAIR(300, "initp", 7),
-
-    /**
-     */
-    SET_COLOR_PAIR(301, "scp", 1),
-
-    /**
-     */
-    SET_FOREGROUND(302, "setf", 1),
-
-    /**
-     */
-    SET_BACKGROUND(303, "setb", 1),
-
-    /**
-     */
-    CHANGE_CHAR_PITCH(304, "cpi", 1),
-
-    /**
-     */
-    CHANGE_LINE_PITCH(305, "lpi", 1),
-
-    /**
-     */
-    CHANGE_RES_HORZ(306, "chr", 1),
-
-    /**
-     */
-    CHANGE_RES_VERT(307, "cvr", 1),
-
-    /**
-     */
-    DEFINE_CHAR(308, "defc", 3),
-
-    /**
-     */
-    ENTER_DOUBLEWIDE_MODE(309, "swidm"),
-
-    /**
-     */
-    ENTER_DRAFT_QUALITY(310, "sdrfq"),
-
-    /**
-     */
-    ENTER_ITALICS_MODE(311, "sitm"),
-
-    /**
-     */
-    ENTER_LEFTWARD_MODE(312, "slm"),
-
-    /**
-     */
-    ENTER_MICRO_MODE(313, "smicm"),
-
-    /**
-     */
-    ENTER_NEAR_LETTER_QUALITY(314, "snlq"),
-
-    /**
-     */
-    ENTER_NORMAL_QUALITY(315, "snrmq"),
-
-    /**
-     */
-    ENTER_SHADOW_MODE(316, "sshm"),
-
-    /**
-     */
-    ENTER_SUBSCRIPT_MODE(317, "ssubm"),
-
-    /**
-     */
-    ENTER_SUPERSCRIPT_MODE(318, "ssupm"),
-
-    /**
-     */
-    ENTER_UPWARD_MODE(319, "sum"),
-
-    /**
-     */
-    EXIT_DOUBLEWIDE_MODE(320, "rwidm"),
-
-    /**
-     */
-    EXIT_ITALICS_MODE(321, "ritm"),
-
-    /**
-     */
-    EXIT_LEFTWARD_MODE(322, "rlm"),
-
-    /**
-     */
-    EXIT_MICRO_MODE(323, "rmicm"),
-
-    /**
-     */
-    EXIT_SHADOW_MODE(324, "rshm"),
-
-    /**
-     */
-    EXIT_SUBSCRIPT_MODE(325, "rsubm"),
-
-    /**
-     */
-    EXIT_SUPERSCRIPT_MODE(326, "rsupm"),
-
-    /**
-     */
-    EXIT_UPWARD_MODE(327, "rum"),
-
-    /**
-     */
-    MICRO_COLUMN_ADDRESS(328, "mhpa"),
-
-    /**
-     */
-    MICRO_DOWN(329, "mcud1"),
-
-    /**
-     */
-    MICRO_LEFT(330, "mcub1"),
-
-    /**
-     */
-    MICRO_RIGHT(331, "mcuf1"),
-
-    /**
-     */
-    MICRO_ROW_ADDRESS(332, "mvpa", 1),
-
-    /**
-     */
-    MICRO_UP(333, "mcuu1"),
-
-    /**
-     */
-    ORDER_OF_PINS(334, "porder"),
-
-    /**
-     */
-    PARM_DOWN_MICRO(335, "mcud"),
-
-    /**
-     */
-    PARM_LEFT_MICRO(336, "mcub"),
-
-    /**
-     */
-    PARM_RIGHT_MICRO(337, "mcuf"),
-
-    /**
-     */
-    PARM_UP_MICRO(338, "mcuu"),
-
-    /**
-     */
-    SELECT_CHAR_SET(339, "scs", 1),
-
-    /**
-     */
-    SET_BOTTOM_MARGIN(340, "smgb"),
-
-    /**
-     */
-    SET_BOTTOM_MARGIN_PARM(341, "smgbp", 1),
-
-    /**
-     */
-    SET_LEFT_MARGIN_PARM(342, "smglp", 1),
-
-    /**
-     */
-    SET_RIGHT_MARGIN_PARM(343, "smgrp", 1),
-
-    /**
-     */
-    SET_TOP_MARGIN(344, "smgt"),
-
-    /**
-     */
-    SET_TOP_MARGIN_PARM(345, "smgtp", 1),
-
-    /**
-     */
-    START_BIT_IMAGE(346, "sbim"),
-
-    /**
-     */
-    START_CHAR_SET_DEF(347, "scsd", 2),
-
-    /**
-     */
-    STOP_BIT_IMAGE(348, "rbim"),
-
-    /**
-     */
-    STOP_CHAR_SET_DEF(349, "rcsd", 1),
-
-    /**
-     */
-    SUBSCRIPT_CHARACTERS(350, "subcs"),
-
-    /**
-     */
-    SUPERSCRIPT_CHARACTERS(351, "supcs"),
-
-    /**
-     */
-    THESE_CAUSE_CR(352, "docr"),
-
-    /**
-     */
-    ZERO_MOTION(353, "zerom"),
-
-    /**
-     */
-    CHAR_SET_NAMES(354, "csnm", 1),
-
-    /**
-     * Prefix of a mouse position peport.  Usually {@code "\033[M"} if
-     * defined.
-     */
-    KEY_MOUSE(355, "kmous"),
-
-    /**
-     */
-    MOUSE_INFO(356, "minfo"),
-
-    /**
-     */
-    REQ_MOUSE_POS(357, "reqmp"),
-
-    /**
-     */
-    GET_MOUSE(358, "getm", 1),
-
-    /**
-     */
-    SET_A_FOREGROUND(359, "setaf", 1),
-
-    /**
-     */
-    SET_A_BACKGROUND(360, "setab", 1),
-
-    /**
-     */
-    PKEY_PLAB(361, "pfxl", 3),
-
-    /**
-     */
-    DEVICE_TYPE(362, "devt"),
-
-    /**
-     */
-    CODE_SET_INIT(363, "csin"),
-
-    /**
-     */
-    SET0_DES_SEQ(364, "s0ds"),
-
-    /**
-     */
-    SET1_DES_SEQ(365, "s1ds"),
-
-    /**
-     */
-    SET2_DES_SEQ(366, "s2ds"),
-
-    /**
-     */
-    SET3_DES_SEQ(367, "s3ds"),
-
-    /**
-     */
-    SET_LR_MARGIN(368, "smglr", 2),
-
-    /**
-     */
-    SET_TB_MARGIN(369, "smgtb", 2),
-
-    /**
-     */
-    BIT_IMAGE_REPEAT(370, "birep", 2),
-
-    /**
-     */
-    BIT_IMAGE_NEWLINE(371, "binel"),
-
-    /**
-     */
-    BIT_IMAGE_CARRIAGE_RETURN(372, "bicr"),
-
-    /**
-     */
-    COLOR_NAMES(373, "colornm", 1),
-
-    /**
-     */
-    DEFINE_BIT_IMAGE_REGION(374, "defbi"),
-
-    /**
-     */
-    END_BIT_IMAGE_REGION(375, "endbi"),
-
-    /**
-     */
-    SET_COLOR_BAND(376, "setcolor", 1),
-
-    /**
-     */
-    SET_PAGE_LENGTH(377, "slines", 1),
-
-    /**
-     */
-    DISPLAY_PC_CHAR(378, "dispc", 1),
-
-    /**
-     */
-    ENTER_PC_CHARSET_MODE(379, "smpch"),
-
-    /**
-     */
-    EXIT_PC_CHARSET_MODE(380, "rmpch"),
-
-    /**
-     */
-    ENTER_SCANCODE_MODE(381, "smsc"),
-
-    /**
-     */
-    EXIT_SCANCODE_MODE(382, "rmsc"),
-
-    /**
-     */
-    PC_TERM_OPTIONS(383, "pctrm"),
-
-    /**
-     */
-    SCANCODE_ESCAPE(384, "scesc"),
-
-    /**
-     */
-    ALT_SCANCODE_ESC(385, "scesa"),
-
-    /**
-     */
-    ENTER_HORIZONTAL_HL_MODE(386, "ehhlm"),
-
-    /**
-     */
-    ENTER_LEFT_HL_MODE(387, "elhlm"),
-
-    /**
-     */
-    ENTER_LOW_HL_MODE(388, "elohlm"),
-
-    /**
-     */
-    ENTER_RIGHT_HL_MODE(389, "erhlm"),
-
-    /**
-     */
-    ENTER_TOP_HL_MODE(390, "ethlm"),
-
-    /**
-     */
-    ENTER_VERTICAL_HL_MODE(391, "evhlm"),
-
-    /**
-     */
-    SET_A_ATTRIBUTES(392, "sgr1", 6),
-
-    /**
-     */
-    SET_PGLEN_INCH(393, "slength", 1),
-    ;
+    String name();
 
     /**
      * Returns the index of the capability in the terminal file.
      * @return a non-negative integer
      */
-    public int index() {
-        return index;
-    }
+    int index();
 
     /**
      * Returns the expected number of parameters.
      * @return a non-negative integer
      */
-    public int parameters() {
-        return parameters;
-    }
+    int parameters();
 
     /**
      * Returns the name that is used in terminfo definitions.
      * @return a non-empty string
      */
-    public String terminfoName() {
-        return terminfoName;
+    String terminfoName();
+
+    /**
+     */
+    static final StringCapability BACK_TAB =
+        UntypedStringCapability.BACK_TAB;
+
+    /**
+     */
+    static final StringCapability BELL =
+        UntypedStringCapability.BELL;
+
+    /**
+     */
+    static final StringCapability CARRIAGE_RETURN =
+        UntypedStringCapability.CARRIAGE_RETURN;
+
+    /**
+     */
+    static final StringCapability CHANGE_SCROLL_REGION =
+        UntypedStringCapability.CHANGE_SCROLL_REGION;
+
+    /**
+     */
+    static final StringCapability CLEAR_ALL_TABS =
+        UntypedStringCapability.CLEAR_ALL_TABS;
+
+    /**
+     */
+    static final StringCapability CLEAR_SCREEN =
+        UntypedStringCapability.CLEAR_SCREEN;
+
+    /**
+     */
+    static final StringCapability CLR_EOL =
+        UntypedStringCapability.CLR_EOL;
+
+    /**
+     */
+    static final StringCapability CLR_EOS =
+        UntypedStringCapability.CLR_EOS;
+
+    /**
+     */
+    static final StringCapability COLUMN_ADDRESS =
+        UntypedStringCapability.COLUMN_ADDRESS;
+
+    /**
+     */
+    static final StringCapability COMMAND_CHARACTER =
+        UntypedStringCapability.COMMAND_CHARACTER;
+
+    /**
+     */
+    static final StringCapability CURSOR_ADDRESS =
+        UntypedStringCapability.CURSOR_ADDRESS;
+
+    /**
+     */
+    static final StringCapability CURSOR_DOWN =
+        UntypedStringCapability.CURSOR_DOWN;
+
+    /**
+     */
+    static final StringCapability CURSOR_HOME =
+        UntypedStringCapability.CURSOR_HOME;
+
+    /**
+     */
+    static final StringCapability CURSOR_INVISIBLE =
+        UntypedStringCapability.CURSOR_INVISIBLE;
+
+    /**
+     */
+    static final StringCapability CURSOR_LEFT =
+        UntypedStringCapability.CURSOR_LEFT;
+
+    /**
+     */
+    static final StringCapability CURSOR_MEM_ADDRESS =
+        UntypedStringCapability.CURSOR_MEM_ADDRESS;
+
+    /**
+     */
+    static final StringCapability CURSOR_NORMAL =
+        UntypedStringCapability.CURSOR_NORMAL;
+
+    /**
+     */
+    static final StringCapability CURSOR_RIGHT =
+        UntypedStringCapability.CURSOR_RIGHT;
+
+    /**
+     */
+    static final StringCapability CURSOR_TO_LL =
+        UntypedStringCapability.CURSOR_TO_LL;
+
+    /**
+     */
+    static final StringCapability CURSOR_UP =
+        UntypedStringCapability.CURSOR_UP;
+
+    /**
+     */
+    static final StringCapability CURSOR_VISIBLE =
+        UntypedStringCapability.CURSOR_VISIBLE;
+
+    /**
+     */
+    static final StringCapability DELETE_CHARACTER =
+        UntypedStringCapability.DELETE_CHARACTER;
+
+    /**
+     */
+    static final StringCapability DELETE_LINE =
+        UntypedStringCapability.DELETE_LINE;
+
+    /**
+     */
+    static final StringCapability DIS_STATUS_LINE =
+        UntypedStringCapability.DIS_STATUS_LINE;
+
+    /**
+     */
+    static final StringCapability DOWN_HALF_LINE =
+        UntypedStringCapability.DOWN_HALF_LINE;
+
+    /**
+     */
+    static final StringCapability ENTER_ALT_CHARSET_MODE =
+        UntypedStringCapability.ENTER_ALT_CHARSET_MODE;
+
+    /**
+     */
+    static final StringCapability ENTER_BLINK_MODE =
+        UntypedStringCapability.ENTER_BLINK_MODE;
+
+    /**
+     */
+    static final StringCapability ENTER_BOLD_MODE =
+        UntypedStringCapability.ENTER_BOLD_MODE;
+
+    /**
+     */
+    static final StringCapability ENTER_CA_MODE =
+        UntypedStringCapability.ENTER_CA_MODE;
+
+    /**
+     */
+    static final StringCapability ENTER_DELETE_MODE =
+        UntypedStringCapability.ENTER_DELETE_MODE;
+
+    /**
+     */
+    static final StringCapability ENTER_DIM_MODE =
+        UntypedStringCapability.ENTER_DIM_MODE;
+
+    /**
+     */
+    static final StringCapability ENTER_INSERT_MODE =
+        UntypedStringCapability.ENTER_INSERT_MODE;
+
+    /**
+     */
+    static final StringCapability ENTER_SECURE_MODE =
+        UntypedStringCapability.ENTER_SECURE_MODE;
+
+    /**
+     */
+    static final StringCapability ENTER_PROTECTED_MODE =
+        UntypedStringCapability.ENTER_PROTECTED_MODE;
+
+    /**
+     */
+    static final StringCapability ENTER_REVERSE_MODE =
+        UntypedStringCapability.ENTER_REVERSE_MODE;
+
+    /**
+     */
+    static final StringCapability ENTER_STANDOUT_MODE =
+        UntypedStringCapability.ENTER_STANDOUT_MODE;
+
+    /**
+     */
+    static final StringCapability ENTER_UNDERLINE_MODE =
+        UntypedStringCapability.ENTER_UNDERLINE_MODE;
+
+    /**
+     */
+    static final StringCapability ERASE_CHARS =
+        UntypedStringCapability.ERASE_CHARS;
+
+    /**
+     */
+    static final StringCapability EXIT_ALT_CHARSET_MODE =
+        UntypedStringCapability.EXIT_ALT_CHARSET_MODE;
+
+    /**
+     */
+    static final StringCapability EXIT_ATTRIBUTE_MODE =
+        UntypedStringCapability.EXIT_ATTRIBUTE_MODE;
+
+    /**
+     */
+    static final StringCapability EXIT_CA_MODE =
+        UntypedStringCapability.EXIT_CA_MODE;
+
+    /**
+     */
+    static final StringCapability EXIT_DELETE_MODE =
+        UntypedStringCapability.EXIT_DELETE_MODE;
+
+    /**
+     */
+    static final StringCapability EXIT_INSERT_MODE =
+        UntypedStringCapability.EXIT_INSERT_MODE;
+
+    /**
+     */
+    static final StringCapability EXIT_STANDOUT_MODE =
+        UntypedStringCapability.EXIT_STANDOUT_MODE;
+
+    /**
+     */
+    static final StringCapability EXIT_UNDERLINE_MODE =
+        UntypedStringCapability.EXIT_UNDERLINE_MODE;
+
+    /**
+     */
+    static final StringCapability FLASH_SCREEN =
+        UntypedStringCapability.FLASH_SCREEN;
+
+    /**
+     */
+    static final StringCapability FORM_FEED =
+        UntypedStringCapability.FORM_FEED;
+
+    /**
+     */
+    static final StringCapability FROM_STATUS_LINE =
+        UntypedStringCapability.FROM_STATUS_LINE;
+
+    /**
+     */
+    static final StringCapability INIT_1STRING =
+        UntypedStringCapability.INIT_1STRING;
+
+    /**
+     */
+    static final StringCapability INIT_2STRING =
+        UntypedStringCapability.INIT_2STRING;
+
+    /**
+     */
+    static final StringCapability INIT_3STRING =
+        UntypedStringCapability.INIT_3STRING;
+
+    /**
+     */
+    static final StringCapability INIT_FILE =
+        UntypedStringCapability.INIT_FILE;
+
+    /**
+     */
+    static final StringCapability INSERT_CHARACTER =
+        UntypedStringCapability.INSERT_CHARACTER;
+
+    /**
+     */
+    static final StringCapability INSERT_LINE =
+        UntypedStringCapability.INSERT_LINE;
+
+    /**
+     */
+    static final StringCapability INSERT_PADDING =
+        UntypedStringCapability.INSERT_PADDING;
+
+    /**
+     */
+    static final StringCapability KEYPAD_LOCAL =
+        UntypedStringCapability.KEYPAD_LOCAL;
+
+    /**
+     */
+    static final StringCapability KEYPAD_XMIT =
+        UntypedStringCapability.KEYPAD_XMIT;
+
+    /**
+     */
+    static final StringCapability LAB_F0 =
+        UntypedStringCapability.LAB_F0;
+
+    /**
+     */
+    static final StringCapability LAB_F1 =
+        UntypedStringCapability.LAB_F1;
+
+    /**
+     */
+    static final StringCapability LAB_F10 =
+        UntypedStringCapability.LAB_F10;
+
+    /**
+     */
+    static final StringCapability LAB_F2 =
+        UntypedStringCapability.LAB_F2;
+
+    /**
+     */
+    static final StringCapability LAB_F3 =
+        UntypedStringCapability.LAB_F3;
+
+    /**
+     */
+    static final StringCapability LAB_F4 =
+        UntypedStringCapability.LAB_F4;
+
+    /**
+     */
+    static final StringCapability LAB_F5 =
+        UntypedStringCapability.LAB_F5;
+
+    /**
+     */
+    static final StringCapability LAB_F6 =
+        UntypedStringCapability.LAB_F6;
+
+    /**
+     */
+    static final StringCapability LAB_F7 =
+        UntypedStringCapability.LAB_F7;
+
+    /**
+     */
+    static final StringCapability LAB_F8 =
+        UntypedStringCapability.LAB_F8;
+
+    /**
+     */
+    static final StringCapability LAB_F9 =
+        UntypedStringCapability.LAB_F9;
+
+    /**
+     */
+    static final StringCapability META_OFF =
+        UntypedStringCapability.META_OFF;
+
+    /**
+     */
+    static final StringCapability META_ON =
+        UntypedStringCapability.META_ON;
+
+    /**
+     */
+    static final StringCapability NEWLINE =
+        UntypedStringCapability.NEWLINE;
+
+    /**
+     */
+    static final StringCapability PAD_CHAR =
+        UntypedStringCapability.PAD_CHAR;
+
+    /**
+     */
+    static final StringCapability PARM_DCH =
+        UntypedStringCapability.PARM_DCH;
+
+    /**
+     */
+    static final StringCapability PARM_DELETE_LINE =
+        UntypedStringCapability.PARM_DELETE_LINE;
+
+    /**
+     */
+    static final StringCapability PARM_DOWN_CURSOR =
+        UntypedStringCapability.PARM_DOWN_CURSOR;
+
+    /**
+     */
+    static final StringCapability PARM_ICH =
+        UntypedStringCapability.PARM_ICH;
+
+    /**
+     */
+    static final StringCapability PARM_INDEX =
+        UntypedStringCapability.PARM_INDEX;
+
+    /**
+     */
+    static final StringCapability PARM_INSERT_LINE =
+        UntypedStringCapability.PARM_INSERT_LINE;
+
+    /**
+     */
+    static final StringCapability PARM_LEFT_CURSOR =
+        UntypedStringCapability.PARM_LEFT_CURSOR;
+
+    /**
+     */
+    static final StringCapability PARM_RIGHT_CURSOR =
+        UntypedStringCapability.PARM_RIGHT_CURSOR;
+
+    /**
+     */
+    static final StringCapability PARM_RINDEX =
+        UntypedStringCapability.PARM_RINDEX;
+
+    /**
+     */
+    static final StringCapability PARM_UP_CURSOR =
+        UntypedStringCapability.PARM_UP_CURSOR;
+
+    /**
+     */
+    static final StringCapability PKEY_KEY =
+        UntypedStringCapability.PKEY_KEY;
+
+    /**
+     */
+    static final StringCapability PKEY_LOCAL =
+        UntypedStringCapability.PKEY_LOCAL;
+
+    /**
+     */
+    static final StringCapability PKEY_XMIT =
+        UntypedStringCapability.PKEY_XMIT;
+
+    /**
+     */
+    static final StringCapability PRINT_SCREEN =
+        UntypedStringCapability.PRINT_SCREEN;
+
+    /**
+     */
+    static final StringCapability PRTR_OFF =
+        UntypedStringCapability.PRTR_OFF;
+
+    /**
+     */
+    static final StringCapability PRTR_ON =
+        UntypedStringCapability.PRTR_ON;
+
+    /**
+     */
+    static final StringCapability REPEAT_CHAR =
+        UntypedStringCapability.REPEAT_CHAR;
+
+    /**
+     */
+    static final StringCapability RESET_1STRING =
+        UntypedStringCapability.RESET_1STRING;
+
+    /**
+     */
+    static final StringCapability RESET_2STRING =
+        UntypedStringCapability.RESET_2STRING;
+
+    /**
+     */
+    static final StringCapability RESET_3STRING =
+        UntypedStringCapability.RESET_3STRING;
+
+    /**
+     */
+    static final StringCapability RESET_FILE =
+        UntypedStringCapability.RESET_FILE;
+
+    /**
+     */
+    static final StringCapability RESTORE_CURSOR =
+        UntypedStringCapability.RESTORE_CURSOR;
+
+    /**
+     */
+    static final StringCapability ROW_ADDRESS =
+        UntypedStringCapability.ROW_ADDRESS;
+
+    /**
+     */
+    static final StringCapability SAVE_CURSOR =
+        UntypedStringCapability.SAVE_CURSOR;
+
+    /**
+     */
+    static final StringCapability SCROLL_FORWARD =
+        UntypedStringCapability.SCROLL_FORWARD;
+
+    /**
+     */
+    static final StringCapability SCROLL_REVERSE =
+        UntypedStringCapability.SCROLL_REVERSE;
+
+    /**
+     */
+    static final StringCapability SET_ATTRIBUTES =
+        UntypedStringCapability.SET_ATTRIBUTES;
+
+    /**
+     */
+    static final StringCapability SET_TAB =
+        UntypedStringCapability.SET_TAB;
+
+    /**
+     */
+    static final StringCapability SET_WINDOW =
+        UntypedStringCapability.SET_WINDOW;
+
+    /**
+     */
+    static final StringCapability TAB =
+        UntypedStringCapability.TAB;
+
+    /**
+     */
+    static final StringCapability TO_STATUS_LINE =
+        UntypedStringCapability.TO_STATUS_LINE;
+
+    /**
+     */
+    static final StringCapability UNDERLINE_CHAR =
+        UntypedStringCapability.UNDERLINE_CHAR;
+
+    /**
+     */
+    static final StringCapability UP_HALF_LINE =
+        UntypedStringCapability.UP_HALF_LINE;
+
+    /**
+     */
+    static final StringCapability INIT_PROG =
+        UntypedStringCapability.INIT_PROG;
+
+    /**
+     */
+    static final StringCapability PRTR_NON =
+        UntypedStringCapability.PRTR_NON;
+
+    /**
+     */
+    static final StringCapability CHAR_PADDING =
+        UntypedStringCapability.CHAR_PADDING;
+
+    /**
+     */
+    static final StringCapability ACS_CHARS =
+        UntypedStringCapability.ACS_CHARS;
+
+    /**
+     */
+    static final StringCapability PLAB_NORM =
+        UntypedStringCapability.PLAB_NORM;
+
+    /**
+     */
+    static final StringCapability ENTER_XON_MODE =
+        UntypedStringCapability.ENTER_XON_MODE;
+
+    /**
+     */
+    static final StringCapability EXIT_XON_MODE =
+        UntypedStringCapability.EXIT_XON_MODE;
+
+    /**
+     */
+    static final StringCapability ENTER_AM_MODE =
+        UntypedStringCapability.ENTER_AM_MODE;
+
+    /**
+     */
+    static final StringCapability EXIT_AM_MODE =
+        UntypedStringCapability.EXIT_AM_MODE;
+
+    /**
+     */
+    static final StringCapability XON_CHARACTER =
+        UntypedStringCapability.XON_CHARACTER;
+
+    /**
+     */
+    static final StringCapability XOFF_CHARACTER =
+        UntypedStringCapability.XOFF_CHARACTER;
+
+    /**
+     */
+    static final StringCapability ENA_ACS =
+        UntypedStringCapability.ENA_ACS;
+
+    /**
+     */
+    static final StringCapability LABEL_ON =
+        UntypedStringCapability.LABEL_ON;
+
+    /**
+     */
+    static final StringCapability LABEL_OFF =
+        UntypedStringCapability.LABEL_OFF;
+
+    /**
+     */
+    static final StringCapability REQ_FOR_INPUT =
+        UntypedStringCapability.REQ_FOR_INPUT;
+
+    /**
+     */
+    static final StringCapability CLR_BOL =
+        UntypedStringCapability.CLR_BOL;
+
+    /**
+     */
+    static final StringCapability CLEAR_MARGINS =
+        UntypedStringCapability.CLEAR_MARGINS;
+
+    /**
+     */
+    static final StringCapability SET_LEFT_MARGIN =
+        UntypedStringCapability.SET_LEFT_MARGIN;
+
+    /**
+     */
+    static final StringCapability SET_RIGHT_MARGIN =
+        UntypedStringCapability.SET_RIGHT_MARGIN;
+
+    /**
+     */
+    static final StringCapability LABEL_FORMAT =
+        UntypedStringCapability.LABEL_FORMAT;
+
+    /**
+     */
+    static final StringCapability SET_CLOCK =
+        UntypedStringCapability.SET_CLOCK;
+
+    /**
+     */
+    static final StringCapability DISPLAY_CLOCK =
+        UntypedStringCapability.DISPLAY_CLOCK;
+
+    /**
+     */
+    static final StringCapability REMOVE_CLOCK =
+        UntypedStringCapability.REMOVE_CLOCK;
+
+    /**
+     */
+    static final StringCapability CREATE_WINDOW =
+        UntypedStringCapability.CREATE_WINDOW;
+
+    /**
+     */
+    static final StringCapability GOTO_WINDOW =
+        UntypedStringCapability.GOTO_WINDOW;
+
+    /**
+     */
+    static final StringCapability HANGUP =
+        UntypedStringCapability.HANGUP;
+
+    /**
+     */
+    static final StringCapability DIAL_PHONE =
+        UntypedStringCapability.DIAL_PHONE;
+
+    /**
+     */
+    static final StringCapability QUICK_DIAL =
+        UntypedStringCapability.QUICK_DIAL;
+
+    /**
+     */
+    static final StringCapability TONE =
+        UntypedStringCapability.TONE;
+
+    /**
+     */
+    static final StringCapability PULSE =
+        UntypedStringCapability.PULSE;
+
+    /**
+     */
+    static final StringCapability FLASH_HOOK =
+        UntypedStringCapability.FLASH_HOOK;
+
+    /**
+     */
+    static final StringCapability FIXED_PAUSE =
+        UntypedStringCapability.FIXED_PAUSE;
+
+    /**
+     */
+    static final StringCapability WAIT_TONE =
+        UntypedStringCapability.WAIT_TONE;
+
+    /**
+     */
+    static final StringCapability USER0 =
+        UntypedStringCapability.USER0;
+
+    /**
+     */
+    static final StringCapability USER1 =
+        UntypedStringCapability.USER1;
+
+    /**
+     */
+    static final StringCapability USER2 =
+        UntypedStringCapability.USER2;
+
+    /**
+     */
+    static final StringCapability USER3 =
+        UntypedStringCapability.USER3;
+
+    /**
+     */
+    static final StringCapability USER4 =
+        UntypedStringCapability.USER4;
+
+    /**
+     */
+    static final StringCapability USER5 =
+        UntypedStringCapability.USER5;
+
+    /**
+     */
+    static final StringCapability USER6 =
+        UntypedStringCapability.USER6;
+
+    /**
+     */
+    static final StringCapability USER7 =
+        UntypedStringCapability.USER7;
+
+    /**
+     */
+    static final StringCapability USER8 =
+        UntypedStringCapability.USER8;
+
+    /**
+     */
+    static final StringCapability USER9 =
+        UntypedStringCapability.USER9;
+
+    /**
+     */
+    static final StringCapability ORIG_PAIR =
+        UntypedStringCapability.ORIG_PAIR;
+
+    /**
+     */
+    static final StringCapability ORIG_COLORS =
+        UntypedStringCapability.ORIG_COLORS;
+
+    /**
+     */
+    static final StringCapability INITIALIZE_COLOR =
+        UntypedStringCapability.INITIALIZE_COLOR;
+
+    /**
+     */
+    static final StringCapability INITIALIZE_PAIR =
+        UntypedStringCapability.INITIALIZE_PAIR;
+
+    /**
+     */
+    static final StringCapability SET_COLOR_PAIR =
+        UntypedStringCapability.SET_COLOR_PAIR;
+
+    /**
+     */
+    static final StringCapability SET_FOREGROUND =
+        UntypedStringCapability.SET_FOREGROUND;
+
+    /**
+     */
+    static final StringCapability SET_BACKGROUND =
+        UntypedStringCapability.SET_BACKGROUND;
+
+    /**
+     */
+    static final StringCapability CHANGE_CHAR_PITCH =
+        UntypedStringCapability.CHANGE_CHAR_PITCH;
+
+    /**
+     */
+    static final StringCapability CHANGE_LINE_PITCH =
+        UntypedStringCapability.CHANGE_LINE_PITCH;
+
+    /**
+     */
+    static final StringCapability CHANGE_RES_HORZ =
+        UntypedStringCapability.CHANGE_RES_HORZ;
+
+    /**
+     */
+    static final StringCapability CHANGE_RES_VERT =
+        UntypedStringCapability.CHANGE_RES_VERT;
+
+    /**
+     */
+    static final StringCapability DEFINE_CHAR =
+        UntypedStringCapability.DEFINE_CHAR;
+
+    /**
+     */
+    static final StringCapability ENTER_DOUBLEWIDE_MODE =
+        UntypedStringCapability.ENTER_DOUBLEWIDE_MODE;
+
+    /**
+     */
+    static final StringCapability ENTER_DRAFT_QUALITY =
+        UntypedStringCapability.ENTER_DRAFT_QUALITY;
+
+    /**
+     */
+    static final StringCapability ENTER_ITALICS_MODE =
+        UntypedStringCapability.ENTER_ITALICS_MODE;
+
+    /**
+     */
+    static final StringCapability ENTER_LEFTWARD_MODE =
+        UntypedStringCapability.ENTER_LEFTWARD_MODE;
+
+    /**
+     */
+    static final StringCapability ENTER_MICRO_MODE =
+        UntypedStringCapability.ENTER_MICRO_MODE;
+
+    /**
+     */
+    static final StringCapability ENTER_NEAR_LETTER_QUALITY =
+        UntypedStringCapability.ENTER_NEAR_LETTER_QUALITY;
+
+    /**
+     */
+    static final StringCapability ENTER_NORMAL_QUALITY =
+        UntypedStringCapability.ENTER_NORMAL_QUALITY;
+
+    /**
+     */
+    static final StringCapability ENTER_SHADOW_MODE =
+        UntypedStringCapability.ENTER_SHADOW_MODE;
+
+    /**
+     */
+    static final StringCapability ENTER_SUBSCRIPT_MODE =
+        UntypedStringCapability.ENTER_SUBSCRIPT_MODE;
+
+    /**
+     */
+    static final StringCapability ENTER_SUPERSCRIPT_MODE =
+        UntypedStringCapability.ENTER_SUPERSCRIPT_MODE;
+
+    /**
+     */
+    static final StringCapability ENTER_UPWARD_MODE =
+        UntypedStringCapability.ENTER_UPWARD_MODE;
+
+    /**
+     */
+    static final StringCapability EXIT_DOUBLEWIDE_MODE =
+        UntypedStringCapability.EXIT_DOUBLEWIDE_MODE;
+
+    /**
+     */
+    static final StringCapability EXIT_ITALICS_MODE =
+        UntypedStringCapability.EXIT_ITALICS_MODE;
+
+    /**
+     */
+    static final StringCapability EXIT_LEFTWARD_MODE =
+        UntypedStringCapability.EXIT_LEFTWARD_MODE;
+
+    /**
+     */
+    static final StringCapability EXIT_MICRO_MODE =
+        UntypedStringCapability.EXIT_MICRO_MODE;
+
+    /**
+     */
+    static final StringCapability EXIT_SHADOW_MODE =
+        UntypedStringCapability.EXIT_SHADOW_MODE;
+
+    /**
+     */
+    static final StringCapability EXIT_SUBSCRIPT_MODE =
+        UntypedStringCapability.EXIT_SUBSCRIPT_MODE;
+
+    /**
+     */
+    static final StringCapability EXIT_SUPERSCRIPT_MODE =
+        UntypedStringCapability.EXIT_SUPERSCRIPT_MODE;
+
+    /**
+     */
+    static final StringCapability EXIT_UPWARD_MODE =
+        UntypedStringCapability.EXIT_UPWARD_MODE;
+
+    /**
+     */
+    static final StringCapability MICRO_COLUMN_ADDRESS =
+        UntypedStringCapability.MICRO_COLUMN_ADDRESS;
+
+    /**
+     */
+    static final StringCapability MICRO_DOWN =
+        UntypedStringCapability.MICRO_DOWN;
+
+    /**
+     */
+    static final StringCapability MICRO_LEFT =
+        UntypedStringCapability.MICRO_LEFT;
+
+    /**
+     */
+    static final StringCapability MICRO_RIGHT =
+        UntypedStringCapability.MICRO_RIGHT;
+
+    /**
+     */
+    static final StringCapability MICRO_ROW_ADDRESS =
+        UntypedStringCapability.MICRO_ROW_ADDRESS;
+
+    /**
+     */
+    static final StringCapability MICRO_UP =
+        UntypedStringCapability.MICRO_UP;
+
+    /**
+     */
+    static final StringCapability ORDER_OF_PINS =
+        UntypedStringCapability.ORDER_OF_PINS;
+
+    /**
+     */
+    static final StringCapability PARM_DOWN_MICRO =
+        UntypedStringCapability.PARM_DOWN_MICRO;
+
+    /**
+     */
+    static final StringCapability PARM_LEFT_MICRO =
+        UntypedStringCapability.PARM_LEFT_MICRO;
+
+    /**
+     */
+    static final StringCapability PARM_RIGHT_MICRO =
+        UntypedStringCapability.PARM_RIGHT_MICRO;
+
+    /**
+     */
+    static final StringCapability PARM_UP_MICRO =
+        UntypedStringCapability.PARM_UP_MICRO;
+
+    /**
+     */
+    static final StringCapability SELECT_CHAR_SET =
+        UntypedStringCapability.SELECT_CHAR_SET;
+
+    /**
+     */
+    static final StringCapability SET_BOTTOM_MARGIN =
+        UntypedStringCapability.SET_BOTTOM_MARGIN;
+
+    /**
+     */
+    static final StringCapability SET_BOTTOM_MARGIN_PARM =
+        UntypedStringCapability.SET_BOTTOM_MARGIN_PARM;
+
+    /**
+     */
+    static final StringCapability SET_LEFT_MARGIN_PARM =
+        UntypedStringCapability.SET_LEFT_MARGIN_PARM;
+
+    /**
+     */
+    static final StringCapability SET_RIGHT_MARGIN_PARM =
+        UntypedStringCapability.SET_RIGHT_MARGIN_PARM;
+
+    /**
+     */
+    static final StringCapability SET_TOP_MARGIN =
+        UntypedStringCapability.SET_TOP_MARGIN;
+
+    /**
+     */
+    static final StringCapability SET_TOP_MARGIN_PARM =
+        UntypedStringCapability.SET_TOP_MARGIN_PARM;
+
+    /**
+     */
+    static final StringCapability START_BIT_IMAGE =
+        UntypedStringCapability.START_BIT_IMAGE;
+
+    /**
+     */
+    static final StringCapability START_CHAR_SET_DEF =
+        UntypedStringCapability.START_CHAR_SET_DEF;
+
+    /**
+     */
+    static final StringCapability STOP_BIT_IMAGE =
+        UntypedStringCapability.STOP_BIT_IMAGE;
+
+    /**
+     */
+    static final StringCapability STOP_CHAR_SET_DEF =
+        UntypedStringCapability.STOP_CHAR_SET_DEF;
+
+    /**
+     */
+    static final StringCapability SUBSCRIPT_CHARACTERS =
+        UntypedStringCapability.SUBSCRIPT_CHARACTERS;
+
+    /**
+     */
+    static final StringCapability SUPERSCRIPT_CHARACTERS =
+        UntypedStringCapability.SUPERSCRIPT_CHARACTERS;
+
+    /**
+     */
+    static final StringCapability THESE_CAUSE_CR =
+        UntypedStringCapability.THESE_CAUSE_CR;
+
+    /**
+     */
+    static final StringCapability ZERO_MOTION =
+        UntypedStringCapability.ZERO_MOTION;
+
+    /**
+     */
+    static final StringCapability CHAR_SET_NAMES =
+        UntypedStringCapability.CHAR_SET_NAMES;
+
+    /**
+     * Prefix of a mouse position peport.  Usually {@code "\033[M"} if
+     * defined.
+     */
+    static final StringCapability KEY_MOUSE =
+        UntypedStringCapability.KEY_MOUSE;
+
+    /**
+     */
+    static final StringCapability MOUSE_INFO =
+        UntypedStringCapability.MOUSE_INFO;
+
+    /**
+     */
+    static final StringCapability REQ_MOUSE_POS =
+        UntypedStringCapability.REQ_MOUSE_POS;
+
+    /**
+     */
+    static final StringCapability GET_MOUSE =
+        UntypedStringCapability.GET_MOUSE;
+
+    /**
+     */
+    static final StringCapability SET_A_FOREGROUND =
+        UntypedStringCapability.SET_A_FOREGROUND;
+
+    /**
+     */
+    static final StringCapability SET_A_BACKGROUND =
+        UntypedStringCapability.SET_A_BACKGROUND;
+
+    /**
+     */
+    static final StringCapability PKEY_PLAB =
+        UntypedStringCapability.PKEY_PLAB;
+
+    /**
+     */
+    static final StringCapability DEVICE_TYPE =
+        UntypedStringCapability.DEVICE_TYPE;
+
+    /**
+     */
+    static final StringCapability CODE_SET_INIT =
+        UntypedStringCapability.CODE_SET_INIT;
+
+    /**
+     */
+    static final StringCapability SET0_DES_SEQ =
+        UntypedStringCapability.SET0_DES_SEQ;
+
+    /**
+     */
+    static final StringCapability SET1_DES_SEQ =
+        UntypedStringCapability.SET1_DES_SEQ;
+
+    /**
+     */
+    static final StringCapability SET2_DES_SEQ =
+        UntypedStringCapability.SET2_DES_SEQ;
+
+    /**
+     */
+    static final StringCapability SET3_DES_SEQ =
+        UntypedStringCapability.SET3_DES_SEQ;
+
+    /**
+     */
+    static final StringCapability SET_LR_MARGIN =
+        UntypedStringCapability.SET_LR_MARGIN;
+
+    /**
+     */
+    static final StringCapability SET_TB_MARGIN =
+        UntypedStringCapability.SET_TB_MARGIN;
+
+    /**
+     */
+    static final StringCapability BIT_IMAGE_REPEAT =
+        UntypedStringCapability.BIT_IMAGE_REPEAT;
+
+    /**
+     */
+    static final StringCapability BIT_IMAGE_NEWLINE =
+        UntypedStringCapability.BIT_IMAGE_NEWLINE;
+
+    /**
+     */
+    static final StringCapability BIT_IMAGE_CARRIAGE_RETURN =
+        UntypedStringCapability.BIT_IMAGE_CARRIAGE_RETURN;
+
+    /**
+     */
+    static final StringCapability COLOR_NAMES =
+        UntypedStringCapability.COLOR_NAMES;
+
+    /**
+     */
+    static final StringCapability DEFINE_BIT_IMAGE_REGION =
+        UntypedStringCapability.DEFINE_BIT_IMAGE_REGION;
+
+    /**
+     */
+    static final StringCapability END_BIT_IMAGE_REGION =
+        UntypedStringCapability.END_BIT_IMAGE_REGION;
+
+    /**
+     */
+    static final StringCapability SET_COLOR_BAND =
+        UntypedStringCapability.SET_COLOR_BAND;
+
+    /**
+     */
+    static final StringCapability SET_PAGE_LENGTH =
+        UntypedStringCapability.SET_PAGE_LENGTH;
+
+    /**
+     */
+    static final StringCapability DISPLAY_PC_CHAR =
+        UntypedStringCapability.DISPLAY_PC_CHAR;
+
+    /**
+     */
+    static final StringCapability ENTER_PC_CHARSET_MODE =
+        UntypedStringCapability.ENTER_PC_CHARSET_MODE;
+
+    /**
+     */
+    static final StringCapability EXIT_PC_CHARSET_MODE =
+        UntypedStringCapability.EXIT_PC_CHARSET_MODE;
+
+    /**
+     */
+    static final StringCapability ENTER_SCANCODE_MODE =
+        UntypedStringCapability.ENTER_SCANCODE_MODE;
+
+    /**
+     */
+    static final StringCapability EXIT_SCANCODE_MODE =
+        UntypedStringCapability.EXIT_SCANCODE_MODE;
+
+    /**
+     */
+    static final StringCapability PC_TERM_OPTIONS =
+        UntypedStringCapability.PC_TERM_OPTIONS;
+
+    /**
+     */
+    static final StringCapability SCANCODE_ESCAPE =
+        UntypedStringCapability.SCANCODE_ESCAPE;
+
+    /**
+     */
+    static final StringCapability ALT_SCANCODE_ESC =
+        UntypedStringCapability.ALT_SCANCODE_ESC;
+
+    /**
+     */
+    static final StringCapability ENTER_HORIZONTAL_HL_MODE =
+        UntypedStringCapability.ENTER_HORIZONTAL_HL_MODE;
+
+    /**
+     */
+    static final StringCapability ENTER_LEFT_HL_MODE =
+        UntypedStringCapability.ENTER_LEFT_HL_MODE;
+
+    /**
+     */
+    static final StringCapability ENTER_LOW_HL_MODE =
+        UntypedStringCapability.ENTER_LOW_HL_MODE;
+
+    /**
+     */
+    static final StringCapability ENTER_RIGHT_HL_MODE =
+        UntypedStringCapability.ENTER_RIGHT_HL_MODE;
+
+    /**
+     */
+    static final StringCapability ENTER_TOP_HL_MODE =
+        UntypedStringCapability.ENTER_TOP_HL_MODE;
+
+    /**
+     */
+    static final StringCapability ENTER_VERTICAL_HL_MODE =
+        UntypedStringCapability.ENTER_VERTICAL_HL_MODE;
+
+    /**
+     */
+    static final StringCapability SET_A_ATTRIBUTES =
+        UntypedStringCapability.SET_A_ATTRIBUTES;
+
+    /**
+     */
+    static final StringCapability SET_PGLEN_INCH =
+        UntypedStringCapability.SET_PGLEN_INCH;
+
+    /**
+     * Returns a list of the defined string capabilities.
+     * {@linkplain KeyCapability Key capabilities} are not included.
+     * @return an immutable list
+     */
+    static List<StringCapability> values() {
+        return UntypedStringCapability.VALUES;
     }
 
-    private final int index;
-    private final String terminfoName;
-    private final int parameters;
-
-    // Maximum across all defined string capabilities, plus one.
-    static final int COUNT = 394;
-
-    private StringCapability(int index, String terminfoName, int parameters) {
-        this.index = index;
-        this.terminfoName = terminfoName;
-        this.parameters = parameters;
-    }
-
-    private StringCapability(int index, String terminfoName) {
-        this(index, terminfoName, 0);
+    /**
+     * Returns the string capability for the specified name.
+     * The name must be the {@linkplain #name() upper-case long name}.
+     * @param name the name of the capability
+     * @return the string capability
+     * @throws IllegalArgumentException if the argument is not a recognized
+     *   string capability identifier
+     * @throws NullPointerException if the argument is null
+     */
+    static StringCapability of(String name) {
+        try {
+            return UntypedStringCapability.valueOf(name);
+        } catch (IllegalArgumentException e) {
+        }
+        try {
+            return KeyCapability.valueOf(name);
+        } catch (IllegalArgumentException e) {
+        }
+        throw new IllegalArgumentException(name);
     }
 }

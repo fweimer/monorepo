@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -27,7 +26,7 @@ public final class TestStringCapability {
         // Check that the capabilities are sorted in increasing order
         // of their indices.
         t.examine(StringCapability.values())
-            .check(Checks.strictlyMonotonicArray(Comparator.comparing(
+            .check(Checks.strictlyMonotonic(Comparator.comparing(
                         StringCapability::index)));
     }
 
@@ -45,7 +44,7 @@ public final class TestStringCapability {
     @Test
     public static void testTerminfoCollision(Testing t) {
         Map<String, List<StringCapability>> byTerminfo =
-            Arrays.stream(StringCapability.values())
+            StringCapability.values().stream()
             .collect(Collectors.groupingBy(StringCapability::terminfoName,
                     Collectors.toList()));
         byTerminfo.entrySet().stream()
@@ -62,22 +61,18 @@ public final class TestStringCapability {
     public static void testAgainstTic(Testing t)
         throws IOException, InterruptedException {
         // Use terminfo identifiers in the terminfo source file.
-        testAgainstTic(t, StringCapability.class,
-            StringCapability::terminfoName, TermFile::get, false);
+        testAgainstTic(t, StringCapability.values(), false);
     }
 
     @Test
     public static void testAgainstTicC(Testing t)
         throws IOException, InterruptedException {
         // Use C identifiers in the terminfo source file.
-        testAgainstTic(t, StringCapability.class,
-            StringCapability::terminfoName, TermFile::get, true);
+        testAgainstTic(t, StringCapability.values(), true);
     }
 
     static <E extends Enum<E>> void testAgainstTic(Testing t,
-        Class<E> cls, Function<E, String> terminfoName,
-        BiFunction<TermFile, E, byte[]> getCapability,
-        boolean cMode)
+        List<? extends StringCapability> caps, boolean cMode)
         throws IOException, InterruptedException {
         try (TempDirectory dir = TempDirectory.withPrefix("terminfo-")) {
             // Create a terminfo source file with all string
@@ -86,19 +81,18 @@ public final class TestStringCapability {
             try (BufferedWriter wr = Files.newBufferedWriter(src)) {
                 wr.write("test|terminal test,");
                 wr.newLine();
-                for (E cap : cls.getEnumConstants()) {
+                int index = 0;
+                for (StringCapability cap : caps) {
                     wr.write('\t');
                     if (cMode)
                         wr.write(cap.name().toLowerCase());
                     else
-                        wr.write(terminfoName.apply(cap));
+                        wr.write(cap.terminfoName());
                     wr.write('=');
-                    // Use a numeric capability for testing because
-                    // the full capability names would exceed the
-                    // terminal file size limit.
-                    wr.write("c" + cap.ordinal());
+                    wr.write("c" + index);
                     wr.write(',');
                     wr.newLine();
+                    ++index;
                 }
             }
 
@@ -134,14 +128,16 @@ public final class TestStringCapability {
             // values.
             TermFile term = TermFile.of(
                 Files.readAllBytes(dir.resolve("t").resolve("test")));
-            for (E cap : cls.getEnumConstants()) {
+            int index = 0;
+            for (StringCapability cap : caps) {
                 t.examine(cap)
-                    .map(cap1 -> getCapability.apply(term, cap1))
+                    .map(term::get)
                     .isNotNull()
                     .barrier()
                     .map(String::new)
-                    .is("c" + cap.ordinal());
+                    .is("c" + index);
                 t.fullBarrier();
+                ++index;
             }
         }
     }

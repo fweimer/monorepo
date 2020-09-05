@@ -285,22 +285,6 @@ public final class TermFile {
             return null;
     }
 
-    /**
-     * Returns the bytes of the specified key string capability.
-     *
-     * @param cap the capability to return
-     * @return the byte array with the capability string,
-     *  excluding the terminating null byte, or {@code null} if the
-     *  capability is not present
-     */
-    public byte[] get(KeyCapability cap) {
-        byte[] result = get0(cap.index());
-        if (result != null)
-            return result.clone();
-        else
-            return null;
-    }
-
     private final List<String> names;
     private final long booleans;
     private final int[] numbers;
@@ -379,7 +363,7 @@ public final class TermFile {
     }
 
     private static int[] readStringTable(ByteBuffer b, int count) {
-        int[] result = new int[Math.min(count, StringCapability.COUNT)];
+        int[] result = new int[Math.min(count, UntypedStringCapability.COUNT)];
         for (int i = 0; i < count; ++i) {
             int value = b.getShort();
             if (value < -2)

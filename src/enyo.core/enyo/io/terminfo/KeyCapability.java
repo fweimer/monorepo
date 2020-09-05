@@ -5,9 +5,9 @@ package enyo.io.terminfo;
  * key is pressed.
  *
  * @see StringCapability
- * @see TermFile#get(KeyCapability)
+ * @see TermFile#get(StringCapability)
  */
-public enum KeyCapability {
+public enum KeyCapability implements StringCapability {
     /**
      */
     KEY_BACKSPACE(55, "kbs"),
@@ -605,20 +605,19 @@ public enum KeyCapability {
     KEY_F63(268, "kf63"),
     ;
 
-    /**
-     * Returns the index of the capability in the terminal file.
-     * @return a non-negative integer
-     */
+    @Override
     public int index() {
         return index;
     }
 
-    /**
-     * Returns the name that is used in terminfo definitions.
-     * @return a non-empty string
-     */
+    @Override
     public String terminfoName() {
         return terminfoName;
+    }
+
+    @Override
+    public int parameters() {
+        return 0;
     }
 
     private final int index;

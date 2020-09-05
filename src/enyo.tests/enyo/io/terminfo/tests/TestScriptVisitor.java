@@ -610,7 +610,7 @@ public final class TestScriptVisitor {
     public void testInterestingCaps(Testing t) {
         // Check that all string capabilities with parameters are also
         // listed in INTERESTING_CAPS.
-        Arrays.stream(StringCapability.values())
+        StringCapability.values().stream()
             .filter(e -> e.parameters() > 0)
             .map(t::examine)
             .map(ex -> ex.test(e -> INTERESTING_CAPS.contains(e)));

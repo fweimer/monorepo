@@ -11,8 +11,7 @@ public final class Tput {
         TerminalState tstate = new TerminalState(
             new TerminalWriter(tout, tout.terminal()));
 
-        StringCapability cap = StringCapability.valueOf(
-            args[0].toUpperCase());
+        StringCapability cap = StringCapability.of(args[0].toUpperCase());
         byte[] capBlob = tout.terminal().get(cap);
         if (capBlob == null) {
             System.err.format("error: capability %s not supported%n", cap);

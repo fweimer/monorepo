@@ -14,7 +14,6 @@ import enyo.testing.Testing;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -136,7 +135,7 @@ public final class FindTypeConflicts {
         byte[] blob = Files.readAllBytes(path);
         TermFile term = TermFile.of(blob);
 
-        return Arrays.stream(StringCapability.values())
+        return StringCapability.values().stream()
             .flatMap(cap -> {
                     byte[] capData = term.get(cap);
                     if (capData != null)

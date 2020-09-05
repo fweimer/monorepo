@@ -8,6 +8,7 @@ import enyo.testing.Test;
 import enyo.testing.Testing;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Comparator;
 
 public final class TestKeyCapability {
@@ -33,15 +34,15 @@ public final class TestKeyCapability {
     public static void testAgainstTic(Testing t)
         throws IOException, InterruptedException {
         // Use terminfo identifiers in the terminfo source file.
-        TestStringCapability.testAgainstTic(t, KeyCapability.class,
-            KeyCapability::terminfoName, TermFile::get, false);
+        TestStringCapability.testAgainstTic(t,
+            Arrays.asList(KeyCapability.values()), false);
     }
 
     @Test
     public static void testAgainstTicC(Testing t)
         throws IOException, InterruptedException {
         // Use C identifiers in the terminfo source file.
-        TestStringCapability.testAgainstTic(t, KeyCapability.class,
-            KeyCapability::terminfoName, TermFile::get, true);
+        TestStringCapability.testAgainstTic(t,
+            Arrays.asList(KeyCapability.values()), true);
     }
 }
