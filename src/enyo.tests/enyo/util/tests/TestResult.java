@@ -93,6 +93,9 @@ public final class TestResult {
         t.examine(r.orElseThrow()).is(1);
         t.examine(r.stream().collect(Collectors.toList())).is(List.of(1));
         t.examine(r.toString()).is("1");
+        t.examine(r.equalsOf(1)).is(true);
+        t.examine(r.equalsOf(1L)).is(false);
+        t.examine(r.equalsOfError(1)).is(false);
 
         // The type of the error does not matter.
         Result<Integer, Void> r1 = Result.of(1);
@@ -158,6 +161,9 @@ public final class TestResult {
             ResultException.class, e -> t.examine(e.getMessage()).is("1"));
         t.examine(r.stream().collect(Collectors.toList())).is(List.of());
         t.examine(r.toString()).is("1");
+        t.examine(r.equalsOf(1)).is(false);
+        t.examine(r.equalsOfError(1)).is(true);
+        t.examine(r.equalsOfError(1L)).is(false);
 
         // The type of the value does not matter.
         Result<Void, Integer> r1 = Result.ofError(1);

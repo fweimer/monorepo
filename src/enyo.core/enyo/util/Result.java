@@ -177,6 +177,30 @@ public class Result<T, E> {
     }
 
     /**
+     * Returns true if the present value equals the specified value.
+     * The return value is equal to {@code equals(Result.of(other))}.
+     * @param other the value to test against
+     * @return true if the value is {@linkplain #isPresent()} and
+     *   {@linkplain Object#equals(Object)} equal to {@code other},
+     *   false if the value is absent or not equal
+     */
+    public final boolean equalsOf(Object other) {
+        return isPresent() && object.equals(other);
+    }
+
+    /**
+     * Returns true if the error equals the specified value.
+     * The return value is equal to {@code equals(Result.ofError(other))}.
+     * @param other the value to test against
+     * @return true if this object is an {@linkplain #isError() error} and
+     *   the error is {@linkplain Object#equals(Object) equal to}
+     *   {@code other}, false if a value is present or the error is not equal
+     */
+    public final boolean equalsOfError(Object other) {
+        return isError() && object.equals(other);
+    }
+
+    /**
      * Returns a stream with this result's value (if available).
      * If {@link #isPresent()} is true, this method returns a one-element
      * stream with the value, otherwise an empty stream is returned.
