@@ -478,12 +478,15 @@ public class Result<T, E> {
         return object.hashCode() ^ getClass().hashCode();
     }
 
+    /**
+     * Returns the string representation of the underlying object.
+     * This is the unadorned string for either the value or error
+     * object, whichever is present.
+     * @return the string, as returned by {@link Object#toString}
+     */
     @Override
     public final String toString() {
-        if (isPresent())
-            return "Result.of(" + object + ')';
-        else
-            return "Result.ofError(" + object + ')';
+        return object.toString();
     }
 
     private final Object object;
