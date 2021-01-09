@@ -166,19 +166,28 @@ public final class CSVReader {
 
     /**
      * Advances to the next row and returns its columns as a list.
-     * @return an empty optional value if there are no more rows;
-     *   or a list of strings containing the column values
+     * If a row can be read, the list is always non-empty.  An empty
+     * line is treated as containing a single, empty column, so the
+     * read result is {@code List.of("")}.
+     * @return a list of strings containing the column values,
+     *   or an empty list if the end of the file has been reached.
      * @throws IOException if an input error occurred, including malformed data
      * @see #fetchRow()
      */
-    public Optional<List<String>> fetchRow() throws IOException {
+    public List<String> fetchRow() throws IOException {
         if (!nextRow())
-            return Optional.empty();
-        var row = new ArrayList<String>();
-        while (moreColumns()) {
-            row.add(fetchColumn());
-        }
-        return Optional.of(List.copyOf(row));
+            return List.of();
+        if (rowList == null)
+            rowList = new ArrayList<>();
+        else
+            rowList.clear();
+
+        while (moreColumns())
+            rowList.add(fetchColumn());
+
+        List<String> result = List.copyOf(rowList);
+        rowList.clear();
+        return result;
     }
 
     /**
@@ -276,6 +285,9 @@ public final class CSVReader {
     private boolean atEOF;
     private int peekCh = -1;
     private boolean wasQuoted;
+
+    // Cache for fetchRow.
+    private ArrayList<String> rowList;
 
     private void checkForAnyRow() {
         if (rowNumber < 0)

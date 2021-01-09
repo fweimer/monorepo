@@ -41,7 +41,7 @@ public final class TestCSVReader {
     @Test
     public static void emptyFetchRow(Testing t) throws IOException {
         CSVReader r = wrap("");
-        t.examine(r.fetchRow()).isSame(Optional.empty());
+        t.examine(r.fetchRow()).is(List.of());
         checkNoRowState(t, r);
     }
 
@@ -112,10 +112,10 @@ public final class TestCSVReader {
     @Test
     public static void noColumnFetchRow(Testing t) throws IOException {
         CSVReader r = wrap("\n");
-        t.examine(r.fetchRow()).is(Optional.of(List.of("")));
+        t.examine(r.fetchRow()).is(List.of(""));
         t.examine(r.lineNumber()).is(1);
         t.examine(r.rowNumber()).is(0);
-        t.examine(r.fetchRow()).isSame(Optional.empty());
+        t.examine(r.fetchRow()).is(List.of());
         t.examine(r.rowNumber()).is(1);
         checkNoRowState(t, r);
     }
@@ -192,29 +192,29 @@ public final class TestCSVReader {
     @Test
     public static void quotedNewLine1(Testing t) throws IOException {
         CSVReader r = wrap("\"\n\"\n");
-        t.examine(r.fetchRow()).is(Optional.of(List.of("\n")));
-        t.examine(r.fetchRow()).isSame(Optional.empty());
+        t.examine(r.fetchRow()).is(List.of("\n"));
+        t.examine(r.fetchRow()).is(List.of());
     }
 
     @Test
     public static void quotedNewLine2(Testing t) throws IOException {
         CSVReader r = wrap("\"\nX\",\"Y\n\",\"\nZ\n\"\n");
-        t.examine(r.fetchRow()).is(Optional.of(List.of("\nX", "Y\n", "\nZ\n")));
-        t.examine(r.fetchRow()).isSame(Optional.empty());
+        t.examine(r.fetchRow()).is(List.of("\nX", "Y\n", "\nZ\n"));
+        t.examine(r.fetchRow()).is(List.of());
     }
 
     @Test
     public static void quotedQuote1(Testing t) throws IOException {
         CSVReader r = wrap("\"\"\"\"\n");
-        t.examine(r.fetchRow()).is(Optional.of(List.of("\"")));
-        t.examine(r.fetchRow()).isSame(Optional.empty());
+        t.examine(r.fetchRow()).is(List.of("\""));
+        t.examine(r.fetchRow()).is(List.of());
     }
 
     @Test
     public static void quotedQuote2(Testing t) throws IOException {
         CSVReader r = wrap("\"\"\"\",\n");
-        t.examine(r.fetchRow()).is(Optional.of(List.of("\"", "")));
-        t.examine(r.fetchRow()).isSame(Optional.empty());
+        t.examine(r.fetchRow()).is(List.of("\"", ""));
+        t.examine(r.fetchRow()).is(List.of());
     }
 
     @Test
@@ -229,39 +229,37 @@ public final class TestCSVReader {
     @Test
     public static void testBOM1(Testing t) throws IOException {
         CSVReader r = wrap("\uFEFF,\uFEFF\n");
-        t.examine(r.fetchRow()).is(Optional.of(List.of("\uFEFF", "\uFEFF")));
+        t.examine(r.fetchRow()).is(List.of("\uFEFF", "\uFEFF"));
     }
 
     @Test
     public static void testBOM2(Testing t) throws IOException {
         CSVReader r = wrap("\uFEFF\uFEFF,\uFEFF\n");
-        t.examine(r.fetchRow())
-            .is(Optional.of(List.of("\uFEFF\uFEFF", "\uFEFF")));
+        t.examine(r.fetchRow()).is(List.of("\uFEFF\uFEFF", "\uFEFF"));
     }
 
     @Test
     public static void testBOM3(Testing t) throws IOException {
         CSVReader r = wrap("\uFEFF,\uFEFF\n", stripBOMConfig());
-        t.examine(r.fetchRow()).is(Optional.of(List.of("", "\uFEFF")));
+        t.examine(r.fetchRow()).is(List.of("", "\uFEFF"));
     }
 
     @Test
     public static void testBOM4(Testing t) throws IOException {
         CSVReader r = wrap("\uFEFF\uFEFF,\uFEFF\n", stripBOMConfig());
-        t.examine(r.fetchRow()).is(Optional.of(List.of("\uFEFF", "\uFEFF")));
+        t.examine(r.fetchRow()).is(List.of("\uFEFF", "\uFEFF"));
     }
 
     @Test
     public static void testBOM5(Testing t) throws IOException {
         CSVReader r = wrap("X\uFEFF,\uFEFF\n", stripBOMConfig());
-        t.examine(r.fetchRow()).is(Optional.of(List.of("X\uFEFF", "\uFEFF")));
+        t.examine(r.fetchRow()).is(List.of("X\uFEFF", "\uFEFF"));
     }
 
     @Test
     public static void testBOM6(Testing t) throws IOException {
         CSVReader r = wrap("X\uFEFF\uFEFF,\uFEFF\n", stripBOMConfig());
-        t.examine(r.fetchRow())
-            .is(Optional.of(List.of("X\uFEFF\uFEFF", "\uFEFF")));
+        t.examine(r.fetchRow()).is(List.of("X\uFEFF\uFEFF", "\uFEFF"));
     }
 
     @Test
@@ -286,51 +284,42 @@ public final class TestCSVReader {
             .filter(ch -> ch == '\n')
             .count();
 
-        t.examine(r.fetchRow()).is(Optional.of(List.of(
+        t.examine(r.fetchRow()).is(List.of(
             "", "BBEX3.D.USD.EUR.BB.AC.000",
-            "BBEX3.D.USD.EUR.BB.AC.000_FLAGS")));
-        t.examine(r.fetchRow()).is(Optional.of(List.of("",
+            "BBEX3.D.USD.EUR.BB.AC.000_FLAGS"));
+        t.examine(r.fetchRow()).is(List.of("",
                 "Euro foreign exchange reference rate of the ECB / EUR 1 = USD ... / United States",
-                "")));
-        t.examine(r.fetchRow()).is(Optional.of(List.of("unit", "USD", "")));
-        t.examine(r.fetchRow()).is(Optional.of(List.of(
-            "unit multiplier", "one", "")));
-        t.examine(r.fetchRow()).is(Optional.of(List.of(
-            "last update", "2019-06-14 15:56:50",
-                    "")));
-        t.examine(r.fetchRow()).is(Optional.of(List.of(
-            "1999-01-01", ".", "No value available")));
-        t.examine(r.fetchRow()).is(Optional.of(List.of(
-            "1999-01-02", ".", "No value available")));
-        t.examine(r.fetchRow()).is(Optional.of(List.of(
-            "1999-01-03", ".", "No value available")));
-        t.examine(r.fetchRow()).is(Optional.of(List.of(
-            "1999-01-04", "1.1789", "")));
-        t.examine(r.fetchRow()).is(Optional.of(List.of(
-            "1999-01-05", "1.1790", "")));
-        t.examine(r.fetchRow()).is(Optional.of(List.of(
-            "1999-01-06", "1.1743", "")));
-        t.examine(r.fetchRow()).is(Optional.of(List.of(
-            "1999-01-07", "1.1632", "")));
-        t.examine(r.fetchRow()).is(Optional.of(List.of(
-            "1999-01-08", "1.1659", "")));
-        t.examine(r.fetchRow()).is(Optional.of(List.of(
-            "1999-01-09", ".", "No value available")));
-        t.examine(r.fetchRow()).is(Optional.of(List.of(
-            "1999-01-10", ".", "No value available")));
-        t.examine(r.fetchRow()).is(Optional.of(List.of(
-            "1999-01-11", "1.1569", "")));
-        t.examine(r.fetchRow()).is(Optional.of(List.of(
-            "1999-01-12", "1.1520", "")));
-        t.examine(r.fetchRow()).is(Optional.of(List.of(
-            "2019-06-14", "1.1265", "")));
-        t.examine(r.fetchRow()).is(Optional.of(List.of("",
-                    "General: The ECB publishes daily euro foreign exchange reference rates, which are calculated on the basis of the concertation between central banks at 14.15.", "")));
-        t.examine(r.fetchRow()).is(Optional.of(List.of(
-            "", "Source: European Central Bank (ECB).", "")));
+                ""));
+        t.examine(r.fetchRow()).is(List.of("unit", "USD", ""));
+        t.examine(r.fetchRow()).is(List.of("unit multiplier", "one", ""));
+        t.examine(r.fetchRow()).is(List.of(
+                "last update", "2019-06-14 15:56:50", ""));
+        t.examine(r.fetchRow()).is(List.of(
+                "1999-01-01", ".", "No value available"));
+        t.examine(r.fetchRow()).is(List.of(
+                "1999-01-02", ".", "No value available"));
+        t.examine(r.fetchRow()).is(List.of(
+                "1999-01-03", ".", "No value available"));
+        t.examine(r.fetchRow()).is(List.of("1999-01-04", "1.1789", ""));
+        t.examine(r.fetchRow()).is(List.of("1999-01-05", "1.1790", ""));
+        t.examine(r.fetchRow()).is(List.of("1999-01-06", "1.1743", ""));
+        t.examine(r.fetchRow()).is(List.of("1999-01-07", "1.1632", ""));
+        t.examine(r.fetchRow()).is(List.of("1999-01-08", "1.1659", ""));
+        t.examine(r.fetchRow()).is(List.of(
+                "1999-01-09", ".", "No value available"));
+        t.examine(r.fetchRow()).is(List.of(
+                "1999-01-10", ".", "No value available"));
+        t.examine(r.fetchRow()).is(List.of("1999-01-11", "1.1569", ""));
+        t.examine(r.fetchRow()).is(List.of("1999-01-12", "1.1520", ""));
+        t.examine(r.fetchRow()).is(List.of("2019-06-14", "1.1265", ""));
+        t.examine(r.fetchRow()).is(List.of("",
+                    "General: The ECB publishes daily euro foreign exchange reference rates, which are calculated on the basis of the concertation between central banks at 14.15.", ""));
+        t.examine(r.fetchRow()).is(List.of(
+            "", "Source: European Central Bank (ECB).", ""));
 
         t.examine(r.lineNumber()).is(lineCount);
         t.examine(r.rowNumber()).is(lineCount - 1);
+        t.examine(r.fetchRow()).is(List.of());
         t.assertFalse(r.nextRow());
         t.examine(r.rowNumber()).is(lineCount);
     }
