@@ -25,20 +25,19 @@ final class TestLinkController implements Closeable {
         throws IOException {
         this.dirs = dirs;
 
-        ArrayList<UnscheduledTest> scratchList;
-        {
-            Result.Collected<ArrayList<UnscheduledTest>, ArrayList<String>>
-                collected = FindTests.collectedTests(dirs, modules);
-            scratchList = collected.values();
-            tests = scratchList.stream()
-                .map(UnscheduledTest::scheduled)
-                .collect(Collectors.toUnmodifiableList());
-            errors = List.copyOf(collected.errors());
-        }
+        FindTests findTests = new FindTests(dirs, modules);
+        tests = findTests.tests.stream()
+            .map(UnscheduledTest::scheduled)
+            .collect(Collectors.toUnmodifiableList());
+        errors = findTests.errors;
+        testFiltersActive = findTests.testFiltersActive;
+
         parameters = new TestLink.Parameters(modules, tests.size());
 
         // Randomize (to benefit intra-test-class scheduling), and
         // then source by source file modification.
+        ArrayList<UnscheduledTest> scratchList =
+            new ArrayList<>(findTests.tests);
         Collections.shuffle(scratchList);
         Collections.sort(scratchList,
             UnscheduledTest.comparingSourceFileChange());
@@ -112,10 +111,20 @@ final class TestLinkController implements Closeable {
         return errors;
     }
 
+    /**
+     * Returns whether test filters are active.
+     * @return true if any {@link enyo.testing.OnlyTests} annotations have
+     *   been encountered, false otherwise
+     */
+    boolean testFiltersActive() {
+        return testFiltersActive;
+    }
+
     private final DirectoryLayout dirs;
     private final TestLink.Parameters parameters;
     private final TestLink testLink;
     private final List<ScheduledTest> tests;
     private final List<String> errors;
+    private final boolean testFiltersActive;
     private final SourceFileChanges.Waiter changeWaiter;
 }

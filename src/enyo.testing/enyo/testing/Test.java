@@ -7,6 +7,9 @@ import java.lang.annotation.Target;
 
 /**
  * Marks a method as a test.
+ *
+ * Marked tests can still be excluded from execution using
+ * {@link OnlyTests}.
  */
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.METHOD)

@@ -67,19 +67,19 @@ final class FindTests {
                 }));
     }
 
-    /**
-     * Produces lists of tests, extracted from class files, and errors
-     * encountered.
-     */
-    static Result.Collected<ArrayList<UnscheduledTest>, ArrayList<String>>
-        collectedTests(DirectoryLayout dirs, List<String> modules) {
+    FindTests(DirectoryLayout dirs, List<String> modules) {
         AtomicInteger idSource = new AtomicInteger();
+        List<TestClassDetails> testClassDetails;
         try (Stream<TestClassDetails> stream = modules.stream()
             .flatMap(IOFunction.of(moduleName ->
                     potentialTestClasses(dirs,
                         classFiles(dirs, moduleName), moduleName)))) {
+            testClassDetails = stream.collect(Collectors.toList());
+        }
+
+        var result = testClassDetails.stream()
             // Split into classes with and without errors.
-            return stream.<Result<TestClassDetails, TestClassDetails>>map(
+            .<Result<TestClassDetails, TestClassDetails>>map(
                 classDetails -> {
                     if (classDetails.hasErrors())
                         return Result.ofError(classDetails);
@@ -118,11 +118,17 @@ final class FindTests {
                         method.cost)))
             .collect(Result.Collectors.toCollection(
                     ArrayList::new, ArrayList::new));
-        }
+
+        tests = List.copyOf(result.values());
+        errors = List.copyOf(result.errors());
+        testFiltersActive = testClassDetails.stream()
+            .anyMatch(TestClassDetails::hasTestFilters);
     }
+
+    final List<UnscheduledTest> tests;
+    final List<String> errors;
+    final boolean testFiltersActive;
 
     private static final StringFilter testClassFilter =
         StringFilter.of(Descriptors.Test);
-
-    private FindTests() { } // No instances.
 }

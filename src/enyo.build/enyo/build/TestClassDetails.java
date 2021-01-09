@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -30,6 +31,9 @@ final class TestClassDetails {
     private final TestResources resources;
     private final double cost;
     private final boolean exitDuringTest;
+
+    // Test filter.  Non-empty array or null (no filter).
+    private final String[] onlyTests;
 
     // Long.MIN_VALUE + 1 if unknown (to help with negative sorting).
     private final long sourceFileChange;
@@ -79,6 +83,21 @@ final class TestClassDetails {
             exitDuringTest = exitDuringTest0;
         }
 
+        {
+            String[] onlyTests0 = null;
+            try {
+                onlyTests0 = clazz.annotations()
+                    .filter(ann -> ann.descriptor().equals(
+                            Descriptors.OnlyTests))
+                    .findFirst()
+                    .map(OnlyTestsParser::parse)
+                    .orElse(null);
+            } catch (AnnotationParseException | ClassFileException e) {
+                classErrors.add(e.getMessage());
+            }
+            onlyTests = onlyTests0;
+        }
+
         sourceFileChange = guessSourcePath(dirs, module, clazz)
             .flatMap(TestClassDetails::fileModificationTime)
             .orElse(Long.MIN_VALUE + 1);
@@ -90,6 +109,10 @@ final class TestClassDetails {
 
     boolean hasErrors() {
         return !classErrors.isEmpty();
+    }
+
+    boolean hasTestFilters() {
+        return onlyTests != null;
     }
 
     Stream<String> classErrors() {
@@ -109,9 +132,13 @@ final class TestClassDetails {
     }
 
     Stream<TestMethodDetails> tests() {
-        return clazz.methods()
+        Stream<TestMethodDetails> stream = clazz.methods()
             .map(method -> new TestMethodDetails(this, method))
             .filter(method -> method.hasTestAnnotation);
+        if (onlyTests != null)
+            stream = stream.filter(method ->
+                Arrays.binarySearch(onlyTests, method.method.name()) >= 0);
+        return stream;
     }
 
     long sourceFileChange() {

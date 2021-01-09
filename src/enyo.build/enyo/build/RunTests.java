@@ -278,6 +278,8 @@ public final class RunTests {
                 System.err.println("error: There were non-execution errors.");
                 controller.errors().stream().forEach(System.err::println);
             }
+            if (controller.testFiltersActive())
+                System.err.println("warning: active test execution filters");
         }
     }
 
