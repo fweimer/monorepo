@@ -107,9 +107,6 @@ final class FindTests {
                                 method.method.name(),
                                 method.error));
                     }))
-            // Filter out non-test methods.  Keep all errors.
-            .filter(
-                r -> r.map(method -> method.hasTestAnnotation).orElse(true))
             // Convert test methods to unscheduled tests.
             .<Result<UnscheduledTest, String>>map(r -> r.map(method ->
                     new UnscheduledTest(new ScheduledTest(
