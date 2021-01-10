@@ -1,11 +1,19 @@
 package enyo.util.tests;
 
 import enyo.util.StringParsers;
+import enyo.testing.Checks;
 import enyo.testing.Test;
 import enyo.testing.Testing;
 
-import java.math.BigInteger;
+import java.io.BufferedReader;
+import java.io.StringReader;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public final class TestStringParsers {
@@ -258,5 +266,48 @@ public final class TestStringParsers {
                 E2 ignored = (E2)
                     StringParsers.parser(E2.class).invokeExact("x");
             }, IllegalArgumentException.class);
+    }
+
+    @Test
+    public static void testApplyParser(Testing t) throws Throwable {
+        MethodHandle constructor = MethodHandles.lookup().findStatic(
+            TestStringParsers.class, "constructorLike",
+            MethodType.methodType(Object[].class,
+                byte.class, short.class, int.class, long.class, float.class,
+                double.class, char.class, String.class, BigInteger.class,
+                BigDecimal.class));
+        BufferedReader reader = new BufferedReader(new StringReader(
+                IntStream.rangeClosed(0, constructor.type().parameterCount())
+                .mapToObj(Integer::toString)
+                .collect(Collectors.joining("\n"))));
+        MethodHandle parser = StringParsers.applyParsers(
+            constructor, readLine());
+        t.examine((Object[]) parser.invoke(reader))
+            .check(Checks.arrayEquals(new Object[] {
+                        (byte) 0,
+                        (short) 1,
+                        2,
+                        3L,
+                        4.0f,
+                        5.0,
+                        '6',
+                        "7",
+                        BigInteger.valueOf(8),
+                        BigDecimal.valueOf(9)
+                    }));
+        t.examine(reader.readLine()).is(
+            Integer.toString(constructor.type().parameterCount()));
+    }
+
+    private static MethodHandle readLine() throws Throwable {
+        return MethodHandles.publicLookup().findVirtual(
+            BufferedReader.class, "readLine",
+            MethodType.methodType(String.class));
+    }
+
+    private static Object[] constructorLike(
+        byte a, short b, int c, long d, float e, double f,
+        char g, String h, BigInteger i, BigDecimal j) {
+        return new Object[] { a, b, c, d, e, f, g, h, i, j };
     }
 }

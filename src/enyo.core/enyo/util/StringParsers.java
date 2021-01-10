@@ -3,6 +3,7 @@ package enyo.util;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -189,6 +190,80 @@ public final class StringParsers {
             return false;
         else
             throw new IllegalArgumentException("Invalid boolean: " + s);
+    }
+
+    /**
+     * Procudes a method handle that constructs a new object from the
+     * results of multiple fetcher calls and string parsing.
+     *
+     * The resulting method handle expects a single argument.
+     * For each argument in {@code constructor}, {@code fetcher}
+     * is applied to that single argument, and the result is converted
+     * to the type expected by the respective {@code constructor}
+     * argument using a string parser (obtained by {@link #parser(Class)}).
+     * Finally, {@code constructor} is invoked with the arguments so
+     * converted, and this returns the value of the resulting method handle.
+     *
+     * <p>Or, in pseudo-code: Denote the argument of the resulting
+     * method handle by {@code arg}.  Then the resulting method handle
+     * evaluates
+     *
+     * <pre>
+     * constructor(p0(fetcher(arg)), p1(fetcher(arg)), …, pN(fetcher(arg)))
+     * </pre>
+     * where {@code p0}, …, {@code pN} are the appropriate parsers
+     * obtained by {@link #parser(Class)}.
+     *
+     * @param constructor the method handle that is invoked to convert
+     *   multiple parsed values into a single object
+     * @param fetcher the method handle called to obtain additional values;
+     *   its return type must be {@link String}
+     * @return a new method type, expecting a single argument, of the
+     *   the same type as the {@code fetcher}'s argument, and returning
+     *   the return type of {@code constructor}
+     * @throws IllegalArgumentException if {@code constructor} does not
+     *   accept any arguments
+     * @throws IllegalArgumentException if {@code fetcher} does not
+     *   accept a single {@link String} argument
+     * @throws IllegalArgumentException if any of the arguments of
+     *   {@code constructor} are not recognized by {@link #parser(Class)}
+     */
+    public static MethodHandle applyParsers(MethodHandle constructor,
+        MethodHandle fetcher) {
+        if (constructor.type().parameterCount() == 0)
+            throw new IllegalArgumentException(
+                "Constructor lacks parameters: " + constructor);
+        if (fetcher.type().parameterCount() != 1)
+            throw new IllegalArgumentException(
+                "Fetcher argument count not 1: " + fetcher);
+        if (fetcher.type().returnType() != String.class)
+            throw new IllegalArgumentException(
+                "Fetcher does not return String: " + fetcher);
+
+        MethodHandle[] argumentFilters;
+        {
+            List<Class<?>> parameterTypes = constructor.type().parameterList();
+            argumentFilters = new MethodHandle[parameterTypes.size()];
+            for (int i = 0; i < argumentFilters.length; ++i) {
+                MethodHandle parser;
+                try {
+                    parser = parser(parameterTypes.get(i));
+                } catch (IllegalArgumentException e) {
+                    throw new IllegalArgumentException(String.format(
+                            "Parsing argument %d of %s",
+                            i, constructor), e);
+                }
+                argumentFilters[i] =
+                    MethodHandles.filterReturnValue(fetcher, parser);
+            }
+        }
+
+
+        MethodType resultType = MethodType.methodType(
+            constructor.type().returnType(), fetcher.type().parameterType(0));
+        return MethodHandles.permuteArguments(
+            MethodHandles.filterArguments(constructor, 0, argumentFilters),
+            resultType, new int[argumentFilters.length]);
     }
 
     private static final MethodHandles.Lookup PUBLIC =
