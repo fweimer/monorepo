@@ -56,7 +56,7 @@ final class GlobalTestingState {
      * Creates a new testing instance for a scheduled test.
      */
     Testing newTesting(ScheduledTest test) {
-        return new Testing(test.locator(), results);
+        return new Testing(test, results);
     }
 
     /**

@@ -3,15 +3,18 @@ package enyo.testing.runtime.tests;
 import enyo.testing.Test;
 import enyo.testing.TestFailure;
 import enyo.testing.Testing;
+import enyo.testing.introspect.ScheduledTest;
 import enyo.testing.introspect.TestMethodLocator;
 import enyo.testing.runtime.Examined;
-import enyo.testing.runtime.InvokeTest;
 import enyo.testing.runtime.ExceptionPhase;
+import enyo.testing.runtime.InvokeTest;
+import enyo.testing.runtime.Results;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public final class Helpers {
     /**
@@ -38,10 +41,24 @@ public final class Helpers {
         return testHistory(t, locator(cls, methodName));
     }
 
+    static List<Recorder.Call> testHistory(Testing t, ScheduledTest test) {
+        return testHistory(t,
+            test.locator(),
+            results -> new enyo.testing.runtime.Testing(test, results));
+    }
+
     static List<Recorder.Call> testHistory(Testing t,
         TestMethodLocator locator) {
+        return testHistory(t,
+            locator,
+            results -> new enyo.testing.runtime.Testing(locator, results));
+    }
+
+    private static List<Recorder.Call> testHistory(Testing t,
+        TestMethodLocator locator,
+        Function<Recorder, enyo.testing.runtime.Testing> factory) {
         Recorder results = new Recorder();
-        var inner = new enyo.testing.runtime.Testing(locator, results);
+        var inner = factory.apply(results);
         ModuleLayer layer =
             Optional.ofNullable(Helpers.class.getModule())
             .map(Module::getLayer)

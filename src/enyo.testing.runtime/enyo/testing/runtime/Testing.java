@@ -1,9 +1,12 @@
 package enyo.testing.runtime;
 
+import enyo.testing.Checks;
 import enyo.testing.Examiner;
-import enyo.testing.TestFailure;
 import enyo.testing.TestAlreadyFailed;
+import enyo.testing.TestFailure;
 import enyo.testing.ThrowingRunnable;
+import enyo.testing.introspect.TestResources;
+import enyo.testing.introspect.ScheduledTest;
 import enyo.testing.introspect.TestMethodLocator;
 
 import java.util.ArrayList;
@@ -20,8 +23,16 @@ import java.util.function.Consumer;
  */
 public final class Testing implements enyo.testing.Testing {
     final TestMethodLocator test;
+    private final TestResources resources;
     private final Results results;
     volatile boolean failed;
+
+    private Testing(TestMethodLocator test, TestResources resources,
+        Results results) {
+        this.test = Objects.requireNonNull(test, "tests");
+        this.resources = resources; // Can be null.
+        this.results = Objects.requireNonNull(results, "results");
+    }
 
     /**
      * Creates a new testing object.
@@ -30,8 +41,19 @@ public final class Testing implements enyo.testing.Testing {
      * @see InvokeTest#invokeTest(ModuleLayer,Testing)
      */
     public Testing(TestMethodLocator test, Results results) {
-        this.test = Objects.requireNonNull(test, "tests");
-        this.results = Objects.requireNonNull(results, "results");
+        this(test, null, results);
+    }
+
+    /**
+     * Creates a new testing object with a {@link TestResources}
+     * specification.
+     * @param test the test to execute
+     * @param results where to report test results
+     * @see InvokeTest#invokeTest(ModuleLayer,Testing)
+     * @see #Testing(TestMethodLocator,Results)
+     */
+    public Testing(ScheduledTest test, Results results) {
+        this(test.locator(), test.resources(), results);
     }
 
     @Override
@@ -335,6 +357,33 @@ public final class Testing implements enyo.testing.Testing {
             objects = new Object[0];
         }
         recordFailureObjects(List.of(), check, stackTrace, objects);
+    }
+
+    @Override
+    public void parallel(int threads, ThrowingRunnable action) {
+        if (threads <= 0)
+            throw new IllegalArgumentException("threads: " + threads);
+        Objects.requireNonNull(action);
+        if (resources != null)
+            examine(threads)
+                .context("threads")
+                .check(Checks.lessThanOrEquals(resources.threads()));
+        ParallelThread[] workers = new ParallelThread[threads];
+        for (int i = 0; i < threads; ++i)
+            workers[i] = new ParallelThread(action);
+        for (int i = 0; i < threads; ++i)
+            workers[i].start();
+        try {
+            for (int i = 0; i < threads; ++i)
+                workers[i].join();
+        } catch (InterruptedException e) {
+            recordFailure(ExceptionPhase.EXECUTION, e);
+        }
+        for (int i = 0; i < threads; ++i) {
+            Throwable e = workers[i].exception;
+            if (e != null)
+                recordFailure(ExceptionPhase.EXECUTION, e);
+        }
     }
 
     void recordFailure(ExaminerBase top, String check) {

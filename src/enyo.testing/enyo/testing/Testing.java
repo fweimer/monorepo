@@ -257,6 +257,19 @@ public interface Testing {
     void failedCheck(String check, Object... objects);
 
     /**
+     * Runs the action in parallel, using the indicated number of
+     * threads.  The threads are created using an unspecified method.
+     * A test failure may be recorded if {@code threads} is greater
+     * than the resources assigned to this .  Exceptions thrown by
+     * {@code action} result in test failures.
+     * @param threads the number of threads to run in parallel
+     * @param action the action to perform in each thread
+     * @throws IllegalArgumentException if {@code threads} is not positive
+     * @throws NullPointerException if {@code action} is null
+     */
+    void parallel(int threads, ThrowingRunnable action);
+
+    /**
      * Creates a new counter with the default target, 1.
      * @return the counter
      * @see Counter#Counter()
