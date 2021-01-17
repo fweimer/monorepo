@@ -399,6 +399,31 @@ class ObjectExaminer<T> extends ExaminerBase implements Examiner<T> {
 
     @Override
     public Examiner<T> is(T other) {
+        return isObject(other);
+    }
+
+    @Override
+    public Examiner<T> nullableIs(T other) {
+        return nullableIsObject(other);
+    }
+
+    @Override
+    public Examiner<T> isnt(T other) {
+        return isntObject(other);
+    }
+
+    @Override
+    public Examiner<T> isSame(T other) {
+        return isSameObject(other);
+    }
+
+    @Override
+    public Examiner<T> isNotSame(T other) {
+        return isNotSameObject(other);
+    }
+
+    @Override
+    public Examiner<T> isObject(Object other) {
         if (barrier)
             return this;
         if (value == null || other == null)
@@ -409,7 +434,7 @@ class ObjectExaminer<T> extends ExaminerBase implements Examiner<T> {
     }
 
     @Override
-    public Examiner<T> nullableIs(T other) {
+    public Examiner<T> nullableIsObject(Object other) {
         if (barrier)
             return this;
         if (!Objects.equals(value, other))
@@ -418,7 +443,7 @@ class ObjectExaminer<T> extends ExaminerBase implements Examiner<T> {
     }
 
     @Override
-    public Examiner<T> isnt(T other) {
+    public Examiner<T> isntObject(Object other) {
         if (barrier)
             return this;
         if (value == null || other == null)
@@ -429,7 +454,7 @@ class ObjectExaminer<T> extends ExaminerBase implements Examiner<T> {
     }
 
     @Override
-    public Examiner<T> isSame(T other) {
+    public Examiner<T> isSameObject(Object other) {
         if (barrier)
             return this;
         if (value == null || other == null)
@@ -440,7 +465,7 @@ class ObjectExaminer<T> extends ExaminerBase implements Examiner<T> {
     }
 
     @Override
-    public Examiner<T> isNotSame(T other) {
+    public Examiner<T> isNotSameObject(Object other) {
         if (barrier)
             return this;
         if (value == null || other == null)

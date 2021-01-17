@@ -227,6 +227,66 @@ public interface Examiner<T> {
     Examiner<T> isNotSame(T other);
 
     /**
+     * Reports an error if the two values are not equal according to
+     * {@link java.util.Objects#equals(Object,Object)}.
+     * Errors are also reported if the references are null;
+     * {@link #nullableIs(Object)} does not report an error in this case.
+     * This method does not check the type of the other object
+     * at compile time.
+     * @param other the other value under comparison
+     * @return this object
+     * @see #is(Object)
+     */
+    Examiner<T> isObject(Object other);
+
+    /**
+     * Reports an error if the two values are not equal according to
+     * {@link java.util.Objects#equals(Object,Object)}.
+     * No errors are reported if both references are null.
+     * This method does not check the type of the other object
+     * at compile time.
+     * @param other the other value under comparison
+     * @return this object
+     * @see #isObject(Object)
+     * @see #nullableIs(Object)
+     */
+    Examiner<T> nullableIsObject(Object other);
+
+    /**
+     * Reports an error if the two values are equal according to
+     * {@link java.util.Objects#equals(Object,Object)}.
+     * Errors are also reported if the references are null.
+     * This method does not check the type of the other object
+     * at compile time.
+     * @param other the other value under comparison
+     * @return this object
+     * @see #isnt(Object)
+     */
+    Examiner<T> isntObject(Object other);
+
+    /**
+     * Reports an error if the two references are not the same.
+     * Errors are also reported if the references are null.
+     * This method does not check the type of the other object
+     * at compile time.
+     * @param other the other value under comparison
+     * @return this object
+     * @see #isSame(Object)
+     */
+    Examiner<T> isSameObject(Object other);
+
+    /**
+     * Reports an error if the two references are the same.
+     * Errors are also reported if the references are null.
+     * This method does not check the type of the other object
+     * at compile time.
+     * @param other the other value under comparison
+     * @return this object
+     * @see #isNotSameObject(Object)
+     */
+    Examiner<T> isNotSameObject(Object other);
+
+    /**
      * Reports an error if the reference is not null.
      * @return this object
      */
