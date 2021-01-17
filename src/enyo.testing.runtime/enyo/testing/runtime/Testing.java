@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
 
 /**
@@ -368,9 +369,11 @@ public final class Testing implements enyo.testing.Testing {
             examine(threads)
                 .context("threads")
                 .check(Checks.lessThanOrEquals(resources.threads()));
+
+        CountDownLatch startSignal = new CountDownLatch(threads);
         ParallelThread[] workers = new ParallelThread[threads];
         for (int i = 0; i < threads; ++i)
-            workers[i] = new ParallelThread(action);
+            workers[i] = new ParallelThread(startSignal, action);
         for (int i = 0; i < threads; ++i)
             workers[i].start();
         try {
