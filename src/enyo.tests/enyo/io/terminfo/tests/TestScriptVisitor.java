@@ -315,6 +315,29 @@ public final class TestScriptVisitor {
     }
 
     @Test
+    public static void testFormat3(Testing t) {
+        for (String script : List.of(
+                "%1000d",
+                "%1000.d",
+                "%1000.0d",
+                "%1000.1000")) {
+            ScriptVisitor visitor = new FailingVisitor(t) {};
+            byte[] bytes = script.getBytes(StandardCharsets.ISO_8859_1);
+            t.expect(() -> new ScriptParser().accept(visitor, bytes),
+                TerminalScriptException.class, e ->
+                t.examine(e.getMessage()).is("% width too large"));
+        }
+        for (String script : List.of(
+                "%.1000d",
+                "%0.1000d")) {
+            ScriptVisitor visitor = new FailingVisitor(t) {};
+            byte[] bytes = script.getBytes(StandardCharsets.ISO_8859_1);
+            t.expect(() -> new ScriptParser().accept(visitor, bytes),
+                TerminalScriptException.class, e ->
+                t.examine(e.getMessage()).is("% precision too large"));
+        }
+    }
+    @Test
     public static void testUnary(Testing t) {
         checkScript(t, "%l");
         checkScript(t, "%!");

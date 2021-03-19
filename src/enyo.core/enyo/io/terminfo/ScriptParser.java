@@ -399,9 +399,13 @@ public final class ScriptParser {
         if ('0' <= ch && ch <= '9') {
             width = 0;
             while (true) {
-                if ('0' <= ch && ch <= '9')
+                if ('0' <= ch && ch <= '9') {
                     width = width * 10 + (ch - '0');
-                else
+                    // Guard against large string creation during
+                    // script rendering.
+                    if (width >= 1000)
+                        throw new TerminalScriptException("% width too large");
+                } else
                     break;
                 if (index == toIndex)
                     throw new TerminalScriptException(
@@ -421,9 +425,14 @@ public final class ScriptParser {
             ch = script[index];
             ++index;
             while (true) {
-                if ('0' <= ch && ch <= '9')
+                if ('0' <= ch && ch <= '9') {
                     precision = precision * 10 + (ch - '0');
-                else
+                    // Guard against large string creation during
+                    // script rendering.
+                    if (precision >= 1000)
+                        throw new TerminalScriptException(
+                            "% precision too large");
+                } else
                     break;
                 if (index == toIndex)
                     throw new TerminalScriptException(
