@@ -124,6 +124,7 @@ public final class ScriptParser {
 
             if (index == toIndex) {
                 // Some terminal descriptions contain trailing '%'s.
+                // Treat it as a literal character.
                 visitor.visit(ch);
                 break;
             }
