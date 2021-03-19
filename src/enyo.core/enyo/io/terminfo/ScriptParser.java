@@ -260,7 +260,7 @@ public final class ScriptParser {
             case '\'':
                 if (toIndex - index < 2)
                     throw new TerminalScriptException(
-                        "Truncated %P directive");
+                        "Truncated %' directive");
                 ch = script[index];
                 ++index;
                 if (script[index] != '\'')
