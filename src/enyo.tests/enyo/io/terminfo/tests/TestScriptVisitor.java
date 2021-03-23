@@ -95,7 +95,6 @@ public final class TestScriptVisitor {
             p.accept(new FailingVisitor(t) {
                     @Override
                     public void visit(Format op) {
-                        t.examine(p.lastOffset()).is(0);
                         t.examine(p.lastOffset()).is(0);;
                         t.examine(op.flags()).is(Set.of());
                         t.examine(op.width()).is(-1);
@@ -107,7 +106,6 @@ public final class TestScriptVisitor {
                     @Override
                     public void visit(Format op) {
                         t.examine(p.lastOffset()).is(0);
-                        t.examine(p.lastOffset()).is(0);;
                         t.examine(op.flags()).is(Set.of());
                         t.examine(op.width()).is(-1);
                         t.examine(op.precision()).is(-1);
@@ -118,7 +116,6 @@ public final class TestScriptVisitor {
                     @Override
                     public void visit(Format op) {
                         t.examine(p.lastOffset()).is(0);
-                        t.examine(p.lastOffset()).is(0);;
                         t.examine(op.flags()).is(Set.of(FormatFlag.SHARP));
                         t.examine(op.width()).is(-1);
                         t.examine(op.precision()).is(-1);
@@ -129,7 +126,6 @@ public final class TestScriptVisitor {
                     @Override
                     public void visit(Format op) {
                         t.examine(p.lastOffset()).is(0);
-                        t.examine(p.lastOffset()).is(0);;
                         t.examine(op.flags()).is(Set.of(FormatFlag.SHARP));
                         t.examine(op.width()).is(-1);
                         t.examine(op.precision()).is(-1);
@@ -140,7 +136,6 @@ public final class TestScriptVisitor {
                     @Override
                     public void visit(Format op) {
                         t.examine(p.lastOffset()).is(0);
-                        t.examine(p.lastOffset()).is(0);;
                         t.examine(op.flags()).is(Set.of(FormatFlag.PLUS));
                         t.examine(op.width()).is(-1);
                         t.examine(op.precision()).is(-1);
@@ -151,7 +146,6 @@ public final class TestScriptVisitor {
                     @Override
                     public void visit(Format op) {
                         t.examine(p.lastOffset()).is(0);
-                        t.examine(p.lastOffset()).is(0);;
                         t.examine(op.flags()).is(Set.of(FormatFlag.MINUS));
                         t.examine(op.width()).is(-1);
                         t.examine(op.precision()).is(-1);
