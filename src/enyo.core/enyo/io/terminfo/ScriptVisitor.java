@@ -351,7 +351,8 @@ public interface ScriptVisitor {
          * The flag {@code #}.
          * It indicates an alternate format.
          * Available with {@link FormatOp#OCTAL %o},
-         * {@link FormatOp#OCTAL %x}, and {@link FormatOp#OCTAL %X},
+         * {@link FormatOp#HEXADECIMAL_LOWERCASE %x},
+         * and {@link FormatOp#HEXADECIMAL_UPPERCASE %X},
          * where it outputs prefixes of {@code 0}, {@code 0x},
          * and {@code 0X}.
          */
@@ -493,7 +494,7 @@ public interface ScriptVisitor {
      * consums the top of the stack.  Depending on the actual
      * formatting operation, this is either an integer or a string
      * (for {@link FormatOp#STRING}).  The formatting result is sent
-     * to the termal.
+     * to the terminal.
      * @param op the description of the requested form
      */
     public void visit(Format op);
@@ -540,7 +541,7 @@ public interface ScriptVisitor {
     public void visitSetVariable(int var);
 
     /**
-     * Called topush an integer value onto the stack.
+     * Called to push an integer value onto the stack.
      * This corresponds to the {@code %''} and {@code %{}} directives.
      * (The byte is not sent to the terminal immediately.)
      * @param value the value to push, a non-negative integer
