@@ -3,6 +3,7 @@ package enyo.io.terminfo.tests;
 import enyo.io.TempDirectory;
 import enyo.io.function.IOConsumer;
 import enyo.io.terminfo.BooleanCapability;
+import enyo.io.terminfo.KeyCapability;
 import enyo.io.terminfo.NumericCapability;
 import enyo.io.terminfo.StringCapability;
 import enyo.io.terminfo.TermFile;
@@ -40,7 +41,7 @@ public final class TestTermFile {
         terminfoFiles(t).forEach(IOConsumer.of(path -> {
                         byte[] blob = Files.readAllBytes(path);
                         try {
-                            TermFile.of(blob);
+                            checkNoNullBytes(t, path, TermFile.of(blob));
                         } catch (Throwable e) {
                             throw new TestFailure(path.toString(), e);
                         }
@@ -163,5 +164,26 @@ public final class TestTermFile {
         for (BooleanCapability cap : BooleanCapability.values())
             if (term.get(cap) != (cap == BooleanCapability.AUTO_RIGHT_MARGIN))
                 throw new TestFailure(cap.toString());
+    }
+
+    // Check that the string-based capabilities do not contain null
+    // bytes.  The format cannot actually express that.  If they
+    // occur, it means that the parsing went wrong.
+    private static void checkNoNullBytes(Testing t, Path path,
+        TermFile term ) {
+        List.of(StringCapability.values(), List.of(KeyCapability.values()))
+            .stream()
+            .flatMap(List::stream)
+            .forEach(cap -> t.examine(cap)
+                .context(path.toString())
+                .map(term::get)
+                .test(blob -> {
+                        if (blob == null)
+                            return true;
+                        for (byte b : blob)
+                            if (b == 0)
+                                return false;
+                        return true;
+                    }));
     }
 }
