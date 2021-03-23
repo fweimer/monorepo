@@ -178,12 +178,17 @@ public final class TerminalState {
                         write('0' + value);
                         return;
                     }
-                    if (value >= 0 && value < 100
-                        && op.op() == FormatOp.DECIMAL) {
-                        // Common special case of a small decimal number.
-                        write('0' + (value / 10));
-                        write('0' + (value % 10));
-                        return;
+                    // Common special case of a small decimal number.
+                    if (op.op() == FormatOp.DECIMAL) {
+                        if (value == 8 || value == 9) {
+                            write('0' + (value / 10));
+                            return;
+                        }
+                        if (value >= 0 && value < 100) {
+                            write('0' + (value / 10));
+                            write('0' + (value % 10));
+                            return;
+                        }
                     }
                 }
                 String formatted = op.format(value);
