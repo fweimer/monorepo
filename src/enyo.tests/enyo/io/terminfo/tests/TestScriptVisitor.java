@@ -331,6 +331,7 @@ public final class TestScriptVisitor {
                 t.examine(e.getMessage()).is("% precision too large"));
         }
     }
+
     @Test
     public static void testUnary(Testing t) {
         checkScript(t, "%l");
@@ -340,8 +341,16 @@ public final class TestScriptVisitor {
 
     @Test
     public static void testBinary(Testing t) {
+        // Not actually treated as binary ops because of compatibility
+        // kludge.
         checkScript(t, "%+");
         checkScript(t, "%-");
+
+        // But these scripts push parameters, so they are treated as
+        // real binary operators.
+        checkScript(t, "%p1%p2%+%c");
+        checkScript(t, "%p1%p2%-%c");
+
         checkScript(t, "%*");
         checkScript(t, "%/");
         checkScript(t, "%m");
