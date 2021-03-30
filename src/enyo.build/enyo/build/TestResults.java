@@ -4,6 +4,7 @@ import enyo.testing.introspect.TestMethodLocator;
 import enyo.testing.runtime.Examined;
 import enyo.testing.runtime.ExceptionPhase;
 import enyo.testing.runtime.Results;
+import enyo.util.ByteArrays;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -110,6 +111,8 @@ class TestResults implements Results {
             stream.println("null");
         else if (object.getClass() == String.class)
             printString(stream, (String) object);
+        else if (object.getClass() == byte[].class)
+            printByteArray(stream, (byte[]) object);
         else if (SHORT_STRING_TYPES.contains(object.getClass()))
             stream.format("%s: %s%n", object.getClass().getName(), object);
         else {
@@ -158,6 +161,26 @@ class TestResults implements Results {
         if (truncated)
             stream.print("... (truncated)");
         stream.println();
+    }
+
+    private static void printByteArray(PrintStream stream, byte[] data) {
+        int limit = 200;
+        stream.print('"');
+        ByteArrays.unsignedStream(data)
+            .limit(limit)
+            .forEach(ch -> {
+                    if (ch < ' ' || ch > '~') {
+                        stream.format("\\%03o", ch);
+                    } else {
+                        if (ch == '\\' || ch == '"' || ch == '\'')
+                            stream.print('\\');
+                        stream.print((char) ch);
+                    }
+                });
+        if (data.length > limit)
+            stream.format("\"... (truncated, length %d)%n", data.length);
+        else
+            stream.format("\" (length %d)%n", data.length);
     }
 
     private static boolean isNested(Object object) {
