@@ -100,13 +100,21 @@ public final class TestBufferInput {
 
     static void arrayBasedTests(Testing t,
         IOFunction<byte[], BufferInput> wrapper) throws IOException {
+        arrayBasedTests(t, wrapper, true);
+    }
+
+    // stickyBuffer indicates whether buffers returned from
+    // fillBuffer(int) change or are always reused if possible.
+    static void arrayBasedTests(Testing t,
+        IOFunction<byte[], BufferInput> wrapper, boolean stickyBuffer)
+        throws IOException {
         testEmpty(t, () -> wrapper.apply(new byte[0]));
         testDataAndHugeException(t, wrapper);
         testLargeData(t, wrapper);
         testReallocateOrder(t, wrapper);
-        testSkip(t, wrapper, TestBufferInput::copyAll);
-        testSkip(t, wrapper, TestBufferInput::copyByte);
-        testSkip(t, wrapper, TestBufferInput::copyByteAndHalf);
+        testSkip(t, wrapper, TestBufferInput::copyAll, stickyBuffer);
+        testSkip(t, wrapper, TestBufferInput::copyByte, stickyBuffer);
+        testSkip(t, wrapper, TestBufferInput::copyByteAndHalf, stickyBuffer);
     }
 
     static void testDataAndHugeException(Testing t,
@@ -154,7 +162,9 @@ public final class TestBufferInput {
                     // Read the one remaining byte.
                     t.examine(buffer.remaining()).is(0);
                     var buffer1 = inp.fillBuffer(0);
-                    t.examine(buffer1.remaining()).is(1);
+                    t.examine(buffer1)
+                        .mapToInt(ByteBuffer::remaining)
+                        .is(1);
                     t.examine(buffer1.get()).is(17);
                 }
             }
@@ -211,8 +221,8 @@ public final class TestBufferInput {
 
     static void testSkip(Testing t,
         IOFunction<byte[], BufferInput> wrapper,
-        IOBiConsumer<ByteBuffer, ByteArrayOutputStream> copier)
-        throws IOException {
+        IOBiConsumer<ByteBuffer, ByteArrayOutputStream> copier,
+        boolean stickyBuffer) throws IOException {
         int largeSize = 200 * 1000;
         var expected = new byte[largeSize];
         ThreadLocalRandom.current().nextBytes(expected);
@@ -233,9 +243,10 @@ public final class TestBufferInput {
                     inp.skipNBytes(skip);
                     while (true) {
                         var buffer = inp.fillBuffer(0);
-                        if (firstBuffer != null)
-                            t.examine(buffer).isSame(firstBuffer);
-                        else
+                        if (firstBuffer != null) {
+                            if (stickyBuffer)
+                                t.examine(buffer).isSame(firstBuffer);
+                        } else
                             firstBuffer = buffer;
                         if (!buffer.hasRemaining())
                             break;
