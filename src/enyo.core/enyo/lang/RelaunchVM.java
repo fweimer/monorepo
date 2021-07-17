@@ -241,6 +241,7 @@ public final class RelaunchVM {
             "-p", "--module-path",
             "--upgrade-module-path",
             "--add-modules",
+            "--enable-native-access",
             // -X-level options:
             "--add-reads",
             "--add-exports",
