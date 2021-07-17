@@ -28,6 +28,10 @@ public abstract class SimpleBufferInput implements BufferInput {
      * that the previously returned buffer is only used again if it is
      * returned once more from this method.
      *
+     * <p>Unlike {@link fillBuffer(int)}, this method discards the
+     * position of a previously returned buffer.  All bytes in the
+     * buffer are assumed to have been consumed.
+     *
      * @return a byte buffer; if there are more bytes in the source,
      *   it must have remaining bytes
      * @throws IOException an input error occurred
