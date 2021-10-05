@@ -456,6 +456,13 @@ public final class TestScriptAnalysis {
         "\033|%'0'%p1%+%c1%p2\031", // ndr9500-25-nl: pkey_xmit
 
         "\033[%p1%i%p1%d;%p2%dH", // ti916-132: cursor_address
+        "\033]2;%p1",
+
+        // Stack mismatch in if condition.
+        "\033[%?%p1%{8}%<%t3%p1%d%e%?%p1%{16}%<%t%p1%'R'%+"
+        + "%e38:2::%p1%{65536}%/%d:%p1%{256}%/%{255}%&%d:%p1%{255}%&%d%;%;m",
+        "\033[%?%p1%{8}%<%t4%p1%d%e%?%p1%{16}%<%t%p1%{92}%+"
+        + "%e48:2::%p1%{65536}%/%d:%p1%{256}%/%{255}%&%d:%p1%{255}%&%d%;%;m",
 
         // Wrong parameter count.
         "\033w@%p1%'0'%+%c%p2%' '%+%c%p3%' '%+%c$<20>", // ncr260wy350pp: mrcup
