@@ -165,42 +165,50 @@ public final class ThrowableErasure implements Serializable {
     }
 
     /**
+     * The class name of the throwable.
      * @see #className()
      */
     private final String className;
 
     /**
+     * The stack trace of the throwable.
      * @see #stackTrace()
      */
     private final List<StackTraceElement> stackTrace;
 
     /**
+     * The message of the throwable.
      * @see #message()
      */
     private final String message;
 
 
     /**
+     * If getting the message failed.
      * @see #messageError()
      */
     private final boolean messageError;
 
     /**
+     * {@link Object#toString} result of the throwable.
      * @see #toString()
      */
     private final String toString;
 
     /**
+     * Cause of the throwable.
      * @see #cause()
      */
     private final ThrowableErasure cause;
 
     /**
+     * If getting the cause failed.
      * @see #causeError()
      */
     private final boolean causeError;
 
     /**
+     * Suppressed exceptions of the throwable.
      * @see #suppressed()
      */
     private final List<ThrowableErasure> suppressed;
