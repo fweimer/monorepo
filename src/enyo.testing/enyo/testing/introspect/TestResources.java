@@ -85,11 +85,13 @@ public final class TestResources implements Serializable {
         new TestResources(Resources.THREADS, Resources.MEMORY);
 
     /**
+     * Number of threads.
      * @see #threads()
      */
     private final int threads;
 
     /**
+     * Amount of memory (in MiB).
      * @see #memory()
      */
     private final int memory;
