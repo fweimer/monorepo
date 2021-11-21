@@ -71,21 +71,25 @@ public final class ScheduledTest implements Serializable {
     }
 
     /**
+     * Internal test number.
      * @see #id()
      */
     private final int id;
 
     /**
+     * How to find the test method.
      * @see #locator()
      */
     private final TestMethodLocator locator;
 
     /**
+     * Associated resources.
      * @see #resources()
      */
     private final TestResources resources;
 
     /**
+     * Presence of the {@link enyo.testing.ExitDuringTest} annotation.
      * @see #exitDuringTest()
      */
     private final boolean exitDuringTest;
