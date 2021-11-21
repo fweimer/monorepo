@@ -21,6 +21,8 @@ import java.util.Objects;
 public record NamedMethodType(String name, MethodType type) {
     /**
      * Creates a new combination of a method name and its type.
+     * @param name the name of the method
+     * @param type the type of the method
      * @throws IllegalArgumentException if {@code name} is not a valid
      *   method name
      * @throws NullPointerException if any argument is null
@@ -35,25 +37,29 @@ public record NamedMethodType(String name, MethodType type) {
     /**
      * Creates a named method type from a reflected method.
      * The name, return type, and the parameter list of the method are used.
+     * @param method the reflected method from which name and parameter types
+     *   are extracted
      * @throws NullPointerException if the argument is null
      * @see Method#getName()
      * @see Method#getReturnType()
      * @see Method#getParameterTypes()
      */
-    public NamedMethodType(Method m) {
-        this(m.getName(),
+    public NamedMethodType(Method method) {
+        this(method.getName(),
             MethodType.methodType(
-                m.getReturnType(),
-                m.getParameterTypes()));
+                method.getReturnType(),
+                method.getParameterTypes()));
     }
 
     /**
      * Returns a method handle for this named method in the specified class.
      * The target method is a virtual method.
+     * @param lookup used to find the method
+     * @param cls the class in which the method is looked up
      * @return a method handle
      * @throws NullPointerException if any argument is null
      * @throws NoSuchMethodException if the lookup fails
-     * @throws IllegalArgumentException if the lookup fails
+     * @throws IllegalAccessException if the lookup fails
      * @see MethodHandles.Lookup#findVirtual(Class,String,MethodType)
      */
     public MethodHandle findVirtual(MethodHandles.Lookup lookup,
@@ -64,10 +70,12 @@ public record NamedMethodType(String name, MethodType type) {
     /**
      * Returns a method handle for this named method in the specified class.
      * The target method is a static method.
+     * @param lookup used to find the method
+     * @param cls the class in which the method is looked up
      * @return a method handle
      * @throws NullPointerException if any argument is null
      * @throws NoSuchMethodException if the lookup fails
-     * @throws IllegalArgumentException if the lookup fails
+     * @throws IllegalAccessException if the lookup fails
      * @see MethodHandles.Lookup#findStatic(Class,String,MethodType)
      */
     public MethodHandle findStatic(MethodHandles.Lookup lookup,
