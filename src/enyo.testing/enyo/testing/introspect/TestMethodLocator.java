@@ -20,9 +20,10 @@ public final class TestMethodLocator
      * @param hasTestingArgument if true, the test method expects an
      *   argument of type {@link enyo.testing.Testing}
      */
+    @SuppressWarnings("serial")
     public TestMethodLocator(Optional<String> moduleName, String className,
         String methodName, boolean hasTestingArgument) {
-        this.moduleName = Objects.requireNonNull(moduleName, "moduleName");
+        this.moduleName = moduleName.orElse(null);
         this.className = Objects.requireNonNull(className, "className");
         this.methodName = Objects.requireNonNull(methodName, "methodName");
         this.hasTestingArgument = hasTestingArgument;
@@ -43,7 +44,7 @@ public final class TestMethodLocator
      * @see Module#getName()
      */
     public Optional<String> moduleName() {
-        return moduleName;
+        return Optional.ofNullable(moduleName);
     }
 
     /**
@@ -77,7 +78,7 @@ public final class TestMethodLocator
         if (o == null || o.getClass() != getClass())
             return false;
         TestMethodLocator obj = (TestMethodLocator) o;
-        return moduleName.equals(obj.moduleName)
+        return Objects.equals(moduleName, obj.moduleName)
             && className.equals(obj.className)
             && methodName.equals(obj.methodName)
             && hasTestingArgument == obj.hasTestingArgument;
@@ -85,7 +86,7 @@ public final class TestMethodLocator
 
     @Override
     public int hashCode() {
-        int hash = moduleName.hashCode();
+        int hash = Objects.hashCode(moduleName);
         hash = hash * 17 + className.hashCode();
         hash = hash * 1009 + methodName.hashCode();
         hash ^= Boolean.hashCode(hasTestingArgument);
@@ -99,9 +100,11 @@ public final class TestMethodLocator
             signature = "(enyo.testing.Testing)";
         else
             signature = "()";
-        String modulePrefix = moduleName
-            .map(name -> name + '/')
-            .orElse("");
+        String modulePrefix;
+        if (moduleName == null)
+            modulePrefix = "";
+        else
+            modulePrefix = moduleName + '/';
         return modulePrefix + className + "::" + methodName + signature;
     }
 
@@ -109,13 +112,13 @@ public final class TestMethodLocator
     public int compareTo(TestMethodLocator other) {
         int ret;
         // Missing module sorts first.
-        if (moduleName.isPresent()) {
-            if (other.moduleName.isPresent())
-                ret = moduleName.get().compareTo(other.moduleName.get());
+        if (moduleName != null) {
+            if (other.moduleName != null)
+                ret = moduleName.compareTo(other.moduleName);
             else
                 ret = 1;
         } else {
-            if (other.moduleName.isPresent())
+            if (other.moduleName != null)
                 ret = -1;
             else
                 ret = 0;
@@ -135,7 +138,7 @@ public final class TestMethodLocator
      * The module name.
      * @see #moduleName()
      */
-    private final Optional<String> moduleName;
+    private final String moduleName;
 
     /**
      * The class name.

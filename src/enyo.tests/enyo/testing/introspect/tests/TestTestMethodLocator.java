@@ -5,6 +5,12 @@ import enyo.testing.Test;
 import enyo.testing.Testing;
 import enyo.testing.introspect.TestMethodLocator;
 
+import java.io.IOException;
+import java.io.ByteArrayOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.List;
 import java.util.Optional;
 
 public final class TestTestMethodLocator {
@@ -39,6 +45,32 @@ public final class TestTestMethodLocator {
         t.examine(tml.toString())
             .is("enyo.testing.introspect.tests"
                 + ".TestTestMethodLocator::testOrder()");
+    }
+
+    @Test
+    public static void testSerialize(Testing t)
+        throws IOException, ClassNotFoundException {
+        for (var candidate : List.of(
+                new TestMethodLocator(
+                    Optional.of("enyo.tests"),
+                    TestTestMethodLocator.class.getName(),
+                    "testWithModuleName",
+                    true),
+                new TestMethodLocator(
+                    Optional.empty(),
+                    TestTestMethodLocator.class.getName(),
+                    "testOrder",
+                    false))) {
+            var out = new ByteArrayOutputStream();
+            try (var objOut = new ObjectOutputStream(out)) {
+                objOut.writeObject(candidate);
+            }
+            try (var objIn = new ObjectInputStream(
+                    new ByteArrayInputStream(out.toByteArray()))) {
+                t.examine(candidate)
+                    .is((TestMethodLocator) objIn.readObject());
+            }
+        }
     }
 
     @Test
