@@ -90,6 +90,7 @@ public final class ErasedThrowable extends RuntimeException {
     }
 
     /**
+     * The erased throwable.
      * @see #erasure()
      */
     private final ThrowableErasure erasure;
