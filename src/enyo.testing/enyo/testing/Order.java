@@ -373,12 +373,14 @@ public final class Order<T> {
          * An object involved in the failure.
          * @see #left()
          */
+        @SuppressWarnings("serial") // Serializable if input object is.
         private final Object left;
 
         /**
          * An object involved in the failure.
          * @see #right()
          */
+        @SuppressWarnings("serial") // Serializable if input object is.
         private final Object right;
 
         private static final long serialVersionUID = 0xf08e2470b894fd41L;
@@ -437,7 +439,9 @@ public final class Order<T> {
          * The failed object.
          * @see #object()
          */
+        @SuppressWarnings("serial") // Serializable if input object is.
         private final Object object;
+
         private static final long serialVersionUID = 0x6fcf01370dd5176eL;
     }
 
