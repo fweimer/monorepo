@@ -174,6 +174,7 @@ public final class ThrowableErasure implements Serializable {
      * The stack trace of the throwable.
      * @see #stackTrace()
      */
+    @SuppressWarnings("serial") // List.of() produces serializable list.
     private final List<StackTraceElement> stackTrace;
 
     /**
@@ -211,6 +212,7 @@ public final class ThrowableErasure implements Serializable {
      * Suppressed exceptions of the throwable.
      * @see #suppressed()
      */
+    @SuppressWarnings("serial") // List.of() produces serializable list.
     private final List<ThrowableErasure> suppressed;
 
     private static final long serialVersionUID = 0x49466b664f2c1442L;
