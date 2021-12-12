@@ -3,7 +3,9 @@ package enyo.testing;
 import java.lang.StackWalker.StackFrame;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -116,6 +118,26 @@ public final class Order<T> {
     public List<T> values() {
         return elements.stream()
             .map(e -> e.value)
+            .collect(Collectors.toList());
+    }
+
+    /**
+     * Returns the elements according to their grouping.
+     * The groups are ordered according to their creation,
+     * and the elements in the groups according to when they have
+     * been added.
+     * @return a list of groups of elements; it is unspecified if the lists is
+     *   modifiable
+     */
+    public List<List<T>> groups() {
+        var groups = new HashMap<Integer, List<T>>();
+        for (var e : elements) {
+            var group = groups.computeIfAbsent(e.index, ArrayList::new);
+            group.add(e.value);
+        }
+        return groups.entrySet().stream()
+            .sorted(Comparator.comparing(Map.Entry::getKey))
+            .map(Map.Entry::getValue)
             .collect(Collectors.toList());
     }
 

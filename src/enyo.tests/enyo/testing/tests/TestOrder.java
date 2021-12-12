@@ -4,28 +4,41 @@ import enyo.testing.Order;
 import enyo.testing.Test;
 import enyo.testing.Testing;
 
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public final class TestOrder {
     @Test
-    public void testNothing() {
+    public static void testNothing(Testing t) {
         var c = new Order<String>();
         c.check();
         c.checkComparable(String.class);
+        t.examine(c.values()).is(List.of());
+        t.examine(c.groups()).is(List.of());
     }
 
     @Test
-    public void testIntegers() {
+    public static void testIntegers(Testing t) {
         var c = new Order<Integer>();
         for (int i = -200; i <= 200; ++i)
             c.add(i);
         c.check();
         c.checkComparable(Integer.class);
+        t.examine(c.values()).is(
+            IntStream.rangeClosed(-200, 200)
+            .boxed()
+            .collect(Collectors.toList()));
+        t.examine(c.groups()).is(
+            IntStream.rangeClosed(-200, 200)
+            .mapToObj(i -> List.of(i))
+            .collect(Collectors.toList()));
     }
 
     @Test
-    public void testDoubles() {
+    public static void testDoubles(Testing t) {
         var c = new Order<Double>();
         for (int i = -200; i <= 200; ++i)
             c.group()
@@ -34,6 +47,15 @@ public final class TestOrder {
                 .close();
         c.check();
         c.checkComparable(Double.class);
+        t.examine(c.values()).is(
+            IntStream.rangeClosed(-200, 200)
+            .mapToObj(i -> (double) i)
+            .flatMap(d -> Stream.of(d, d))
+            .collect(Collectors.toList()));
+        t.examine(c.groups()).is(
+            IntStream.rangeClosed(-200, 200)
+            .mapToObj(i -> List.of((double) i, (double) i))
+            .collect(Collectors.toList()));
     }
 
     @Test
@@ -50,6 +72,28 @@ public final class TestOrder {
         t.examine(c.values().stream().map(Integer::doubleValue).collect(
                 Collectors.toList()))
             .is(c1.values().stream().collect(Collectors.toList()));
+    }
+
+    @Test
+    public static void testGroups(Testing t) {
+        var c = new Order<Integer>();
+        c.add(0);
+        c.group()
+            .add(100)
+            .add(110)
+            .close();
+        c.group()
+            .add(200)
+            .add(220)
+            .add(230)
+            .close();
+        t.examine(c.values())
+            .is(List.of(0, 100, 110, 200, 220, 230));
+        t.examine(c.groups())
+            .is(List.of(
+                    List.of(0),
+                    List.of(100, 110),
+                    List.of(200, 220, 230)));
     }
 
     @Test
