@@ -131,6 +131,7 @@ public final class Order<T> {
             if (left.value.equals(null))
                 throw new ObjectFailure(buildLabel(i) + ": equals null",
                     Failed.EQUALS_NULL, left.value);
+            int leftHashCode = left.value.hashCode();
             for (int j = 0; j < elements.size(); ++j) {
                 Element<T> right = elements.get(j);
                 if (left.index == right.index) {
@@ -139,7 +140,7 @@ public final class Order<T> {
                         throw new PairFailure(label, FailedPair.EQUALS,
                             0, left.value, right.value);
                     }
-                    if (left.value.hashCode() != right.value.hashCode()) {
+                    if (leftHashCode != right.value.hashCode()) {
                         String label = buildLabel(i, "=(hash)=", j);
                         throw new PairFailure(label, FailedPair.HASH_CODE,
                             0, left.value, right.value);
