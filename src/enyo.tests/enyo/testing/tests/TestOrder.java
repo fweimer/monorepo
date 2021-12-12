@@ -4,6 +4,7 @@ import enyo.testing.Order;
 import enyo.testing.Test;
 import enyo.testing.Testing;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -104,6 +105,38 @@ public final class TestOrder {
                     List.of(0, 1),
                     List.of(100, 110, 101, 111),
                     List.of(200, 220, 230, 201, 221, 231)));
+    }
+
+    @Test
+    public void testAugmentSerializable(Testing t) {
+        record SerializationChangeInteger(int value)
+            implements Serializable {
+
+            private Object readResolve() {
+                if (value == 2)
+                    return new SerializationChangeInteger(4);
+                else
+                    return this;
+            }
+        }
+        var one = new SerializationChangeInteger(1);
+        var two = new SerializationChangeInteger(2);
+        var three = new SerializationChangeInteger(3);
+        var four = new SerializationChangeInteger(4);
+
+        var c = new Order<SerializationChangeInteger>();
+        c.add(one);
+        c.add(two);
+        c.add(three);
+        t.examine(c.groups()).is(
+            List.of(List.of(one), List.of(two), List.of(three)));
+
+        c.augmentSerializable(SerializationChangeInteger.class);
+        t.examine(c.groups()).is(
+            List.of(
+                List.of(one, one),
+                List.of(two, four),
+                List.of(three, three)));
     }
 
     @Test

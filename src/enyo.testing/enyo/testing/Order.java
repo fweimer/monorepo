@@ -1,5 +1,6 @@
 package enyo.testing;
 
+import java.io.Serializable;
 import java.lang.StackWalker.StackFrame;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -308,6 +309,50 @@ public final class Order<T> {
     }
 
     /**
+     * Applies serialization and deserializable to all values.
+     * The values that come back are added to the same group.
+     * @param cls a serializable superclass of all elements
+     * @throws ClassFailure if the specified class is not serializable
+     * @throws ObjectFailure if there is a serialization error
+     */
+    public void augmentSerializable(Class<? extends T> cls) {
+        if (!Serializable.class.isAssignableFrom(cls))
+            throw new ClassFailure(cls);
+
+        augment(obj -> {
+                Serializable ser;
+                try {
+                    ser = (Serializable) obj;
+                } catch (ClassCastException e) {
+                    throw new ObjectFailure(
+                        labelObject(obj) + ": not serializable",
+                        Failed.NOT_SERIALIZABLE, e);
+                }
+
+                return SerializationHelper.passThrough(ser,
+                    e -> {
+                        throw new ObjectFailure(
+                            labelObject(obj) + ": not serializable",
+                            Failed.NOT_SERIALIZABLE, e);
+                    },
+                    e -> {
+                        throw new ObjectFailure(
+                            labelObject(obj) + ": not deserializable",
+                            Failed.NOT_SERIALIZABLE, e);
+                    },
+                    result -> {
+                        try {
+                            return cls.cast(result);
+                        } catch (ClassCastException e) {
+                            throw new ObjectFailure(
+                                labelObject(obj) + ": wrong type",
+                                Failed.NOT_SERIALIZABLE, e);
+                        }
+                    });
+            });
+    }
+
+    /**
      * Base class for ordering test failures.
      */
     public static abstract class Failure extends TestFailure {
@@ -437,7 +482,13 @@ public final class Order<T> {
          * The value is not {@linkplain Comparable comparable}.
          * @see Order#checkComparable(Class)
          */
-        COMPARABLE
+        COMPARABLE,
+
+        /**
+         * The value is not serializable
+         * @see Order#augmentSerializable(Class)
+         */
+        NOT_SERIALIZABLE,
     }
 
     /**
@@ -535,6 +586,13 @@ public final class Order<T> {
     private String buildLabel(int i, String op, int j) {
         int shared = sharedStackSuffix(i, j);
         return buildLabel(i, shared) + ' ' + op + ' ' + buildLabel(j, shared);
+    }
+
+    private String labelObject(Object obj) {
+        for (int i = 0; i < elements.size(); i++)
+            if (elements.get(i) == obj)
+                return buildLabel(i);
+        throw new AssertionError("Unknown object: " + obj);
     }
 
     private int sharedStackSuffix(int i, int j) {
