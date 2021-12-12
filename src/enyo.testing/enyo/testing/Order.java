@@ -294,6 +294,20 @@ public final class Order<T> {
     }
 
     /**
+     * Applies a function to produce new elements within the same group.
+     * The new elements are added to the same group.
+     * @param map the function used to convert the values
+     * @throws NullPointerException if {@code map} is null
+     */
+    public void augment(Function<? super T, ? extends T> map) {
+        checkNoGroup();
+        elements.ensureCapacity(2 * elements.size());
+        for (var e : List.copyOf(elements))
+            elements.add(new Element<T>(
+                    map.apply(e.value), e.index, e.stack));
+    }
+
+    /**
      * Base class for ordering test failures.
      */
     public static abstract class Failure extends TestFailure {

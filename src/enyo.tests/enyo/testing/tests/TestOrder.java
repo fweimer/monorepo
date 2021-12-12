@@ -75,7 +75,7 @@ public final class TestOrder {
     }
 
     @Test
-    public static void testGroups(Testing t) {
+    public static void testGroupsAugment(Testing t) {
         var c = new Order<Integer>();
         c.add(0);
         c.group()
@@ -94,6 +94,16 @@ public final class TestOrder {
                     List.of(0),
                     List.of(100, 110),
                     List.of(200, 220, 230)));
+
+        c.augment(i -> i + 1);
+        t.examine(c.values())
+            .is(List.of(0, 100, 110, 200, 220, 230,
+                        1, 101, 111, 201, 221, 231));
+        t.examine(c.groups())
+            .is(List.of(
+                    List.of(0, 1),
+                    List.of(100, 110, 101, 111),
+                    List.of(200, 220, 230, 201, 221, 231)));
     }
 
     @Test
