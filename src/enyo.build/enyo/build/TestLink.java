@@ -166,7 +166,9 @@ final class TestLink implements Closeable {
             return testCount;
         }
 
+        @SuppressWarnings("serial") // List.copyOf() produces serializable list.
         private final List<String> testModules;
+
         private final int testCount;
 
         // This class is Serializable because the convenience of
