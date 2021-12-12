@@ -1,9 +1,10 @@
 package enyo.testing;
 
+import java.io.Serializable;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.Objects;
 
 /**
@@ -882,6 +883,32 @@ public final class Checks {
                 return null;
             else
                 return new Check.Failure("endsWith", suffix);
+        };
+    }
+
+    /**
+     * Returns a check that verifies that objects are serializable.
+     * @param <T> the type of the object to serialize
+     * @return a check that verifies that the object comes back as
+     *   {@linkplain Object#equals(Object) equal} to the original object,
+     *   and that its {@linkplain Object#hashCode() hash code} is unchanged
+     */
+    public static <T extends Serializable> Check<T> serialize() {
+        return obj -> {
+            if (obj == null)
+                return null;
+            return SerializationHelper.passThrough(obj,
+                e -> new Check.Failure("serialize (write)", e),
+                e -> new Check.Failure("serialize (read)", e),
+                backObj -> {
+                    if (!obj.equals(backObj))
+                        return new Check.Failure(
+                            "serialize (equals)", backObj);
+                    if (obj.hashCode() != backObj.hashCode())
+                        return new Check.Failure(
+                            "serialize (hashCode)", backObj);
+                    return null;
+                });
         };
     }
 
