@@ -48,32 +48,6 @@ public final class TestTestMethodLocator {
     }
 
     @Test
-    public static void testSerialize(Testing t)
-        throws IOException, ClassNotFoundException {
-        for (var candidate : List.of(
-                new TestMethodLocator(
-                    Optional.of("enyo.tests"),
-                    TestTestMethodLocator.class.getName(),
-                    "testWithModuleName",
-                    true),
-                new TestMethodLocator(
-                    Optional.empty(),
-                    TestTestMethodLocator.class.getName(),
-                    "testOrder",
-                    false))) {
-            var out = new ByteArrayOutputStream();
-            try (var objOut = new ObjectOutputStream(out)) {
-                objOut.writeObject(candidate);
-            }
-            try (var objIn = new ObjectInputStream(
-                    new ByteArrayInputStream(out.toByteArray()))) {
-                t.examine(candidate)
-                    .is((TestMethodLocator) objIn.readObject());
-            }
-        }
-    }
-
-    @Test
     public static void testOrder() {
         Order<TestMethodLocator> order = new Order<>();
         order.add(new TestMethodLocator(
@@ -111,6 +85,7 @@ public final class TestTestMethodLocator {
                 "enyo.testing.introspect.tests.TestTestMethodLocator",
                 "testWithoutModuleName",
                 false));
+        order.augmentSerializable(TestMethodLocator.class);
         order.checkComparable(TestMethodLocator.class);
     }
 }
