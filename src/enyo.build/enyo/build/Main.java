@@ -5,13 +5,15 @@ import enyo.io.function.IOPredicate;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -243,8 +245,6 @@ public final class Main {
 
     static void document(DirectoryLayout dirs, List<String> modules)
         throws IOException {
-        long nanoStart = System.nanoTime();
-
         Path targetPath = dirs.docGeneration();
         removeTree(targetPath);
         Files.createDirectories(targetPath);
@@ -259,24 +259,37 @@ public final class Main {
             .collect(Collectors.joining(","));
 
         DocumentationTool doc = ToolProvider.getSystemDocumentationTool();
-        int status = doc.run(InputStream.nullInputStream(),
-            System.out, System.err,
-            new String[] {
+        var result = ToolResults.run(doc, null,
+            List.of(
                 "-quiet",
                 "-d", targetPath.toString(),
                 "-linkoffline", PUBLIC_API, "etc/javadoc",
                 "--module-source-path", "src",
-                "--module", modulesString,
-            });
-        if (status == 0) {
-            Files.createSymbolicLink(latestSymlink,
-                dirs.build().relativize(targetPath));
-
-            long nanoEnd = System.nanoTime();
+                "--module", modulesString),
+            List.of());
+        if (!result.additionalOutput().isEmpty()) {
+            System.out.println(
+                "warning: additional output from documentation tool:");
+            System.out.println(result.additionalOutput().trim());
+            System.out.print("info: (end of documentation tool output)");
+        }
+        if (!result.diagnostics().isEmpty()) {
+            System.out.format(
+                "warning: documentation tool diagnostics follow:%n");
+            for (var d : result.diagnostics())
+                System.out.println(d);
+        }
+        if (result.consolidatedSuccess()) {
             System.err.format(
                 "info: documentation completed successfully (%.3f s)%n",
-                (nanoEnd - nanoStart) * 1e-9);
+                result.durationSeconds());
+            Files.createSymbolicLink(latestSymlink,
+                dirs.build().relativize(targetPath));
         }
+        else
+            System.err.format(
+                "info: documentation completed with notes (%.3f s)%n",
+                result.durationSeconds());
     }
 
     static void invokeRunTests(DirectoryLayout dirs, List<String> modules) {
