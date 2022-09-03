@@ -19,6 +19,9 @@ import java.util.stream.Stream;
  * This class is losely modeled on the Rust type {@code std::result::Result}.
  * However, the method names follow the names in the {@link Optional} class.
  *
+ * @param <T> the type of the successful case
+ * @param <E> the type of the error case
+ *
  * @see <a href="https://doc.rust-lang.org/std/result/enum.Result.html"><code>std::result::Result</code></a>
  */
 public class Result<T, E> {
