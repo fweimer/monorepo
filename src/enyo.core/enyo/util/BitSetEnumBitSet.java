@@ -6,6 +6,8 @@ import java.util.Collection;
 /**
  * An enum bit set backed by a bit set.
  * The sets are modifiable.
+ *
+ * @param <E> the enum type
  */
 public final class BitSetEnumBitSet<E extends Enum<E>>
     extends AbstractEnumBitSet<E> {
