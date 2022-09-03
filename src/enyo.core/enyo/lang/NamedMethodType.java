@@ -15,6 +15,9 @@ import java.util.Objects;
  * name and method types are distinct.  Equality and hash code of this
  * class reflects that.
  *
+ * @param name the name of the method (not including the type signature)
+ * @param type the type of the method
+ *
  * @see Method
  * @see MethodType
  */
