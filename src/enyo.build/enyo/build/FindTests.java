@@ -4,7 +4,7 @@ import enyo.io.function.IOFunction;
 import enyo.io.function.IOPredicate;
 import enyo.lang.classfile.ClassFile;
 import enyo.testing.introspect.ScheduledTest;
-import enyo.util.Result;
+import enyo.util.Either;
 import enyo.util.StringFilter;
 
 import java.io.IOException;
@@ -79,28 +79,28 @@ final class FindTests {
 
         var result = testClassDetails.stream()
             // Split into classes with and without errors.
-            .<Result<TestClassDetails, TestClassDetails>>map(
+            .<Either<TestClassDetails, TestClassDetails>>map(
                 classDetails -> {
                     if (classDetails.hasErrors())
-                        return Result.ofError(classDetails);
+                        return Either.ofRight(classDetails);
                     else
-                        return Result.of(classDetails);
+                        return Either.ofLeft(classDetails);
                 })
             // Convert the classes to test methods, and the errors to
             // strings.
-            .<Result<TestMethodDetails, String>>flatMap(
+            .<Either<TestMethodDetails, String>>flatMap(
                 r -> r.compute(
-                    classDetails -> classDetails.tests().map(Result::of),
+                    classDetails -> classDetails.tests().map(Either::ofLeft),
                     error -> error.classErrors().map(
-                        message -> Result.ofError(
+                        message -> Either.ofRight(
                             String.format("%s: %s",
                                 error.className(), message)))))
             // Converted erroneous methods to errors.
-            .map(r -> r.flatMap((TestMethodDetails method) -> {
+            .map(r -> r.flatMapLeft((TestMethodDetails method) -> {
                     if (method.error == null)
-                        return Result.of(method);
+                        return Either.ofLeft(method);
                     else
-                        return Result.ofError(String.format(
+                        return Either.ofRight(String.format(
                                 "%s %s %s: %s",
                                 method.classDetails.module,
                                 method.classDetails.clazz.className(),
@@ -108,7 +108,7 @@ final class FindTests {
                                 method.error));
                     }))
             // Convert test methods to unscheduled tests.
-            .<Result<UnscheduledTest, String>>map(r -> r.map(method ->
+            .<Either<UnscheduledTest, String>>map(r -> r.mapLeft(method ->
                     new UnscheduledTest(new ScheduledTest(
                             idSource.getAndIncrement(),
                             method.locator(),
@@ -116,11 +116,11 @@ final class FindTests {
                             method.exitDuringTest),
                         method.classDetails.sourceFileChange(),
                         method.cost)))
-            .collect(Result.Collectors.toCollection(
+            .collect(Either.Collectors.toCollection(
                     ArrayList::new, ArrayList::new));
 
-        tests = List.copyOf(result.values());
-        errors = List.copyOf(result.errors());
+        tests = List.copyOf(result.leftValues());
+        errors = List.copyOf(result.rightValues());
         testFiltersActive = testClassDetails.stream()
             .anyMatch(TestClassDetails::hasTestFilters);
     }
