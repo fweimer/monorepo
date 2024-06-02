@@ -9,6 +9,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.ToIntFunction;
+import java.util.function.ToLongFunction;
 
 class ObjectExaminer<T> extends ExaminerBase implements Examiner<T> {
     final T value;
@@ -205,6 +206,66 @@ class ObjectExaminer<T> extends ExaminerBase implements Examiner<T> {
                 return this;
             }
             var newExaminer = transfer(new IntExaminer(t, this, newValue));
+            try {
+                consumer.accept(newExaminer);
+            } catch (TestFailure e) {
+                // Abort the test.
+                throw e;
+            } catch (Exception e) {
+                // Record the exception in the context of the new
+                // examiner, providing details about the examined
+                // value.
+                t.recordException(newExaminer, e);
+            }
+        }
+        return this;
+    }
+
+    @Override
+    public Examiner.OfLong mapToLong(ToLongFunction<? super T> map) {
+        if (barrier)
+            return forceFailed(new LongExaminer(t, this, 0));
+        if (map == null) {
+            failure("mapToLong (not null)", map);
+            return forceFailed(new LongExaminer(t, this, 0));
+        } else {
+            long newValue ;
+            try {
+                newValue = map.applyAsLong(value);
+            } catch (TestFailure e) {
+                // Abort the test.
+                throw e;
+            } catch (Exception e) {
+                // Do not catch errors here, assuming that they should
+                // be fatal.
+                t.recordException(this, e);
+                return forceFailed(new LongExaminer(t, this, 0));
+            }
+            return transfer(new LongExaminer(t, this, newValue));
+        }
+    }
+
+    @Override
+    public Examiner<T> mapToLong(ToLongFunction<? super T> map,
+        Consumer<Examiner.OfLong> consumer) {
+        if (barrier)
+            return this;
+        if (map == null || consumer == null)
+            failureWithObjects("mapToLong (not null)", map, consumer);
+        else {
+            long newValue;
+            try {
+                newValue = map.applyAsLong(value);
+            } catch (TestFailure e) {
+                // Abort the test.
+                throw e;
+            } catch (Exception e) {
+                // Do not catch errors here, assuming that they should
+                // be fatal.
+                t.recordException(this, e);
+                return this;
+            }
+            var newExaminer = transfer(new LongExaminer(t, this, newValue));
             try {
                 consumer.accept(newExaminer);
             } catch (TestFailure e) {

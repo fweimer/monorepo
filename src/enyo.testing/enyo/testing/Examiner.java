@@ -10,6 +10,7 @@ import java.util.function.LongFunction;
 import java.util.function.LongUnaryOperator;
 import java.util.function.Predicate;
 import java.util.function.ToIntFunction;
+import java.util.function.ToLongFunction;
 
 /**
  * Wrapper for an object reference that is being examined during a test.
@@ -96,6 +97,7 @@ public interface Examiner<T> {
      * @return the new examiner
      * @see #map(Function)
      * @see #mapToInt(ToIntFunction,Consumer)
+     * @see #mapToLong(ToLongFunction)
      */
     OfInt mapToInt(ToIntFunction<? super T> map);
 
@@ -108,8 +110,33 @@ public interface Examiner<T> {
      * @param consumer the the consumer that receives the new examiner
      * @return this object
      * @see #mapToInt(ToIntFunction)
+     * @see #mapToLong(ToLongFunction)
      */
     Examiner<T> mapToInt(ToIntFunction<? super T> map, Consumer<OfInt> consumer);
+
+    /**
+     * Derives a new {@code long} examiner from this examiner.
+     * @param map the function that converts this examiner's object
+     *   to the {@code long} value for the new examiner
+     * @return the new examiner
+     * @see #map(Function)
+     * @see #mapToLong(ToLongFunction,Consumer)
+     * @see #mapToInt(ToIntFunction)
+     */
+    OfLong mapToLong(ToLongFunction<? super T> map);
+
+    /**
+     * Derives a new {@code long} examiner from this examiner.
+     * Examination of the old value continues after the consumer
+     * for the new examiner returns.
+     * @param map the function that converts this examiner's object
+     *   to the {@code long} value for the new examiner
+     * @param consumer the the consumer that receives the new examiner
+     * @return this object
+     * @see #mapToLong(ToLongFunction)
+     * @see #mapToInt(ToIntFunction,Consumer)
+     */
+    Examiner<T> mapToLong(ToLongFunction<? super T> map, Consumer<OfLong> consumer);
 
     /**
      * Inspects this examiner's value using a consumer.
