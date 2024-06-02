@@ -524,13 +524,6 @@ public interface ScriptVisitor {
     public void visitPushVariable(int var);
 
     /**
-     * Called to push the value of a variable onto the stack.
-     * @param var the index of the variable, in the range
-     *   {@code 'A'} to {@code 'Z'} or {@code 'a'} to {@code 'z'}
-     *   (inclusive).
-     */
-
-    /**
      * Called to assign a variable.  Removes the top of the stack and
      * assigns it to the specified variable.  Corresponds to the
      * {@code %P} directive.
