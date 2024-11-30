@@ -194,6 +194,7 @@ public final class TestRelaunchVM {
                 MethodHandles.lookup());
             var getter = lookup.findStaticGetter(
                 RelaunchVM.class, name, Set.class);
+            @SuppressWarnings("unchecked")
             Set<String> result = (Set<String>) getter.invoke();
             return result;
         } catch (RuntimeException e) {
