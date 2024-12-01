@@ -1,9 +1,11 @@
 package enyo.build;
 
-import enyo.lang.classfile.Annotation;
-import enyo.lang.classfile.NamedElementValue;
 import enyo.testing.Resources;
 import enyo.testing.introspect.TestResources;
+
+import java.lang.classfile.Annotation;
+import java.lang.classfile.AnnotationElement;
+import java.lang.classfile.AnnotationValue;
 
 /**
  * Parser for {@link Resources} annotations.
@@ -21,26 +23,29 @@ final class ResourcesParser {
     }
 
     private ResourcesParser(Annotation ann) {
-        if (!ann.descriptor().equals(Descriptors.Resources))
-            throw new IllegalArgumentException(ann.descriptor());
-        ann.values().forEach(this::parse);
+        if (!ann.classSymbol().equals(Descriptors.Resources))
+            throw new IllegalArgumentException(ann.classSymbol().displayName());
+        ann.elements().forEach(this::parse);
     }
 
     private TestResources resources = TestResources.DEFAULT;
     private int threads = Resources.THREADS;
     private int memory = Resources.MEMORY;
 
-    private void parse(NamedElementValue nev) {
-        switch (nev.name()) {
-        case "threads":
-            threads = nev.value().asInt();
-            break;
-        case "memory":
-            memory = nev.value().asInt();
-            break;
-        default:
-            throw new AnnotationParseException(
-                "Unrecognized @Resources value: " + nev.name());
+    private void parse(AnnotationElement elem) {
+        if (elem.value() instanceof AnnotationValue.OfInt value) {
+            switch (elem.name().stringValue()) {
+            case "threads":
+                threads = value.intValue();
+                break;
+            case "memory":
+                memory = value.intValue();
+                break;
+            default:
+                throw new AnnotationParseException(
+                    "Unrecognized @Resources value: "
+                    + elem.name().stringValue());
+            }
         }
         try {
             resources = new TestResources(threads, memory);

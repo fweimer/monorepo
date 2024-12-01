@@ -1,49 +1,54 @@
 package enyo.build;
 
-import enyo.lang.classfile.Annotation;
-import enyo.lang.classfile.NamedElementValue;
-import enyo.testing.ExitDuringTest;
+import enyo.testing.OnlyTests;
 
-import java.util.Arrays;
+import java.lang.classfile.Annotation;
+import java.lang.classfile.AnnotationElement;
+import java.lang.classfile.AnnotationValue;
 
 /**
  * Parser for {@link OnlyTests} annotations.
  */
 final class OnlyTestsParser {
     /**
-     * Computes the effective flag in an {@link ExitDuringTest} annotation.
+     * Computes the effective flag in an {@link OnlyTests} annotation.
      * @throws IllegalArgumentException if the argument is not a
-     *   {@link ExitDuringTest} annotation
+     *   {@link OnlyTests} annotation
      * @throws AnnotationParseException if the annotation is a
-     *   {@link ExitDuringTest} annotation, but is malformed
+     *   {@link OnlyTests} annotation, but is malformed
      */
     static String[] parse(Annotation ann) {
         return new OnlyTestsParser(ann).value;
     }
 
     private OnlyTestsParser(Annotation ann) {
-        if (!ann.descriptor().equals(Descriptors.OnlyTests))
-            throw new IllegalArgumentException(ann.descriptor());
-        ann.values().forEach(this::parse);
+        if (!ann.classSymbol().equals(Descriptors.OnlyTests))
+            throw new IllegalArgumentException(ann.classSymbol().displayName());
+        ann.elements().forEach(this::parse);
     }
 
     private String[] value;
 
-    private void parse(NamedElementValue nev) {
-        switch (nev.name()) {
-        case "value":
-            Object[] value0 = (Object[]) nev.value().object();
-            if (value0.length == 0)
-                value = null;
-            else {
-                value = new String[value0.length];
-                System.arraycopy(value0, 0, value, 0, value.length);
-                Arrays.sort(value);
+    private void parse(AnnotationElement elem) {
+        if (elem.value() instanceof AnnotationValue.OfArray array) {
+            switch (elem.name().stringValue()) {
+            case "value":
+                value = array.values().stream()
+                    .map(e1 -> {
+                            if (e1 instanceof AnnotationValue.OfString e2)
+                                return e2.stringValue();
+                            else
+                                throw new AnnotationParseException(
+                                    "Unrecognized @OnlyTests value: "
+                                    + e1.toString());
+                                    })
+                    .toArray(String[]::new);
+                break;
+            default:
+                throw new AnnotationParseException(
+                    "Unrecognized @OnlyTests value: "
+                    + elem.name().stringValue());
             }
-            break;
-        default:
-            throw new AnnotationParseException(
-                "Unrecognized @ExitDuringTest value: " + nev.name());
         }
     }
 }

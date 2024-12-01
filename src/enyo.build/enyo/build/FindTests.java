@@ -2,20 +2,21 @@ package enyo.build;
 
 import enyo.io.function.IOFunction;
 import enyo.io.function.IOPredicate;
-import enyo.lang.classfile.ClassFile;
 import enyo.testing.introspect.ScheduledTest;
 import enyo.util.Either;
 import enyo.util.StringFilter;
 
 import java.io.IOException;
+import java.lang.classfile.Attributes;
+import java.lang.classfile.ClassFile;
+import java.lang.classfile.ClassModel;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.ArrayList;
-import java.util.concurrent.atomic.AtomicInteger;
 
 final class FindTests {
     static boolean isTestModule(DirectoryLayout dirs, String module)
@@ -24,9 +25,12 @@ final class FindTests {
         Path moduleInfoPath = modulePath.resolve("module-info.class");
         // If this throws, the module has not been compiled correctly.
         byte[] blob = Files.readAllBytes(moduleInfoPath);
-        ClassFile clazz = ClassFile.of(ByteBuffer.wrap(blob));
-        return clazz.annotations()
-            .anyMatch(ann -> ann.descriptor().equals(Descriptors.TestModule));
+        ClassModel cm = ClassFile.of().parse(blob);
+        return cm.isModuleInfo()
+            && cm.findAttribute(Attributes.runtimeInvisibleAnnotations())
+            .stream()
+            .flatMap(attr -> attr.annotations().stream())
+            .anyMatch(ann -> ann.classSymbol().equals(Descriptors.TestModule));
     }
 
     static List<String> onlyTestModules(DirectoryLayout dirs,
@@ -50,18 +54,23 @@ final class FindTests {
             .filter(Files::isRegularFile);
     }
 
-    static boolean potentialTestClass(ClassFile clazz) {
-        return clazz.utf8MatchesAny(testClassFilter);
+    static boolean potentialTestClass(ClassModel cm) {
+        return cm.methods()
+            .stream()
+            .flatMap(m -> m.findAttribute(
+                    Attributes.runtimeInvisibleAnnotations()).stream())
+            .flatMap(attr -> attr.annotations().stream())
+            .anyMatch(ann -> ann.classSymbol().equals(Descriptors.Test));
     }
 
     static Stream<TestClassDetails> potentialTestClasses(DirectoryLayout dirs,
         Stream<Path> stream, String module) {
         return stream.flatMap(IOFunction.of(path -> {
                     byte[] blob = Files.readAllBytes(path);
-                    ClassFile clazz = ClassFile.of(ByteBuffer.wrap(blob));
-                    if (potentialTestClass(clazz))
+                    ClassModel cm = ClassFile.of().parse(blob);
+                    if (potentialTestClass(cm))
                         return Stream.of(
-                            new TestClassDetails(dirs, module, clazz));
+                            new TestClassDetails(dirs, module, cm));
                     else
                         return Stream.of();
                 }));
@@ -103,8 +112,8 @@ final class FindTests {
                         return Either.ofRight(String.format(
                                 "%s %s %s: %s",
                                 method.classDetails.module,
-                                method.classDetails.clazz.className(),
-                                method.method.name(),
+                                method.classDetails.className(),
+                                method.method.methodName().stringValue(),
                                 method.error));
                     }))
             // Convert test methods to unscheduled tests.
@@ -128,7 +137,4 @@ final class FindTests {
     final List<UnscheduledTest> tests;
     final List<String> errors;
     final boolean testFiltersActive;
-
-    private static final StringFilter testClassFilter =
-        StringFilter.of(Descriptors.Test);
 }

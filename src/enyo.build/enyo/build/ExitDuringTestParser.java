@@ -1,8 +1,10 @@
 package enyo.build;
 
-import enyo.lang.classfile.Annotation;
-import enyo.lang.classfile.NamedElementValue;
 import enyo.testing.ExitDuringTest;
+
+import java.lang.classfile.Annotation;
+import java.lang.classfile.AnnotationElement;
+import java.lang.classfile.AnnotationValue;
 
 /**
  * Parser for {@link Resources} annotations.
@@ -20,21 +22,24 @@ final class ExitDuringTestParser {
     }
 
     private ExitDuringTestParser(Annotation ann) {
-        if (!ann.descriptor().equals(Descriptors.ExitDuringTest))
-            throw new IllegalArgumentException(ann.descriptor());
-        ann.values().forEach(this::parse);
+        if (!ann.classSymbol().equals(Descriptors.ExitDuringTest))
+            throw new IllegalArgumentException(ann.classSymbol().displayName());
+        ann.elements().forEach(this::parse);
     }
 
     private boolean flag = true;
 
-    private void parse(NamedElementValue nev) {
-        switch (nev.name()) {
-        case "value":
-            flag = nev.value().asBoolean();
-            break;
-        default:
-            throw new AnnotationParseException(
-                "Unrecognized @ExitDuringTest value: " + nev.name());
+    private void parse(AnnotationElement elem) {
+        if (elem.value() instanceof AnnotationValue.OfBoolean value) {
+            switch (elem.name().stringValue()) {
+            case "value":
+                flag = value.booleanValue();
+                break;
+            default:
+                throw new AnnotationParseException(
+                    "Unrecognized @ExitDuringTest value: "
+                    + elem.name().stringValue());
+            }
         }
     }
 }

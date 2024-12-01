@@ -1,13 +1,12 @@
 package enyo.build;
 
-import enyo.lang.classfile.ClassFile;
-import enyo.lang.classfile.ClassFileException;
-import enyo.lang.classfile.SourceFileAttribute;
 import enyo.testing.Cost;
 import enyo.testing.introspect.TestResources;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.classfile.Attributes;
+import java.lang.classfile.ClassModel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -25,7 +24,7 @@ import java.util.stream.Stream;
  */
 final class TestClassDetails {
     final String module;
-    final ClassFile clazz;
+    final ClassModel cm;
     private final ArrayList<String> classErrors = new ArrayList<>();
 
     private final TestResources resources;
@@ -38,18 +37,22 @@ final class TestClassDetails {
     // Long.MIN_VALUE + 1 if unknown (to help with negative sorting).
     private final long sourceFileChange;
 
-    TestClassDetails(DirectoryLayout dirs, String module, ClassFile clazz) {
+    TestClassDetails(DirectoryLayout dirs, String module, ClassModel cm) {
         this.module = Objects.requireNonNull(module, "module");
-        this.clazz = Objects.requireNonNull(clazz, "clazz");
+        this.cm = Objects.requireNonNull(cm, "cm");
+
+        var attrs = cm.findAttribute(Attributes.runtimeInvisibleAnnotations())
+            .map(attr -> attr.annotations())
+            .orElse(List.of());
 
         TestResources resources0 = TestResources.DEFAULT;
         try {
-            resources0 = clazz.annotations()
-                .filter(ann -> ann.descriptor().equals(Descriptors.Resources))
+            resources0 = attrs.stream()
+                .filter(ann -> ann.classSymbol().equals(Descriptors.Resources))
                 .findFirst()
                 .map(ResourcesParser::parse)
                 .orElse(TestResources.DEFAULT);
-        } catch (AnnotationParseException | ClassFileException e) {
+        } catch (AnnotationParseException | IllegalArgumentException e) {
             classErrors.add(e.getMessage());
         }
         resources = resources0;
@@ -57,12 +60,13 @@ final class TestClassDetails {
         {
             double cost0 = Cost.DEFAULT;
             try {
-                cost0 = clazz.annotations()
-                    .filter(ann -> ann.descriptor().equals(Descriptors.Cost))
+                cost0 = attrs.stream()
+                    .filter(ann -> ann.classSymbol().equals(
+                            Descriptors.Cost))
                     .findFirst()
                     .map(CostParser::parse)
                     .orElse(Cost.DEFAULT);
-            } catch (AnnotationParseException | ClassFileException e) {
+            } catch (AnnotationParseException | IllegalArgumentException e) {
                 classErrors.add(e.getMessage());
             }
             cost = cost0;
@@ -71,13 +75,13 @@ final class TestClassDetails {
         {
             boolean exitDuringTest0 = false;
             try {
-                exitDuringTest0 = clazz.annotations()
-                    .filter(ann -> ann.descriptor().equals(
+                exitDuringTest0 = attrs.stream()
+                    .filter(ann -> ann.classSymbol().equals(
                             Descriptors.ExitDuringTest))
                     .findFirst()
                     .map(ExitDuringTestParser::parse)
                     .orElse(false);
-            } catch (AnnotationParseException | ClassFileException e) {
+            } catch (AnnotationParseException | IllegalArgumentException e) {
                 classErrors.add(e.getMessage());
             }
             exitDuringTest = exitDuringTest0;
@@ -86,25 +90,34 @@ final class TestClassDetails {
         {
             String[] onlyTests0 = null;
             try {
-                onlyTests0 = clazz.annotations()
-                    .filter(ann -> ann.descriptor().equals(
+                onlyTests0 = attrs.stream()
+                    .filter(ann -> ann.classSymbol().equals(
                             Descriptors.OnlyTests))
                     .findFirst()
                     .map(OnlyTestsParser::parse)
                     .orElse(null);
-            } catch (AnnotationParseException | ClassFileException e) {
+            } catch (AnnotationParseException | IllegalArgumentException e) {
                 classErrors.add(e.getMessage());
             }
             onlyTests = onlyTests0;
         }
 
-        sourceFileChange = guessSourcePath(dirs, module, clazz)
+        sourceFileChange = guessSourcePath(dirs, module, cm)
             .flatMap(TestClassDetails::fileModificationTime)
             .orElse(Long.MIN_VALUE + 1);
     }
 
     String className() {
-        return clazz.className();
+        var cd = cm.thisClass().asSymbol();
+        if (!cd.isClassOrInterface())
+            throw new IllegalStateException("Not a class or interface: " + cd);
+        // FIXME: This is not ideal.  We should probably use the
+        // binary name for serialization purposes, not the Java name.
+        String pkg = cd.packageName();
+        if (pkg.isEmpty())
+            return cd.displayName();
+        else
+            return pkg + '.' + cd.displayName();
     }
 
     boolean hasErrors() {
@@ -132,12 +145,14 @@ final class TestClassDetails {
     }
 
     Stream<TestMethodDetails> tests() {
-        Stream<TestMethodDetails> stream = clazz.methods()
+        Stream<TestMethodDetails> stream = cm.methods()
+            .stream()
             .map(method -> new TestMethodDetails(this, method))
             .filter(method -> method.hasTestAnnotation);
         if (onlyTests != null)
             stream = stream.filter(method ->
-                Arrays.binarySearch(onlyTests, method.method.name()) >= 0);
+                Arrays.binarySearch(onlyTests,
+                    method.method.methodName().stringValue()) >= 0);
         return stream;
     }
 
@@ -146,22 +161,13 @@ final class TestClassDetails {
     }
 
     static Optional<Path> guessSourcePath(DirectoryLayout dirs, String module,
-        ClassFile classFile) {
-        String packagePath;
-        {
-            String name = classFile.className();
-            int lastSlash = name.lastIndexOf('/');
-            if (lastSlash < 0)
-                return Optional.empty();
-            String substring = name.substring(0, lastSlash);
-            if (File.separatorChar != '/')
-                substring = substring.replace('/', File.separatorChar);
-            packagePath = substring;
-        }
-        return classFile.attributes()
-            .filter(attr -> attr instanceof SourceFileAttribute)
+        ClassModel cm) {
+        String packagePath = cm.thisClass().asSymbol().packageName()
+            .replace('.', File.separatorChar);
+        return cm.findAttributes(Attributes.sourceFile())
+            .stream()
             .findFirst()
-            .<String>map(attr -> ((SourceFileAttribute) attr).sourceFile())
+            .<String>map(attr -> attr.sourceFile().stringValue())
             .map(fileName ->
                 dirs.sources()
                 .resolve(module)

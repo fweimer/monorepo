@@ -1,16 +1,20 @@
 package enyo.build;
 
-import enyo.lang.classfile.Constants;
-import enyo.lang.classfile.Method;
 import enyo.testing.introspect.TestMethodLocator;
 import enyo.testing.introspect.TestResources;
 
+import java.lang.classfile.ClassFile;
+import java.lang.classfile.MethodModel;
+import java.lang.constant.ConstantDescs;
+import java.lang.constant.MethodTypeDesc;
+import java.lang.reflect.AccessFlag;
 import java.util.Objects;
 import java.util.Optional;
+import java.lang.classfile.Attributes;
 
 final class TestMethodDetails {
     final TestClassDetails classDetails;
-    final Method method;
+    final MethodModel method;
     boolean hasTestAnnotation;
     boolean hasTestingArgument;
     TestResources resources;
@@ -18,7 +22,7 @@ final class TestMethodDetails {
     boolean exitDuringTest;
     String error;
 
-    TestMethodDetails(TestClassDetails classDetails, Method method) {
+    TestMethodDetails(TestClassDetails classDetails, MethodModel method) {
         this.classDetails = Objects.requireNonNull(
             classDetails, "classDetails");
         this.method = Objects.requireNonNull(method, "method");
@@ -26,23 +30,25 @@ final class TestMethodDetails {
         cost = classDetails.cost();
         exitDuringTest = classDetails.exitDuringTest();
 
-        method.annotations()
+        method.findAttribute(Attributes.runtimeInvisibleAnnotations())
+            .stream()
+            .flatMap(attr -> attr.annotations().stream())
             .forEach(ann -> {
-                    if (ann.descriptor().equals(Descriptors.Test))
+                    if (ann.classSymbol().equals(Descriptors.Test))
                         hasTestAnnotation = true;
-                    else if (ann.descriptor().equals(Descriptors.Resources))
+                    else if (ann.classSymbol().equals(Descriptors.Resources))
                         try {
                             resources = ResourcesParser.parse(ann);
                         } catch (AnnotationParseException e) {
                             error = e.getMessage();
                         }
-                    else if (ann.descriptor().equals(Descriptors.Cost))
+                    else if (ann.classSymbol().equals(Descriptors.Cost))
                         try {
                             cost = CostParser.parse(ann);
                         } catch (AnnotationParseException e) {
                             error = e.getMessage();
                         }
-                    else if (ann.descriptor().equals(
+                    else if (ann.classSymbol().equals(
                             Descriptors.ExitDuringTest))
                         try {
                             exitDuringTest = ExitDuringTestParser.parse(ann);
@@ -51,13 +57,12 @@ final class TestMethodDetails {
                         }
                 });
 
-        String descriptor = method.descriptor();
+        MethodTypeDesc descriptor = method.methodTypeSymbol();
         if (descriptor.equals(withTestingDescriptor))
             hasTestingArgument = true;
-        else if (!descriptor.equals("()V"))
+        else if (!descriptor.equals(noArgumentDescriptor))
             error = "Invalid descriptor: " + descriptor;
-        if ((method.accessFlags() & Constants.ACC_PUBLIC) == 0
-            && error == null)
+        if (!method.flags().has(AccessFlag.PUBLIC) && error == null)
             error = "Method is not public";
     }
 
@@ -66,8 +71,8 @@ final class TestMethodDetails {
             throw new IllegalStateException();
         return new TestMethodLocator(
             Optional.of(classDetails.module),
-            classDetails.clazz.className().replace('/', '.'),
-            method.name(),
+            classDetails.className(),
+            method.methodName().stringValue(),
             hasTestingArgument);
     }
 
@@ -75,6 +80,8 @@ final class TestMethodDetails {
         return resources;
     }
 
-    private static final String withTestingDescriptor =
-        '(' + Descriptors.Testing + ")V";
+    private static final MethodTypeDesc noArgumentDescriptor =
+        MethodTypeDesc.of(ConstantDescs.CD_void);
+    private static final MethodTypeDesc withTestingDescriptor =
+        MethodTypeDesc.of(ConstantDescs.CD_void, Descriptors.Testing);
 }

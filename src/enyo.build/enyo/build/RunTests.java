@@ -125,8 +125,8 @@ public final class RunTests {
                         if (method.error != null)
                             System.err.format("%s %s %s: %s%n",
                                 method.classDetails.module,
-                                method.classDetails.clazz.className(),
-                                method.method.name(),
+                                method.classDetails.className(),
+                                method.method.methodName().stringValue(),
                                 method.error);
                         else {
                             Testing t = new Testing(method.locator(), results);

@@ -1,8 +1,10 @@
 package enyo.build;
 
-import enyo.lang.classfile.Annotation;
-import enyo.lang.classfile.NamedElementValue;
 import enyo.testing.Cost;
+
+import java.lang.classfile.Annotation;
+import java.lang.classfile.AnnotationElement;
+import java.lang.classfile.AnnotationValue;
 
 /**
  * Parser for {@link Resources} annotations.
@@ -20,21 +22,23 @@ final class CostParser {
     }
 
     private CostParser(Annotation ann) {
-        if (!ann.descriptor().equals(Descriptors.Cost))
-            throw new IllegalArgumentException(ann.descriptor());
-        ann.values().forEach(this::parse);
+        if (!ann.classSymbol().equals(Descriptors.Cost))
+            throw new IllegalArgumentException(ann.classSymbol().displayName());
+        ann.elements().forEach(this::parse);
     }
 
     private double cost = Cost.DEFAULT;
 
-    private void parse(NamedElementValue nev) {
-        switch (nev.name()) {
-        case "value":
-            cost = nev.value().asDouble();
-            break;
-        default:
-            throw new AnnotationParseException(
-                "Unrecognized @Cost value: " + nev.name());
+    private void parse(AnnotationElement elem) {
+        if (elem.value() instanceof AnnotationValue.OfDouble value) {
+            switch (elem.name().stringValue()) {
+            case "value":
+                cost = value.doubleValue();
+                break;
+            default:
+                throw new AnnotationParseException(
+                    "Unrecognized @Cost value: " + elem.name().stringValue());
+            }
         }
         if (cost <= 0.0)
             throw new AnnotationParseException("Invalid @Cost value: " + cost);
