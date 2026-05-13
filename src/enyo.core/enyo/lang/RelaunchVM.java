@@ -260,6 +260,7 @@ public final class RelaunchVM {
         ArrayList<String> set = new ArrayList<>(MINIMUM_OPTIONS);
         set.add("-d");
         set.add("--describe-module");
+        set.add("--enable-final-field-mutation");
         OPTIONS_WITH_ARGUMENT = Set.copyOf(set);
     }
 
