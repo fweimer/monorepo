@@ -49,7 +49,8 @@ public final class TestChecksSerialize {
                 .map(call -> call.check, e1 -> e1.is("serialize (write)"))
                 .map(call -> call.context.get(0).context(), Examiner::isNull)
                 .map(call -> call.context.get(0).value(),
-                    e1 -> e1.map(Object::getClass).is(NotSerializable.class))
+                    e1 -> e1.map(Object::getClass).isObject(
+                        NotSerializable.class))
                 .map(call -> call.otherObjects.length, e1 -> e1.is(1))
                 // NotSerializableException for java.util.Optional.
                 .map(call -> call.otherObjects[0])

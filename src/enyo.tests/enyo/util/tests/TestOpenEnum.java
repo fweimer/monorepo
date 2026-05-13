@@ -36,10 +36,10 @@ public final class TestOpenEnum {
         t.assertTrue(ElfType.T.baseType().isAssignableFrom(ElfType.T.openType()));
         t.examine(ElfType.T.ofInt(0))
             .map(Object::getClass)
-            .isSame(ElfType.T.enumType());
+            .isSameObject(ElfType.T.enumType());
         t.examine(ElfType.T.ofInt(5))
             .map(Object::getClass)
-            .isSame(ElfType.T.openType());
+            .isSameObject(ElfType.T.openType());
     }
 
     @Test

@@ -48,7 +48,7 @@ public final class TestTestingParallel {
         t.examine(history.subList(0, 3).stream()
             .map(Object::getClass)
             .collect(Collectors.toSet()))
-            .is(Set.of(Recorder.Exception.class));
+            .isObject(Set.of(Recorder.Exception.class));
         t.examine(history.subList(0, 3).stream()
             .map(res -> (Recorder.Exception) res)
             .map(res -> res.exception.getMessage())
