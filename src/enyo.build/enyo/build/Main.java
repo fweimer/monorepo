@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -126,34 +128,42 @@ public final class Main {
             return false;
         }
 
-        SourceFileChanges.loop(rootGeneration, changeWaiter -> {
-                DirectoryLayout dirs = generations.getAndUpdate(
-                    DirectoryLayout::nextGeneration);
-                List<String> modules = listModules(dirs);
+        var buildLog = generations.get().build().resolve(
+            "latest-build-diagnostics.txt");
+        try (var redirectStreams = new TeeSystemStreams(buildLog)) {
+            SourceFileChanges.loop(rootGeneration, changeWaiter -> {
+                    redirectStreams.rewind();
 
-                if (build(dirs, modules)) {
-                    if (!rebootstrapCheck.unchanged(dirs)) {
-                        if (forBootstrap) {
-                            System.err.println("info: performing re-bootstrap");
-                            clearGenerations(dirs);
-                            return SourceFileChanges.Result.EXIT;
-                        } else
-                            System.err.println(
-                                "warning: New bootstrap required");
-                    }
-                    if (!BuildNative.build(dirs, changeWaiter.sources()))
-                        return
-                            SourceFileChanges.Result.CONTINUE_COMPILE_FAILURE;
-                    document(dirs, modules);
-                    if (options.testSameVm())
-                        invokeRunTests(dirs, modules);
-                    else
-                        RunTests.testInSeparateVM(
-                            options, dirs, modules, changeWaiter);
-                    return SourceFileChanges.Result.CONTINUE;
-                } else
-                    return SourceFileChanges.Result.CONTINUE_COMPILE_FAILURE;
-            });
+                    DirectoryLayout dirs = generations.getAndUpdate(
+                        DirectoryLayout::nextGeneration);
+                    List<String> modules = listModules(dirs);
+
+                    if (build(dirs, modules)) {
+                        if (!rebootstrapCheck.unchanged(dirs)) {
+                            if (forBootstrap) {
+                                System.err.println(
+                                    "info: performing re-bootstrap");
+                                clearGenerations(dirs);
+                                return SourceFileChanges.Result.EXIT;
+                            } else
+                                System.err.println(
+                                    "warning: New bootstrap required");
+                        }
+                        if (!BuildNative.build(dirs, changeWaiter.sources()))
+                            return SourceFileChanges.Result
+                                .CONTINUE_COMPILE_FAILURE;
+                        document(dirs, modules);
+                        if (options.testSameVm())
+                            invokeRunTests(dirs, modules);
+                        else
+                            RunTests.testInSeparateVM(
+                                options, dirs, modules, changeWaiter);
+                        return SourceFileChanges.Result.CONTINUE;
+                    } else
+                        return SourceFileChanges.Result
+                            .CONTINUE_COMPILE_FAILURE;
+                });
+        }
 
         return true;
     }
