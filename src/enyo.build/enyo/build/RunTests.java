@@ -139,18 +139,19 @@ public final class RunTests {
     }
 
     private static void runTestsTail(long nanoStart, AtomicLong errors) {
+        long nanoEnd = System.nanoTime();
+        double duration = (nanoEnd - nanoStart) * 1e-9;
         long errors0 = errors.get();
         if (errors0 == 0) {
-            long nanoEnd = System.nanoTime();
             System.err.format("info: testing completed successfully (%.3f s)%n",
-                (nanoEnd - nanoStart) * 1e-9);
+                              duration);
         } else if (errors0 == 1)
-            System.err.println(
-                "error: testing completed with 1 error");
+            System.err.format(
+                "error: testing completed with 1 error (%.3f s)%n", duration);
         else
             System.err.format(
-                "info: testing completed with %d errors%n",
-                errors0);
+                "info: testing completed with %d errors (%.3f s)%n",
+                errors0, duration);
     }
 
     private static void runTestsFromTestLink(TestLinkConsumer consumer)
