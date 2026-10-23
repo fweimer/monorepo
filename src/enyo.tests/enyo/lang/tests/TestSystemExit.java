@@ -46,6 +46,9 @@ public final class TestSystemExit {
      * @param args contains the requested exit status
      */
     public static void main(String[] args) {
+        int ret = SystemExit.call(() -> 1009);
+        if (ret != 1009)
+            System.exit(3);
         SystemExit.run(() -> {
                 int status = Integer.parseInt(args[0]);
                 throw new SystemExit(status);
