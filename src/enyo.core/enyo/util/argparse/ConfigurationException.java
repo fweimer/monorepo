@@ -14,5 +14,9 @@ public final class ConfigurationException extends RuntimeException {
         super(message);
     }
 
+    ConfigurationException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
     private static final long serialVersionUID = 0xa33fd4acd639a2aeL;
 }

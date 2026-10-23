@@ -254,7 +254,7 @@ public record Option(
         } catch (RuntimeException e) {
             throw new ConfigurationException(String.format(
                     "Field %s of %s has invalid default value: %s",
-                    c.getName(), c.getDeclaringRecord(), def.value()));
+                    c.getName(), c.getDeclaringRecord(), def.value()), e);
         }
     }
 }
