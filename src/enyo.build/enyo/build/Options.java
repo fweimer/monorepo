@@ -22,11 +22,7 @@ record Options(
     String testVmArgsFile) {
 
     static Options of(String[] args) {
-        var result = new Options[1];
-        SystemExit.run(() -> {
-                result[0] = parser.run(Main.class, args);
-            });
-        return result[0];
+        return SystemExit.call(() -> parser.run(Main.class, args));
     }
 
     private static final ArgParser<Options> parser =
