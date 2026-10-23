@@ -87,14 +87,7 @@ public final class Main {
 
     private static boolean run(boolean forBootstrap, String[] args)
         throws IOException, InterruptedException {
-        Options options;
-        try {
-            options = new Options(args);
-        } catch (Options.Exception e) {
-            System.err.format("error: %s: %s%n", e.error(), e.argument());
-            System.exit(2);
-            return false; // Not reached.
-        }
+        Options options = Options.of(args);
 
         DirectoryLayout rootGeneration = new DirectoryLayout(Path.of(""), 0);
         clearGenerations(rootGeneration);

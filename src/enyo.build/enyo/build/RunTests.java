@@ -210,22 +210,8 @@ public final class RunTests {
         long nanoStart = System.nanoTime();
 
 
-        List<String> additionalVmArguments = options.testVmArgsFile()
-            .<List<String>>map(path -> {
-                    try (Stream<String> lines = Files.lines(path)) {
-                        return lines
-                            .map(String::strip)
-                            .filter(line ->
-                                !line.isEmpty() && !line.startsWith("#"))
-                            .collect(Collectors.toUnmodifiableList());
-                    } catch (IOException e) {
-                        System.err.format(
-                            "warning: cannot read VM arguments file: %s%n",
-                            path);
-                        return List.of();
-                    }
-                })
-            .orElse(List.of());
+        List<String> additionalVmArguments
+            = getAdditionalTestVmArguments(options);
 
         try (TestLinkController controller =
             new TestLinkController(dirs, modules, changeWaiter)) {
@@ -281,6 +267,25 @@ public final class RunTests {
             }
             if (controller.testFiltersActive())
                 System.err.println("warning: active test execution filters");
+        }
+    }
+
+    private static List<String> getAdditionalTestVmArguments(Options options)
+        throws IOException {
+        String path = options.testVmArgsFile();
+        if (path == null)
+            return List.of();
+        else {
+            try (Stream<String> lines = Files.lines(Path.of(path))) {
+                return lines.map(String::strip)
+                    .filter(line -> !line.isEmpty() && !line.startsWith("#"))
+                    .toList();
+            } catch (IOException e) {
+                System.err.format(
+                    "warning: cannot read VM arguments file: %s%n",
+                    path);
+                return List.of();
+            }
         }
     }
 
