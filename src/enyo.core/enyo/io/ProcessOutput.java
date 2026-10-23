@@ -83,6 +83,19 @@ public final class ProcessOutput implements AutoCloseable {
     public void close() {
         outputThread.interrupt();
         errorThread.interrupt();
+        try {
+            try {
+                outputThread.join();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        } finally {
+            try {
+                errorThread.join();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
         queue.clear();
     }
 
