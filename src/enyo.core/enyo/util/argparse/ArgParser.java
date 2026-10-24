@@ -260,10 +260,10 @@ public final class ArgParser<T extends Record> {
             usage(mainClass, System.out);
             System.out.println();
             help(System.out);
-            throw new SystemExit(0);
+            return SystemExit.exit(0);
         } catch (ArgumentListException e) {
             e.write(System.err);
-            throw new SystemExit(1);
+            return SystemExit.exit(1);
         }
     }
 

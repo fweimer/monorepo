@@ -21,12 +21,9 @@ public class MainCopy {
 
     public static void main(String[] args) {
         var parser = new ArgParser<>(lookup(), Options.class);
-
-        SystemExit.run(() -> {
-                var options = parser.run(MainCopy.class, args);
-                System.out.format("progress: %s%n", options.progress());
-                System.out.format("from: %s%n", options.from());
-                System.out.format("to: %s%n", options.to());
-            });
+        var options = parser.run(MainCopy.class, args);
+        System.out.format("progress: %s%n", options.progress());
+        System.out.format("from: %s%n", options.from());
+        System.out.format("to: %s%n", options.to());
     }
 }
