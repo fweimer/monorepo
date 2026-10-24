@@ -18,6 +18,30 @@ public final class SystemExit extends RuntimeException {
     }
 
     /**
+     * Start exiting the current process.
+     *
+     * This method calls {@link System#exit(int)} if the caller
+     * is not running under {@link #run(Subprocess)}
+     * or {@link #call(CallableSubprocess)}.
+     * Otherwise, this method throws {@code SystemExit} with the
+     * {@code status} argument.
+     *
+     * @param <T> the type of the never-used return value
+     * @param status the exit status
+     * @return never used; this method does not return
+     * @throws SystemExit transfer control to {@link #run(Subprocess)}
+     *   or {@link #call(CallableSubprocess)}
+     * @see System#exit(int)
+     */
+    public static <T> T exit(int status) {
+        if (nested.get() != null)
+            throw new SystemExit(status);
+        else
+            System.exit(status);
+        return null;
+    }
+
+    /**
      * Returns the requested exit status.
      * This exit status should be passed to {@link System#exit(int)}.
      * @return the exit status
@@ -55,10 +79,17 @@ public final class SystemExit extends RuntimeException {
      */
     public static <E extends Throwable> void run(Subprocess<E> action)
         throws E {
+        boolean old = nested.get() != null;
+        nested.set(true);
         try {
-            action.run();
-        } catch (SystemExit e) {
-            System.exit(e.status);
+            try {
+                action.run();
+            } catch (SystemExit e) {
+                System.exit(e.status);
+            }
+        } finally {
+            if (!old)
+                nested.remove();
         }
     }
 
@@ -94,11 +125,18 @@ public final class SystemExit extends RuntimeException {
     public static <R, E extends Throwable> R call(
         CallableSubprocess<R, E> action)
         throws E {
+        boolean old = nested.get() != null;
+        nested.set(true);
         try {
-            return action.call();
-        } catch (SystemExit e) {
-            System.exit(e.status);
-            return null;        // Not reachable.
+            try {
+                return action.call();
+            } catch (SystemExit e) {
+                System.exit(e.status);
+                return null;        // Not reachable.
+            }
+        } finally {
+            if (!old)
+                nested.remove();
         }
     }
 
@@ -107,6 +145,8 @@ public final class SystemExit extends RuntimeException {
      * @see #status()
      */
     private final int status;
+
+    private static final ThreadLocal<Boolean> nested = new ThreadLocal<>();
 
     private static final long serialVersionUID = 0xe9f9dcc1a3c91f09L;
 }

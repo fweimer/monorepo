@@ -19,6 +19,11 @@ public final class TestSystemExit {
     }
 
     @Test
+    public static void test13(Testing t) throws Exception  {
+        testStatus(t, 13);
+    }
+
+    @Test
     public static void test17(Testing t) throws Exception  {
         testStatus(t, 17);
     }
@@ -49,9 +54,38 @@ public final class TestSystemExit {
         int ret = SystemExit.call(() -> 1009);
         if (ret != 1009)
             System.exit(3);
-        SystemExit.run(() -> {
-                int status = Integer.parseInt(args[0]);
-                throw new SystemExit(status);
-            });
+        int status = Integer.parseInt(args[0]);
+        switch (status) {
+            case 1:
+                // Check that SystemExit is thrown.
+                SystemExit.run(() -> {
+                        try {
+                            SystemExit.exit(3);
+                        } catch (SystemExit e) {
+                            if (e.status () != 3)
+                                System.exit(3);
+                        }
+                    });
+                // Check after nested reset.
+                SystemExit.run(() -> {
+                        SystemExit.run(() -> {});
+                        try {
+                            SystemExit.exit(3);
+                        } catch (SystemExit e) {
+                            if (e.status () != 3)
+                                System.exit(3);
+                        }
+                    });
+                // Check that a direct exit is performed.
+                SystemExit.exit(1);
+                break;
+            case 13:
+                SystemExit.exit(13);
+                break;
+        default:
+            SystemExit.run(() -> {
+                    throw new SystemExit(status);
+                });
+        }
     }
 }
