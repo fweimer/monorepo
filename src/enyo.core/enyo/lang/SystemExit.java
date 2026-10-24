@@ -34,7 +34,7 @@ public final class SystemExit extends RuntimeException {
      * @see System#exit(int)
      */
     public static <T> T exit(int status) {
-        if (nested.get() != null)
+        if (NESTED.isBound())
             throw new SystemExit(status);
         else
             System.exit(status);
@@ -79,18 +79,14 @@ public final class SystemExit extends RuntimeException {
      */
     public static <E extends Throwable> void run(Subprocess<E> action)
         throws E {
-        boolean old = nested.get() != null;
-        nested.set(true);
-        try {
-            try {
-                action.run();
-            } catch (SystemExit e) {
-                System.exit(e.status);
-            }
-        } finally {
-            if (!old)
-                nested.remove();
-        }
+        ScopedValue.where(NESTED, Boolean.TRUE).call(() -> {
+                try {
+                    action.run();
+                } catch (SystemExit e) {
+                    System.exit(e.status);
+                }
+                return null;
+            });
     }
 
     /**
@@ -125,19 +121,14 @@ public final class SystemExit extends RuntimeException {
     public static <R, E extends Throwable> R call(
         CallableSubprocess<R, E> action)
         throws E {
-        boolean old = nested.get() != null;
-        nested.set(true);
-        try {
-            try {
-                return action.call();
-            } catch (SystemExit e) {
-                System.exit(e.status);
-                return null;        // Not reachable.
-            }
-        } finally {
-            if (!old)
-                nested.remove();
-        }
+        return ScopedValue.where(NESTED, Boolean.TRUE).call(() -> {
+                try {
+                    return action.call();
+                } catch (SystemExit e) {
+                    System.exit(e.status);
+                    return null;        // Not reachable.
+                }
+            });
     }
 
     /**
@@ -146,7 +137,8 @@ public final class SystemExit extends RuntimeException {
      */
     private final int status;
 
-    private static final ThreadLocal<Boolean> nested = new ThreadLocal<>();
+    private static final ScopedValue<Boolean> NESTED =
+        ScopedValue.newInstance();
 
     private static final long serialVersionUID = 0xe9f9dcc1a3c91f09L;
 }
