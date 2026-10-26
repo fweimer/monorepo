@@ -6,8 +6,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Restarting this VM with the same parameters as a separate process.
@@ -181,6 +184,7 @@ public final class RelaunchVM {
 
         // 0: scanning, 1: drop option, 2: add option argument.
         int state = 0;
+        String optionName = null;
 
         // Skip the first argument (which is usually not a full path,
         // so not particular useful).  See currentLauncher() instead.
@@ -194,8 +198,13 @@ public final class RelaunchVM {
                             // Drop this argument.
                             state = 1;
                             continue OUTER;
-                        } else
+                        } else {
+                            // Post-processing of the option name may be
+                            // required.  Do not add it here.
+                            optionName = arg;
                             state = 2;
+                            continue OUTER;
+                        }
                     }
                     else if(OPTIONS_TO_DROP_WITH_ARGUMENT.contains(arg)) {
                         state = 1;
@@ -210,8 +219,17 @@ public final class RelaunchVM {
                 state = 0;
                 break;
             case 2:
+                if (optionName.equals("--enable-native-access")) {
+                    String optionName0 = optionName;
+                    processEnableNativeAccess(arg).ifPresent(arg0 -> {
+                        result.add(optionName0);
+                        result.add(arg0);
+                        });
+                } else {
+                    result.add(optionName);
+                    result.add(arg);
+                }
                 state = 0;
-                result.add(arg);
                 break;
             }
         }
@@ -273,6 +291,8 @@ public final class RelaunchVM {
 
     private static final String MODULE_PATH_PROPERTY =
         RelaunchVM.class.getName() + ".modulePath";
+    private static final String DROP_MODULES_PROPERTY =
+        RelaunchVM.class.getName() + ".dropModules";
 
     private RelaunchVM() {
         // No instances.
@@ -289,5 +309,22 @@ public final class RelaunchVM {
             return List.of("--module-path", modulePath);
         else
             return List.of();
+    }
+
+    /**
+     * Drop modules from --enable-native-access as requested.
+     */
+    private static Optional<String> processEnableNativeAccess(String arg) {
+        String dropModules = System.getProperty(DROP_MODULES_PROPERTY);
+        if (dropModules == null)
+            return Optional.of(arg);
+        var toDrop = Set.copyOf(Arrays.asList(dropModules.split(",")));
+        arg = Arrays.stream(arg.split(","))
+            .filter(mod -> !toDrop.contains(mod))
+            .collect(Collectors.joining(","));
+        if (arg.isEmpty())
+            return Optional.empty();
+        else
+            return Optional.of(arg);
     }
 }

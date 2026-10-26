@@ -1,6 +1,7 @@
 package enyo.build;
 
 import enyo.io.function.IOFunction;
+import enyo.lang.Modules;
 import enyo.lang.RelaunchVM;
 import enyo.testing.introspect.ScheduledTest;
 import enyo.testing.introspect.TestMethodLocator;
@@ -11,7 +12,9 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.invoke.MethodType;
 import java.lang.module.Configuration;
+import java.lang.module.ModuleDescriptor;
 import java.lang.module.ModuleFinder;
+import java.lang.module.ModuleReference;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -241,6 +244,15 @@ public final class RunTests {
                 args.add("--module-path");
                 args.add(dirs.buildGeneration().toString());
 
+                // This class requires native access, so that we can
+                // configure native access as required by modules.
+                // However, enyo.build is not generally on the module
+                // path on relaunched VMs, so tell RelaunchVM to drop it.
+                args.add("--enable-native-access");
+                args.add("enyo.build");
+                args.add("-D" + RelaunchVM.class.getName()
+                    + ".dropModules=enyo.build");
+
                 args.addAll(RelaunchVM.mainClassArguments(RunTests.class));
 
                 args.add(MODULAR_ARGUMENT);
@@ -342,19 +354,33 @@ public final class RunTests {
             System.exit(1);
     }
 
+
+    // This method grants native access to modules that need it.
+    @SuppressWarnings("restricted")
     static ModuleLayer testLayer(DirectoryLayout dirs,
         Collection<String> testModules) {
         ModuleLayer bootLayer = ModuleLayer.boot();
+
+        var builtModuleFinder = ModuleFinder.of(dirs.buildGeneration());
 
         // Order is important here: Since the modules are all on the
         // same module path, using a "before" module finder would load
         // a second instance of the shared modules and classes.
         Configuration conf = bootLayer.configuration().resolve(
-            ModuleFinder.of(),
-            ModuleFinder.of(dirs.buildGeneration()), testModules);
+            ModuleFinder.of(), builtModuleFinder, testModules);
 
-        return bootLayer.defineModulesWithOneLoader(
-            conf, ClassLoader.getSystemClassLoader());
+        var controller = ModuleLayer.defineModulesWithOneLoader(
+            conf, List.of(bootLayer),
+            ClassLoader.getSystemClassLoader());
+        var layer = controller.layer();
+
+        // Grant native access to all modules that request it.
+        builtModuleFinder.findAll().stream()
+            .filter(Modules::needsNativeAccess)
+            .flatMap(ref -> layer.findModule(ref.descriptor().name()).stream())
+            .forEach(controller::enableNativeAccess);
+
+        return layer;
     }
 
     static Class<?> findBuiltClass(ModuleLayer testLayer, Class<?> clazz)
