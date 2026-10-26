@@ -282,17 +282,19 @@ public final class Main {
             for (var d : result.diagnostics())
                 System.out.println(d);
         }
-        if (result.consolidatedSuccess()) {
+        if (result.consolidatedSuccess())
             System.err.format(
                 "info: documentation completed successfully (%.3f s)%n",
                 result.durationSeconds());
-            Files.createSymbolicLink(latestSymlink,
-                dirs.build().relativize(targetPath));
-        }
         else
             System.err.format(
                 "info: documentation completed with notes (%.3f s)%n",
                 result.durationSeconds());
+
+        // Unconditionally recreate the symbolic link because it is
+        // unusual that no useful documentation at all is produced.
+        Files.createSymbolicLink(latestSymlink,
+            dirs.build().relativize(targetPath));
     }
 
     static void invokeRunTests(DirectoryLayout dirs, List<String> modules) {
