@@ -290,7 +290,7 @@ public final class Database implements AutoCloseable {
                         "Multiple SQL statements in prepare: " + sql);
                 }
                 try {
-                    return new Statement(this, stmt);
+                    return new Statement(this, lock, stmt);
                 } catch (RuntimeException | Error e) {
                     int ignored = (int) Native.finalize.invokeExact(stmt);
                     throw e;
@@ -355,6 +355,13 @@ public final class Database implements AutoCloseable {
         }
 
         public void run() {
+	    // No locking: The database object has become
+	    // phantom-reachable at this point, so there are no
+	    // concurrent operations on it (due to the reachability
+	    // fences).  The Statement object has a strong reference
+	    // to the Database object and fences of its own, so there
+	    // cannot be any interference from application operations
+	    // on statements, either.
             var db0 = db;
             if (db0 == MemorySegment.NULL)
                 return;
@@ -399,5 +406,8 @@ public final class Database implements AutoCloseable {
     private final Cleaner.Cleanable cleanable;
     private final ReentrantLock lock = new ReentrantLock();
 
+    // A single Cleaner is shared between Database and Statement
+    // objects.  This is required for synchronization of State
+    // cleanup.
     static final Cleaner cleaner = Cleaner.create();
 }

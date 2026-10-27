@@ -8,6 +8,7 @@ import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout;
 import java.lang.ref.Cleaner;
 import java.lang.ref.Reference;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * A compiled prepared statement.
@@ -448,19 +449,24 @@ public final class Statement implements AutoCloseable {
     /**
      * Create the new statement.  The database object must be locked.
      */
-    Statement(Database db, MemorySegment stmt) throws Throwable {
+    Statement(Database db, ReentrantLock lock, MemorySegment stmt)
+        throws Throwable {
         // Exceptions are handled in Database#prepare(String).
         this.db = db;
-        state = new State(stmt);
+        state = new State(lock, stmt);
         columnCount = (int) Native.column_count.invokeExact(stmt);
         // Must come last, to prevent double-finalization.
         cleanable = Database.cleaner.register(this, state);
     }
 
     private static final class State implements Runnable {
+	// Lock for the related database object.
+	private final ReentrantLock lock;
+	// sqlite3_stmt pointer.
         private MemorySegment stmt;
 
-        private State(MemorySegment stmt) {
+        private State(ReentrantLock lock, MemorySegment stmt) {
+	    this.lock = lock;
             this.stmt = stmt;
         }
 
@@ -469,11 +475,23 @@ public final class Statement implements AutoCloseable {
             if (stmt0 == MemorySegment.NULL)
                 return;
             stmt = MemorySegment.NULL;
-            // We have to ignore any errors.
+	    // Acquire the database lock.  Access to the statement
+	    // object (including finalization) counts as access to the
+	    // database object, and we need to prevent concurrent
+	    // access.  The lock prevents application access.
+	    // We do not have a strong reference to the Database
+	    // object that would keep it alive, but this is fine:
+	    // Cleaner objects have only a single processing thread,
+	    // so Statement and Database cleanup are ordered.
+	    lock.lock();
             try {
-                int errcode = (int) Native.finalize.invokeExact(stmt0);
+		// We have to ignore any errors, no way to report
+		// errors from this point.
+                int ignore = (int) Native.finalize.invokeExact(stmt0);
             } catch (Throwable e) {
-            }
+            } finally {
+		lock.unlock();
+	    }
         }
     }
 
