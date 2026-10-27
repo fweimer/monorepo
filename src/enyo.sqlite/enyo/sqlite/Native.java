@@ -113,7 +113,9 @@ final class Native {
                 ValueLayout.JAVA_INT,
                 ValueLayout.ADDRESS,
                 ValueLayout.ADDRESS));
-        reset = criticalLookup.apply("reset", descrIntDb);
+	// sqlite3_reset perfors rollback etc., which can involve
+	// significant I/O, so it should not be critical.
+        reset = lookup.apply("reset", descrIntDb);
         sql = criticalLookup.apply("sql", FunctionDescriptor.of(
                 ValueLayout.ADDRESS, ValueLayout.ADDRESS));
         step = lookup.apply("step", descrIntDb);
