@@ -40,7 +40,7 @@ public final class Statement implements AutoCloseable {
      * the execution immediately.
      *
      * @return true if the statement produced a data row, otherwise false
-     * @throws SQLiteException an error occured during execution
+     * @throws SQLiteException an error occurred during execution
      */
     public boolean step() {
         var stmt = lock();
@@ -77,7 +77,7 @@ public final class Statement implements AutoCloseable {
      * Terminates execution of this statement.
      *
      * Called after {@link #step()}, this method resets the prepared
-     * statement status to its original state prior to staring
+     * statement status to its original state prior to starting
      * exection.  Parameter bindings are kept, but return column
      * values are discarded.
      *
@@ -128,7 +128,7 @@ public final class Statement implements AutoCloseable {
     }
 
     /**
-     * Binds a parameter to a copy ofa byte array.
+     * Binds a parameter to a copy of a byte array.
      * @param index the parameter index; the first parameter has index 1
      * @param value the byte array to copy
      * @throws NullPointerException {@code value} is null
@@ -402,7 +402,7 @@ public final class Statement implements AutoCloseable {
                         return null;
                     case Constants.BLOB:
                     case Constants.TEXT:
-                        // An empty stirng (possibly after conversion) is
+                        // An empty string (possibly after conversion) is
                         // reported as a null pointer.
                         return "";
                     default:
