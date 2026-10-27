@@ -46,7 +46,7 @@ public final class Statement implements AutoCloseable {
         var stmt = lock();
         try {
             haveColumns = -1;
-            int errcode = errcode = (int) Native.step.invokeExact(stmt);
+            int errcode = (int) Native.step.invokeExact(stmt);
             switch (primary(errcode)) {
             case Constants.ROW:
                 haveColumns = columnCount;
