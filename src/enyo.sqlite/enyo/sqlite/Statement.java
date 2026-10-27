@@ -541,12 +541,6 @@ public final class Statement implements AutoCloseable {
         db.check(errcode);
     }
 
-    // Performs no checks.  Requires the lock.
-    private boolean columnIsNull0(int index) throws Throwable {
-        return (int) Native.column_type.invokeExact(state.stmt, index)
-            == Constants.NULL;
-    }
-
     private final Database db;
     private final State state;
     private final Cleaner.Cleanable cleanable;
