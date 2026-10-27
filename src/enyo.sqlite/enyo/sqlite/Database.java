@@ -44,8 +44,8 @@ public final class Database implements AutoCloseable {
      * @see #inMemory()
      */
     public static Database temporary() {
-                return new Database("", null,
-                    Constants.OPEN_READWRITE | Constants.OPEN_CREATE);
+        return new Database("", null,
+            Constants.OPEN_READWRITE | Constants.OPEN_CREATE);
     }
 
     /**
