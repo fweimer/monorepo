@@ -382,7 +382,11 @@ public class TestBasic {
         try (var db = Database.inMemory()) {
             try (var stmt = db.prepare("SELECT ?, ?")) {
                 t.expect(() -> stmt.bind(-1, new byte[0]),
-                    IndexOutOfBoundsException.class);
+                    IndexOutOfBoundsException.class,
+		    e -> t.examine(e)
+			.map(Exception::getMessage)
+			.is(
+"SQL statement has 2 parameters, index -1 invalid: SELECT ?, ?"));
                 t.expect(() -> stmt.bind(0, new byte[0]),
                     IndexOutOfBoundsException.class);
                 t.expect(() -> stmt.bind(3, new byte[0]),

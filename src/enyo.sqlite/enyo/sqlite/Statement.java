@@ -553,8 +553,8 @@ public final class Statement implements AutoCloseable {
     private void checkBindIndex(int errcode, int index) throws Throwable {
         if (primary(errcode) == Constants.RANGE)
             throw new IndexOutOfBoundsException(String.format(
-                    "SQL statement has %d parameters, not %d: %s",
-                    columnCount, index, sql()));
+                "SQL statement has %d parameters, index %d invalid: %s",
+                bindParameterCount(), index, sql()));
         db.check(errcode);
     }
 
