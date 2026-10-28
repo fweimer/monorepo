@@ -533,21 +533,20 @@ public final class Statement implements AutoCloseable {
     }
 
     private void checkColumnIndex(int index) throws Throwable {
-        if (index < haveColumns)
+        if (0 <= index && index < haveColumns)
             return;
         else
             checkColumnIndex0(index);
     }
 
     private void checkColumnIndex0(int index) throws Throwable {
-        if (index < columnCount)
-            // Index is valid, but there is no data row.
+	if (0 <= index && index < columnCount)
             throw new IllegalStateException(
                 "No data row during execution of SQL statement: " + sql());
         else
             throw new IndexOutOfBoundsException(String.format(
-                    "SQL statement produces %d columns: %s",
-                    columnCount, sql()));
+                    "Invalid column index %d for SQL statement: %s",
+                index, sql()));
     }
 
     private void checkBindIndex(int errcode, int index) throws Throwable {

@@ -524,17 +524,25 @@ public class TestBasic {
                     IllegalStateException.class);
                 t.expect(() -> stmt.columnBlob(0),
                     IllegalStateException.class);
+                t.expect(() -> stmt.columnBlob(-1),
+                    IndexOutOfBoundsException.class);
                 t.expect(() -> stmt.columnBlob(1),
                     IndexOutOfBoundsException.class);
                 t.examine(stmt.step()).is(true);
                 t.examine(stmt.columnType(0)).is(ValueType.BLOB);
                 t.examine(stmt.columnBlob(0)).check(
                     Checks.byteArrayEquals(new byte[0]));
+                t.expect(() -> stmt.columnBlob(-1),
+                    IndexOutOfBoundsException.class);
+                t.expect(() -> stmt.columnBlob(2),
+                    IndexOutOfBoundsException.class);
                 t.examine(stmt.step()).is(false);
                 t.expect(() -> stmt.columnType(0),
                     IllegalStateException.class);
-                t.expect(() -> stmt.columnBlob(0),
-                    IllegalStateException.class);
+                t.expect(() -> stmt.columnBlob(-1),
+                    IndexOutOfBoundsException.class);
+                t.expect(() -> stmt.columnBlob(2),
+                    IndexOutOfBoundsException.class);
             }
             try (var stmt = db.prepare("SELECT ''")) {
                 t.examine(stmt.columnCount()).is(1);
