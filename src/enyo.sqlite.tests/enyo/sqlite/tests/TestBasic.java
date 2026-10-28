@@ -2,6 +2,7 @@ package enyo.sqlite.tests;
 
 import enyo.sqlite.Database;
 import enyo.sqlite.OpenFlag;
+import enyo.sqlite.Statement;
 import enyo.sqlite.ValueType;
 import enyo.sqlite.SQLiteException;
 
@@ -350,6 +351,25 @@ public class TestBasic {
                 t.examine(stmt.columnString(0)).is("Ossa");
             }
         }
+    }
+
+    @Test
+    public static void testBindParameterCount(Testing t) {
+        try (var db = Database.inMemory()) {
+	    interface Check {
+		void accept(String sql, int count);
+	    }
+	    Check check = (sql, count) -> {
+		t.examine(sql)
+		    .map(db::prepare)
+		    .mapToInt(Statement::bindParameterCount)
+		    .is(count);
+	    };
+	    check.accept("SELECT 1", 0);
+	    check.accept("SELECT 1, 2", 0);
+	    check.accept("SELECT 1, ?", 1);
+	    check.accept("SELECT ?, 1, ?", 2);
+	}
     }
 
     private static final Check<byte[]> checkÄrger =

@@ -72,6 +72,8 @@ final class Native {
             FunctionDescriptor.of(ValueLayout.JAVA_INT,
                 ValueLayout.ADDRESS, ValueLayout.JAVA_INT,
                 ValueLayout.JAVA_LONG));
+        bind_parameter_count = criticalLookup.apply(
+	    "bind_parameter_count", descrIntDb);
         bind_text = criticalLookup.apply("bind_text",
             FunctionDescriptor.of(ValueLayout.JAVA_INT,
                 ValueLayout.ADDRESS, ValueLayout.JAVA_INT,
@@ -125,6 +127,7 @@ final class Native {
     static final MethodHandle bind_blob;
     static final MethodHandle bind_double;
     static final MethodHandle bind_int64;
+    static final MethodHandle bind_parameter_count;
     static final MethodHandle bind_text;
     static final MethodHandle close_v2;
     static final MethodHandle column_blob;

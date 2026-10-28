@@ -100,6 +100,23 @@ public final class Statement implements AutoCloseable {
     }
 
     /**
+     * Returns the number of parameters of this statement.
+     * @return the parameter count, if any, or zero
+     */
+    public int bindParameterCount() {
+        var stmt = lock();
+        try {
+	    return (int) Native.bind_parameter_count.invokeExact(stmt);
+        } catch (RuntimeException | Error e) {
+            throw e;
+        } catch (Throwable e) {
+            throw new SQLiteException(e);
+        } finally {
+            unlock();
+        }
+    }
+
+    /**
      * Binds a parameter to a slice of a byte array.
      * @param index the parameter index; the first parameter has index 1
      * @param value the byte array from which to extract bytes
