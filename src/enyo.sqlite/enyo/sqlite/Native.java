@@ -79,6 +79,7 @@ final class Native {
                 ValueLayout.ADDRESS, ValueLayout.JAVA_INT,
                 ValueLayout.ADDRESS, ValueLayout.JAVA_INT,
                 ValueLayout.ADDRESS));
+	busy_timeout = lookup.apply("busy_timeout", descrIntDbInt);
         close_v2 = lookup.apply("close_v2", descrIntDb);
         column_blob = criticalLookup.apply("column_blob", descrPtrDbInt);
         column_bytes = criticalLookup.apply("column_bytes", descrIntDbInt);
@@ -129,6 +130,7 @@ final class Native {
     static final MethodHandle bind_int64;
     static final MethodHandle bind_parameter_count;
     static final MethodHandle bind_text;
+    static final MethodHandle busy_timeout;
     static final MethodHandle close_v2;
     static final MethodHandle column_blob;
     static final MethodHandle column_bytes;

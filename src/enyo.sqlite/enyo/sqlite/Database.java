@@ -308,6 +308,37 @@ public final class Database implements AutoCloseable {
         }
     }
 
+    /**
+     * Sets the busy timeout for this database.
+     * By default, if the database is locked,
+     * operations will fail with a {@link SQLiteException} and
+     * an error code of {@code BUSY} or one of its
+     * associated extended error codes.  If a busy timeout
+     * is specified, SQLite will wait for this time period before
+     * reporting a busy error.
+     *
+     * <p>There is currently no way to block indefinitely.  The
+     * maximum wait time is about 24.85 days (corresponding to
+     * {@link Integer#MAX_VALUE}).
+     *
+     * @param ms the timeout, measured in milliseconds; if negative,
+     *   all busy handlers are turned off
+     */
+    public void busyTimeout(int ms) {
+        var db = lock();
+        try {
+            // The return value is undocumented, and always OK today.
+            int ignored = (int) Native.busy_timeout.invokeExact(db, ms);
+        } catch (RuntimeException | Error e) {
+            throw e;
+        } catch (Throwable e) {
+            throw new SQLiteException(e);
+        } finally {
+            unlock();
+        }
+    }
+    }
+
     MemorySegment lock() {
         lock.lock();
         var db = state.db;

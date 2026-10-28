@@ -176,4 +176,53 @@ public class TestThreads {
             }
         }
     }
+
+    @Test
+    @Resources(threads=2)
+    public static void testBusyTimeout(Testing t) throws Exception {
+        try (TempDirectory dir = TempDirectory.withPrefix("enyo-sqlite-")) {
+            var path = dir.resolve("db").toString(); // FIXME: add Path support
+
+            try (var db1 = Database.of(
+                    path, OpenFlag.READWRITE, OpenFlag.CREATE);
+                var db2 = Database.of(path, OpenFlag.READWRITE)) {
+                // Create an exclusive transaction.
+                db2.exec("BEGIN IMMEDIATE");
+
+                // The first database will not be able to proceed.
+                t.expect(() ->
+                    db1.exec(
+                        "CREATE TABLE t (rowid INTEGER NOT NULL PRIMARY KEY)"),
+                    SQLiteException.class,
+                    e -> t.examine(e)
+                    .map(Exception::getMessage, e1 -> e1.is(
+                            "database is locked [5]"))
+                    .map(SQLiteException::errorCode, e1-> e1.is(5)));
+
+                db1.busyTimeout(Integer.MAX_VALUE);
+
+                var barrier = new CyclicBarrier(2);
+                var thr = new Thread(
+                    () -> {
+                        try {
+                            barrier.await();
+                            // Slight delay, so that the db1.exec(String)
+                            // call below has a chance to fail.
+                            Thread.sleep(100);
+                        } catch (BrokenBarrierException
+                            | InterruptedException e) {
+                            throw new AssertionError(e);
+                        }
+                        db2.exec("COMMIT");
+                    });
+                thr.start();
+                barrier.await();
+
+                // This is now expected to wait and succeed ventually.
+                db1.exec("CREATE TABLE t (rowid INTEGER NOT NULL PRIMARY KEY)");
+
+                thr.join();
+            }
+	}
+    }
 }
