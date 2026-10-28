@@ -217,8 +217,8 @@ public final class Database implements AutoCloseable {
      * @throws NullPointerException {@code sql} is null
      * @throws SQLiteException the statement could not be executed
      */
-    @SuppressWarnings("restricted") // Dereferences pointer coming from SQLite.
     public void exec(String sql) {
+        checkNoNUL(sql);
         try (var arena = Arena.ofConfined()) {
             var sqlN = arena.allocateFrom(sql);
             var stmtPtrN = arena.allocate(ValueLayout.ADDRESS);
@@ -251,8 +251,8 @@ public final class Database implements AutoCloseable {
                     } finally {
                         int ignored = (int) Native.finalize.invokeExact(stmt);
                     }
-                    var tailPtr = tailPtrN.get(ValueLayout.ADDRESS, 0)
-                        .reinterpret(Long.MAX_VALUE);
+                    var tailPtr = getTail(
+                        sqlN, tailPtrN.get(ValueLayout.ADDRESS, 0));
                     if (tailPtr.get(ValueLayout.JAVA_BYTE, 0) == 0)
                         // End of string reached.
                         break;
@@ -269,6 +269,12 @@ public final class Database implements AutoCloseable {
         }
     }
 
+    // SQLite does not handle NUL bytes in SQL statements.
+    private static void checkNoNUL(String sql) {
+        if (sql.indexOf(0) >= 0)
+            throw new SQLiteException("NUL byte in SQL statement");
+    }
+
     /**
      * Creates a new prepared statement.
      *
@@ -278,8 +284,8 @@ public final class Database implements AutoCloseable {
      * @throws SQLiteException the statement could not be created,
      *  or {@code sql} contains more than one statement
      */
-    @SuppressWarnings("restricted") // Dereferences pointer coming from SQLite.
     public Statement prepare(String sql) {
+        checkNoNUL(sql);
         try (var arena = Arena.ofConfined()) {
             var sqlN = arena.allocateFrom(sql);
             var stmtPtrN = arena.allocate(ValueLayout.ADDRESS);
@@ -293,13 +299,12 @@ public final class Database implements AutoCloseable {
                 if (stmt.address() == 0)
                     throw new SQLiteException("Empty prepared statement");
                 // Only one statement is supported.
-                var tailPtr = tailPtrN.get(ValueLayout.ADDRESS, 0)
-                    .reinterpret(Long.MAX_VALUE);
-                if (tailPtr.get(ValueLayout.JAVA_BYTE, 0) != 0) {
-                    int ignored = (int) Native.finalize.invokeExact(stmt);
-                    throw new SQLiteException(
-                        "Multiple SQL statements in prepare: " + sql);
-                }
+                var tailPtr = getTail(
+                    sqlN, tailPtrN.get(ValueLayout.ADDRESS, 0));
+                // Minor optimization: if we encountered the terminating
+                // NUL, no need to check for the tail the hard way.
+                if (tailPtr.get(ValueLayout.JAVA_BYTE, 0) != 0)
+                    prepareCheckNoTail(db, sql, stmtPtrN, stmt, tailPtr);
                 try {
                     return new Statement(this, lock, stmt);
                 } catch (RuntimeException | Error e) {
@@ -317,6 +322,34 @@ public final class Database implements AutoCloseable {
                 unlock();
             }
         }
+    }
+
+    // Check if another prepared statement follows the specified statement.
+    private static void prepareCheckNoTail(MemorySegment db, String sql,
+        MemorySegment stmtPtrN, MemorySegment firstStmt, MemorySegment tail)
+        throws Throwable {
+        int errcode;
+        try {
+            errcode = (int) Native.prepare_v2.invokeExact(
+                db, tail, -1, stmtPtrN, MemorySegment.NULL);
+        } catch (Throwable e) {
+            int ignored = (int) Native.finalize.invokeExact(firstStmt);
+            throw e;
+        }
+        var secondStmt = stmtPtrN.get(ValueLayout.ADDRESS, 0);
+        boolean haveSecond = secondStmt.address() != 0;
+        if (primary(errcode) == Constants.OK && !haveSecond)
+            // NULL denotes an empty statement, which is acceptable because
+            // we already have the first statement.
+            return;
+        try {
+            int ignored = (int) Native.finalize.invokeExact(secondStmt);
+        } finally {
+            int ignored = (int) Native.finalize.invokeExact(firstStmt);
+        }
+        throw new SQLiteException(
+            (haveSecond ? "Multiple SQL statements in prepare: "
+                : "Trailing characters after SQL statement: ")+ sql);
     }
 
     /**
@@ -467,6 +500,12 @@ public final class Database implements AutoCloseable {
     // The database object must still be locked.
     SQLiteException exception(int errcode) throws Throwable {
         return new SQLiteException(state.db, errcode);
+    }
+
+    // Obtain the tail of the memory segment starting at base, which
+    // must have the right extent.
+    static final MemorySegment getTail(MemorySegment base, MemorySegment tail) {
+        return base.asSlice(tail.address() - base.address());
     }
 
     private final State state;
