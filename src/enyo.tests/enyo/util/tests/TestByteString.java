@@ -13,6 +13,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.ValueLayout;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.CharacterCodingException;
@@ -37,6 +39,9 @@ public final class TestByteString {
             .map(ByteBuffer::order, e0 -> e0.is(ByteOrder.BIG_ENDIAN))
             .is(ByteBuffer.allocate(0));
         t.examine(ByteString.of(new byte[0])).isSame(ByteString.of());
+	t.examine(ByteString.of().asMemorySegment())
+            .test(MemorySegment::isReadOnly)
+	    .mapToLong(MemorySegment::byteSize, e0 -> e0.is(0));
     }
 
     @Test
@@ -61,6 +66,11 @@ public final class TestByteString {
                     .mapToInt(ByteBuffer::capacity, e0 -> e0.is(1))
                     .map(ByteBuffer::order, e0 -> e0.is(ByteOrder.BIG_ENDIAN))
                     .is(ByteBuffer.wrap(new byte[] { b })))
+		.map(ByteString::asMemorySegment, e -> e
+		    .test(MemorySegment::isReadOnly)
+		    .mapToLong(MemorySegment::byteSize, e0 -> e0.is(1L))
+		    .map(m -> m.get(ValueLayout.JAVA_BYTE, 0),
+			e0 -> e0.is(b)))
                 .isSame(ByteString.of(new byte[] { b }))
                 .check(Checks.greaterThan(last));
             t.expect(() -> s.byteAt(-1), IndexOutOfBoundsException.class);
@@ -100,6 +110,13 @@ public final class TestByteString {
                         .map(ByteBuffer::order,
                             e0 -> e0.is(ByteOrder.BIG_ENDIAN))
                         .is(ByteBuffer.wrap(new byte[] { b0, b1 })))
+		    .map(ByteString::asMemorySegment, e -> e
+			.test(MemorySegment::isReadOnly)
+			.mapToLong(MemorySegment::byteSize, e0 -> e0.is(2L))
+			.map(m -> m.get(ValueLayout.JAVA_BYTE, 0),
+			    e0 -> e0.is(b0))
+			.map(m -> m.get(ValueLayout.JAVA_BYTE, 1),
+			    e0 -> e0.is(b1)))
                     .check(Checks.greaterThan(last));
                 t.expect(() -> s.byteAt(-1), IndexOutOfBoundsException.class);
                 t.expect(() -> s.byteAt(3), IndexOutOfBoundsException.class);

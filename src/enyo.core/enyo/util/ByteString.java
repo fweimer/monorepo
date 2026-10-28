@@ -4,6 +4,7 @@ import enyo.io.ExtendedCharsets;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.lang.foreign.MemorySegment;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.CharacterCodingException;
@@ -237,6 +238,19 @@ public final class ByteString implements Comparable<ByteString>, Serializable {
      */
     public ByteBuffer asByteBuffer() {
         return ByteBuffer.wrap(data).asReadOnlyBuffer();
+    }
+
+
+    /**
+     * Returns a memory segment covering this string's byte array.
+     * The memory segment is read-only.  It must not be used to
+     * mutate the underlying byte array.
+     * @return a read-only memory segment
+     * @see MemorySegment#ofArray(byte[])
+     * @see MemorySegment#asReadOnly()
+     */
+    public MemorySegment asMemorySegment() {
+	return MemorySegment.ofArray(data).asReadOnly();
     }
 
     /**
