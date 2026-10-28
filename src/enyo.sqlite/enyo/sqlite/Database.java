@@ -169,23 +169,34 @@ public final class Database implements AutoCloseable {
         this(resultPtr);
     }
 
+    /**
+     * Closes the database connection.
+     *
+     * This operation is not expected to fail, but there could be a VM
+     * error if the foreign function linking fails.
+     */
     @Override
     public void close() {
         var db = lockUnchecked();
         try {
             if (db == MemorySegment.NULL)
                 return;
-            int errcode = (int) Native.close_v2.invokeExact(db);
-            // A failure to close the database does not invalidate the
-            // pointer.  Using close_v2 means that there should be no
-            // busy error due to lingering statement objects.
-            if (primary(errcode) != Constants.OK)
-                throw exception(errcode);
-            // Mark this database object as closed.
-            state.db = MemorySegment.NULL;
-            // This is a no-op becaue of the assignment above, but it
-            // frees up the cleanable.
-            cleanable.clean();
+            closeLock.lock();
+            try {
+                int errcode = (int) Native.close_v2.invokeExact(db);
+                // A failure to close the database does not invalidate the
+                // pointer.  Using close_v2 means that there should be no
+                // busy error due to lingering statement objects.
+                if (primary(errcode) != Constants.OK)
+                    throw exception(errcode);
+                // Mark this database object as closed.
+                state.db = MemorySegment.NULL;
+                // This is a no-op because of the assignment above, but it
+                // frees up the cleanable.
+                cleanable.clean();
+            } finally {
+                closeLock.unlock();
+            }
         } catch (RuntimeException | Error e) {
             throw e;
         } catch (Throwable e) {
@@ -337,6 +348,31 @@ public final class Database implements AutoCloseable {
             unlock();
         }
     }
+
+    /**
+     * Interrupts a database operation.
+     *
+     * Unlike in the underlying C API, it is safe to call this method
+     * concurrently with {@link close()}.  Interrupting a closed database
+     * does nothing.
+     */
+    public void interrupt() {
+        // Do not use the regular lock here, so that it is actually
+        // possible to interrupt a running operation from another thread.
+        closeLock.lock();
+        try {
+            var db = state.db;
+            if (db == MemorySegment.NULL)
+                return;
+            Native.interrupt.invokeExact(db);
+        } catch (RuntimeException | Error e) {
+            throw e;
+        } catch (Throwable e) {
+            throw new SQLiteException(e);
+        } finally {
+            Reference.reachabilityFence(this);
+            closeLock.unlock();
+        }
     }
 
     MemorySegment lock() {
@@ -386,13 +422,13 @@ public final class Database implements AutoCloseable {
         }
 
         public void run() {
-	    // No locking: The database object has become
-	    // phantom-reachable at this point, so there are no
-	    // concurrent operations on it (due to the reachability
-	    // fences).  The Statement object has a strong reference
-	    // to the Database object and fences of its own, so there
-	    // cannot be any interference from application operations
-	    // on statements, either.
+            // No locking: The database object has become
+            // phantom-reachable at this point, so there are no
+            // concurrent operations on it (due to the reachability
+            // fences).  The Statement object has a strong reference
+            // to the Database object and fences of its own, so there
+            // cannot be any interference from application operations
+            // on statements, either.
             var db0 = db;
             if (db0 == MemorySegment.NULL)
                 return;
@@ -435,7 +471,16 @@ public final class Database implements AutoCloseable {
 
     private final State state;
     private final Cleaner.Cleanable cleanable;
+
+    // General lock that protects all operations.  Statement
+    // operations must use this lock, too.
     private final ReentrantLock lock = new ReentrantLock();
+
+    // Special lock acquired during close() to lock out concurrent
+    // interrupt().  State.run() (the cleaner) does not acquire
+    // this lock because there cannot be another thread that
+    // runs interrupt() due to the reachability fences.
+    private final ReentrantLock closeLock = new ReentrantLock();
 
     // A single Cleaner is shared between Database and Statement
     // objects.  This is required for synchronization of State

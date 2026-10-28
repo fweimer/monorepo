@@ -225,4 +225,61 @@ public class TestThreads {
             }
 	}
     }
+
+    @Test
+    @Resources(threads=2)
+    public static void testInterrupt(Testing t) throws Exception {
+        try (var db = Database.inMemory()) {
+            var barrier = new CyclicBarrier(2);
+
+            // Interrupting thread.
+            var thr = new Thread(
+                () -> {
+                    try {
+                        barrier.await();
+                        // Slight delay, so that the db.exec(String)
+                        // call below has a chance to fail.
+                        Thread.sleep(100);
+                    } catch (BrokenBarrierException
+                        | InterruptedException e) {
+                        throw new AssertionError(e);
+                    }
+                    // subsequent interrupt is effective if
+                    // earlier ones arrive before the db.exec(String)
+                    // call below.
+                    while (true) {
+                        db.interrupt();
+                        try {
+                            Thread.sleep(50);
+                        } catch (InterruptedException e) {
+                            break;
+                        }
+                    }
+                });
+            thr.start();
+            barrier.await();
+
+            // This is guaranteed to run for a very long time, so
+            // the other thread will interrupt the query.
+            String sql = """
+WITH RECURSIVE c(x) AS (
+  VALUES(1)
+  UNION ALL
+  SELECT x + 1 FROM c
+)
+SELECT x FROM c WHERE x < 0
+""";
+
+            t.expect(() ->
+                db.exec(sql),
+                SQLiteException.class,
+                e -> t.examine(e)
+                .map(SQLiteException::getMessage, e0 -> e0.is(
+                        "interrupted [9]"))
+                .map(SQLiteException::errorCode, e0 -> e0.is(9)));
+
+            thr.interrupt();
+            thr.join();
+        }
+    }
 }

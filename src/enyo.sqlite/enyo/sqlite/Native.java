@@ -103,6 +103,8 @@ final class Native {
             FunctionDescriptor.of(
                 ValueLayout.JAVA_INT, ValueLayout.ADDRESS));
         finalize = lookup.apply("finalize", descrIntDb);
+	interrupt = lookup.apply("interrupt",
+            FunctionDescriptor.ofVoid(ValueLayout.ADDRESS));
         open_v2 = lookup.apply("open_v2", FunctionDescriptor.of(
                 ValueLayout.JAVA_INT,
                 ValueLayout.ADDRESS,
@@ -143,6 +145,7 @@ final class Native {
     static final MethodHandle errmsg;
     static final MethodHandle extended_errcode;
     static final MethodHandle finalize;
+    static final MethodHandle interrupt;
     static final MethodHandle open_v2;
     static final MethodHandle prepare_v2;
     static final MethodHandle reset;
