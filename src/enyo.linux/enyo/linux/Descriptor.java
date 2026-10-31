@@ -22,7 +22,8 @@ public final class Descriptor implements AutoCloseable {
      *
      * @param fd the descriptor to wrap
      * @return a new descriptor which has ownership of the descriptor
-     *   {@code fd}
+     *   {@code fd}, or the descriptors {@link #stdin()}, {@link #stdout()},
+     *   {@link #stderr()} (for raw descriptors 0, 1, 2)
      * @see #dup(int)
      */
     public static Descriptor of(int fd) {
@@ -129,30 +130,50 @@ public final class Descriptor implements AutoCloseable {
         do {
             oldValue = state.fd.getAcquire();
             // Check covers -1 as well.
-            if ((oldValue & State.FD_CLOSING_MASK) != 0)
+            if ((oldValue & State.CLOSING_MASK) != 0)
                 // Closing a closed descriptor is not an error.
                 return;
-            newValue = oldValue | State.FD_CLOSING_MASK;
+            if ((oldValue & State.FD_MASK) <= 2)
+                // Standard descriptors cannot be closed.
+                return;
+            // Increment the reference counter, so that a last
+            // concurrent unlock() (that would do the actual close())
+            // does not race with the shutdown() call below.
+            newValue = (oldValue + (1L << 32)) | State.CLOSING_MASK;
+            if (newValue < 0)
+                throw new InternalError(
+                    "Invalid descriptor state: " + oldValue);
         } while (!state.fd.compareAndSet(oldValue, newValue));
         // Mask out FD_CLOSING_MASK.
-        int fd = (int) newValue & 0x7fffffff;
-        if ((newValue >> 31) == 1) {
+        int fd = (int) newValue & State.FD_MASK;
+        if ((newValue >> 31) == 0b11) {
             // Close request posted.  No other thread can perform
             // another system call on this descriptor (see lock() and
-            // its FD_CLOSING_MASK check).  The reference count is zero,
-            // so we can close directly.
+            // its FD_CLOSING_MASK check).  The reference count is one
+            // (incremented by us), so we can close directly.
             state.fd.set(-1);
+            // Fence before the raw close in case the close throws.  It
+            // has to come after the state.fd update, so that the
+            // cleaner thread cannot observe an intermediate value.
             Reference.reachabilityFence(this);
             RawSyscalls.close(fd);
         } else {
             // We cannot perform an immediate close.  Shutting down
             // a socket may interrupt pending operations.
-            RawSyscalls.shutdown(fd, 2); // Use SHUT_RDWR.
+            try {
+                RawSyscalls.shutdown(fd, 2); // Use SHUT_RDWR.
+            } catch (SyscallException e) {
+            }
             // Do not use dup2 to install a new descriptor.  There
             // is only a tiny race window (between the state check
             // and the system call) where this would be helpful.
             // We have to live with the other thread blocking
             // on the descriptor.
+
+            // Undo the reference counter increment.  This may trigger
+            // the actual close() late, or it could be deferred to
+            // another thread.
+            unlock();
         }
     }
 
@@ -390,7 +411,7 @@ public final class Descriptor implements AutoCloseable {
         if (fd < 0)
             return "Descriptor()";
         else
-            return "Descriptor(" + (fd & 0x7fffffff) + ")";
+            return "Descriptor(" + (fd & State.FD_MASK) + ")";
     }
 
     /**
@@ -405,15 +426,24 @@ public final class Descriptor implements AutoCloseable {
         long fd = state.fd.get();
         if (fd < 0)
             return -1;
-        return (int) fd & 0x7fffffff;
+        return (int) fd & State.FD_MASK;
     }
 
     private static final class State implements Runnable {
-        // -1 means the descriptor is closed.
+        // -1 means the descriptor is closed.  This is the terminal state,
+        // no further updates.
+        //
         // Bits 32 to 62 are a reference counter of concurrently
         // running operations.  0 means that the descriptor is not busy.
-        // Bit 31 means that there is a pending close request.
-        final static long FD_CLOSING_MASK = 1L << 31;
+        //
+        // Bit 31 means that there is a pending close() request.
+        // The close request is only acted upon by the thread that observes
+        // reference count 1 after the increment in close(), or the
+        // thread that observes count 0 after the decrement in unlock().
+        // Only one of them performs the raw close.
+        final static long CLOSING_MASK = 1L << 31;
+        // The lower 31 bits contain the descriptor.
+        final static int FD_MASK = 0x7fffffff;
         final AtomicLong fd;
 
         private State(int fd) {
@@ -428,9 +458,7 @@ public final class Descriptor implements AutoCloseable {
             // The descriptor only becomes eligible for collection
             // if there are no pending operations.
             if ((fd0 >>> 32) != 0)
-                new AssertionError("Invalid descriptor state: " + fd0);
-            if (fd0 <= 2)
-                return;
+                throw new InternalError("Invalid descriptor state: " + fd0);
             fd.set(-1);
             RawSyscalls.close((int) fd0);
         }
@@ -438,6 +466,8 @@ public final class Descriptor implements AutoCloseable {
 
     private Descriptor(int fd) {
         state = new State(fd);
+        // The standard descriptors are never closed and therefore do
+        // not need cleaner registration.
         if (fd >= 3)
             cleaner.register(this, state);
     }
@@ -448,25 +478,20 @@ public final class Descriptor implements AutoCloseable {
         do {
             oldValue = state.fd.getAcquire();
             // Check covers -1 as well.
-            if ((oldValue & State.FD_CLOSING_MASK) != 0)
+            if ((oldValue & State.CLOSING_MASK) != 0)
                 throw new IllegalStateException("Descriptor is closed");
             newValue = oldValue + (1L << 32);
             if (newValue < 0)
-                new AssertionError("Invalid descriptor state: " + oldValue);
+                throw new InternalError(
+                    "Invalid descriptor state: " + oldValue);
         } while (!state.fd.compareAndSet(oldValue, newValue));
-        if ((newValue & State.FD_CLOSING_MASK) != 0) {
-            // This may complete the close if this is the only
-            // active request.
-            unlock();
-            throw new IllegalStateException("Descriptor is closed");
-        }
         return (int) newValue;
     }
 
     private void unlock() {
         long newValue = state.fd.addAndGet(-1L << 32);
         if (newValue < 0)
-            new AssertionError("Invalid descriptor state: " + newValue);
+            throw new InternalError("Invalid descriptor state: " + newValue);
         if ((newValue >> 31) == 1) {
             // Close request, but zero reference counts.  No other
             // thread can perform another system call on this
@@ -474,10 +499,16 @@ public final class Descriptor implements AutoCloseable {
             // above).  close() will not update the descriptor,
             // either.  So we can directly close it.
             state.fd.set(-1);
+            // Fence before the raw close in case the close throws.  It
+            // has to come after the state.fd update, so that the
+            // cleaner thread cannot observe an intermediate value.
+            Reference.reachabilityFence(this);
             // Mask out FD_CLOSING_MASK.
-            RawSyscalls.close((int) newValue & 0x7fffffff);
-        }
-        Reference.reachabilityFence(this);
+            RawSyscalls.close((int) newValue & State.FD_MASK);
+        } else
+            // Must come last, so that the cleaner thread cannot observe
+            // an intermediate value (with non-zero reference count).
+            Reference.reachabilityFence(this);
     }
 
     private final State state;
