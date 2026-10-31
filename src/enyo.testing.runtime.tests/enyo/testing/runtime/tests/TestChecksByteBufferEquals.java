@@ -22,9 +22,9 @@ public final class TestChecksByteBufferEquals {
     public void testEmptyEmpty(Testing t) {
         t.examine(ByteBuffer.allocate(0))
             .check(Checks.byteBufferEquals(new byte[0]));
-	var buf = ByteBuffer.allocateDirect(3);
-	buf.position(2);
-	buf.limit(2);
+        var buf = ByteBuffer.allocateDirect(3);
+        buf.position(2);
+        buf.limit(2);
         t.examine(buf).check(Checks.byteBufferEquals(new byte[0]));
     }
 
@@ -117,8 +117,8 @@ public final class TestChecksByteBufferEquals {
                 .map(call -> (ByteBuffer) call.context.get(0).value(),
                     e1 -> e1.map(ByteBuffer::remaining,
                         e2 -> e2.is(examinedBuffer.length))
-			.map(ByteString::of,
-			    e3 -> e3.is(ByteString.of(examinedBuffer))))
+                        .map(ByteString::of,
+                            e3 -> e3.is(ByteString.of(examinedBuffer))))
                 .map(call -> call.otherObjects.length, e1 -> e1.is(1))
                 .map(call -> call.otherObjects[0])
                 .map(byte[].class, e1 -> e1

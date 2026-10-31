@@ -73,13 +73,13 @@ final class Native {
                 ValueLayout.ADDRESS, ValueLayout.JAVA_INT,
                 ValueLayout.JAVA_LONG));
         bind_parameter_count = criticalLookup.apply(
-	    "bind_parameter_count", descrIntDb);
+            "bind_parameter_count", descrIntDb);
         bind_text = criticalLookup.apply("bind_text",
             FunctionDescriptor.of(ValueLayout.JAVA_INT,
                 ValueLayout.ADDRESS, ValueLayout.JAVA_INT,
                 ValueLayout.ADDRESS, ValueLayout.JAVA_INT,
                 ValueLayout.ADDRESS));
-	busy_timeout = lookup.apply("busy_timeout", descrIntDbInt);
+        busy_timeout = lookup.apply("busy_timeout", descrIntDbInt);
         close_v2 = lookup.apply("close_v2", descrIntDb);
         column_blob = criticalLookup.apply("column_blob", descrPtrDbInt);
         column_bytes = criticalLookup.apply("column_bytes", descrIntDbInt);
@@ -103,7 +103,7 @@ final class Native {
             FunctionDescriptor.of(
                 ValueLayout.JAVA_INT, ValueLayout.ADDRESS));
         finalize = lookup.apply("finalize", descrIntDb);
-	interrupt = lookup.apply("interrupt",
+        interrupt = lookup.apply("interrupt",
             FunctionDescriptor.ofVoid(ValueLayout.ADDRESS));
         open_v2 = lookup.apply("open_v2", FunctionDescriptor.of(
                 ValueLayout.JAVA_INT,
@@ -118,8 +118,8 @@ final class Native {
                 ValueLayout.JAVA_INT,
                 ValueLayout.ADDRESS,
                 ValueLayout.ADDRESS));
-	// sqlite3_reset perfors rollback etc., which can involve
-	// significant I/O, so it should not be critical.
+        // sqlite3_reset perfors rollback etc., which can involve
+        // significant I/O, so it should not be critical.
         reset = lookup.apply("reset", descrIntDb);
         sql = criticalLookup.apply("sql", FunctionDescriptor.of(
                 ValueLayout.ADDRESS, ValueLayout.ADDRESS));

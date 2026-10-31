@@ -106,7 +106,7 @@ public final class Statement implements AutoCloseable {
     public int bindParameterCount() {
         var stmt = lock();
         try {
-	    return (int) Native.bind_parameter_count.invokeExact(stmt);
+            return (int) Native.bind_parameter_count.invokeExact(stmt);
         } catch (RuntimeException | Error e) {
             throw e;
         } catch (Throwable e) {
@@ -477,13 +477,13 @@ public final class Statement implements AutoCloseable {
     }
 
     private static final class State implements Runnable {
-	// Lock for the related database object.
-	private final ReentrantLock lock;
-	// sqlite3_stmt pointer.
+        // Lock for the related database object.
+        private final ReentrantLock lock;
+        // sqlite3_stmt pointer.
         private MemorySegment stmt;
 
         private State(ReentrantLock lock, MemorySegment stmt) {
-	    this.lock = lock;
+            this.lock = lock;
             this.stmt = stmt;
         }
 
@@ -492,23 +492,23 @@ public final class Statement implements AutoCloseable {
             if (stmt0 == MemorySegment.NULL)
                 return;
             stmt = MemorySegment.NULL;
-	    // Acquire the database lock.  Access to the statement
-	    // object (including finalization) counts as access to the
-	    // database object, and we need to prevent concurrent
-	    // access.  The lock prevents application access.
-	    // We do not have a strong reference to the Database
-	    // object that would keep it alive, but this is fine:
-	    // Cleaner objects have only a single processing thread,
-	    // so Statement and Database cleanup are ordered.
-	    lock.lock();
+            // Acquire the database lock.  Access to the statement
+            // object (including finalization) counts as access to the
+            // database object, and we need to prevent concurrent
+            // access.  The lock prevents application access.
+            // We do not have a strong reference to the Database
+            // object that would keep it alive, but this is fine:
+            // Cleaner objects have only a single processing thread,
+            // so Statement and Database cleanup are ordered.
+            lock.lock();
             try {
-		// We have to ignore any errors, no way to report
-		// errors from this point.
+                // We have to ignore any errors, no way to report
+                // errors from this point.
                 int ignore = (int) Native.finalize.invokeExact(stmt0);
             } catch (Throwable e) {
             } finally {
-		lock.unlock();
-	    }
+                lock.unlock();
+            }
         }
     }
 
@@ -540,7 +540,7 @@ public final class Statement implements AutoCloseable {
     }
 
     private void checkColumnIndex0(int index) throws Throwable {
-	if (0 <= index && index < columnCount)
+        if (0 <= index && index < columnCount)
             throw new IllegalStateException(
                 "No data row during execution of SQL statement: " + sql());
         else

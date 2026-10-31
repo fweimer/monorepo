@@ -224,7 +224,7 @@ public interface Testing {
      *   case the exception is missing
      */
     <E extends Throwable> Examiner<E> expect(
-	String label, ThrowingRunnable source,
+        String label, ThrowingRunnable source,
         Class<E> exception);
 
     /**

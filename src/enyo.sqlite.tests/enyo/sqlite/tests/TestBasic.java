@@ -264,36 +264,36 @@ public class TestBasic {
     @Test
     public static void testPrepareTrailing(Testing t) {
         try (var db = Database.inMemory()) {
-	    BiConsumer<String, Integer> check = (sql, result) ->
-		t.examine(sql)
-		    .map(db::prepare)
-		    .map(Statement::step, e -> e.is(true))
-		    .mapToLong(s -> s.columnLong(0), e -> e.is(result))
-		    .map(Statement::step, e -> e.is(false));
-	    check.accept("SELECT 1", 1);
-	    check.accept("SELECT 2 ", 2);
-	    check.accept("SELECT 3\n", 3);
-	    check.accept("SELECT 4 -- important", 4);
-	    check.accept("SELECT 5 -- important\n", 5);
-	    check.accept("SELECT 6;", 6);
-	    check.accept("SELECT 7; ", 7);
-	    check.accept("SELECT 8;\n", 8);
-	    check.accept("SELECT 9; -- important", 9);
-	    check.accept("SELECT 10; -- important\n", 10);
+            BiConsumer<String, Integer> check = (sql, result) ->
+                t.examine(sql)
+                    .map(db::prepare)
+                    .map(Statement::step, e -> e.is(true))
+                    .mapToLong(s -> s.columnLong(0), e -> e.is(result))
+                    .map(Statement::step, e -> e.is(false));
+            check.accept("SELECT 1", 1);
+            check.accept("SELECT 2 ", 2);
+            check.accept("SELECT 3\n", 3);
+            check.accept("SELECT 4 -- important", 4);
+            check.accept("SELECT 5 -- important\n", 5);
+            check.accept("SELECT 6;", 6);
+            check.accept("SELECT 7; ", 7);
+            check.accept("SELECT 8;\n", 8);
+            check.accept("SELECT 9; -- important", 9);
+            check.accept("SELECT 10; -- important\n", 10);
 
-	    BiConsumer<String, String> errCheck = (sql, err) ->
-		t.expect(() -> db.prepare(sql),
-		    SQLiteException.class)
-			.map(SQLiteException::getMessage, e0 -> e0.is(err))
-			.map(SQLiteException::errorCode, e0 -> e0.is(0));
-	    errCheck.accept("SELECT 1; SELECT 2",
-		"Multiple SQL statements in prepare: SELECT 1; SELECT 2");
-	    errCheck.accept("SELECT 1; SELEC 2",
-		"Trailing characters after SQL statement: SELECT 1; SELEC 2");
-	    errCheck.accept("SELECT 1; \000SELECT 2",
-		"NUL byte in SQL statement");
-	    errCheck.accept("SELECT 1; \000SELEC 2",
-		"NUL byte in SQL statement");
+            BiConsumer<String, String> errCheck = (sql, err) ->
+                t.expect(() -> db.prepare(sql),
+                    SQLiteException.class)
+                        .map(SQLiteException::getMessage, e0 -> e0.is(err))
+                        .map(SQLiteException::errorCode, e0 -> e0.is(0));
+            errCheck.accept("SELECT 1; SELECT 2",
+                "Multiple SQL statements in prepare: SELECT 1; SELECT 2");
+            errCheck.accept("SELECT 1; SELEC 2",
+                "Trailing characters after SQL statement: SELECT 1; SELEC 2");
+            errCheck.accept("SELECT 1; \000SELECT 2",
+                "NUL byte in SQL statement");
+            errCheck.accept("SELECT 1; \000SELEC 2",
+                "NUL byte in SQL statement");
         }
     }
 
@@ -376,20 +376,20 @@ public class TestBasic {
     @Test
     public static void testBindParameterCount(Testing t) {
         try (var db = Database.inMemory()) {
-	    interface Check {
-		void accept(String sql, int count);
-	    }
-	    Check check = (sql, count) -> {
-		t.examine(sql)
-		    .map(db::prepare)
-		    .mapToInt(Statement::bindParameterCount)
-		    .is(count);
-	    };
-	    check.accept("SELECT 1", 0);
-	    check.accept("SELECT 1, 2", 0);
-	    check.accept("SELECT 1, ?", 1);
-	    check.accept("SELECT ?, 1, ?", 2);
-	}
+            interface Check {
+                void accept(String sql, int count);
+            }
+            Check check = (sql, count) -> {
+                t.examine(sql)
+                    .map(db::prepare)
+                    .mapToInt(Statement::bindParameterCount)
+                    .is(count);
+            };
+            check.accept("SELECT 1", 0);
+            check.accept("SELECT 1, 2", 0);
+            check.accept("SELECT 1, ?", 1);
+            check.accept("SELECT ?, 1, ?", 2);
+        }
     }
 
     private static final Check<byte[]> checkÄrger =
@@ -403,8 +403,8 @@ public class TestBasic {
             try (var stmt = db.prepare("SELECT ?, ?")) {
                 t.expect(() -> stmt.bind(-1, new byte[0]),
                     IndexOutOfBoundsException.class)
-		    .map(Exception::getMessage)
-		    .is(
+                    .map(Exception::getMessage)
+                    .is(
 "SQL statement has 2 parameters, index -1 invalid: SELECT ?, ?");
                 t.expect(() -> stmt.bind(0, new byte[0]),
                     IndexOutOfBoundsException.class);

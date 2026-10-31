@@ -205,7 +205,7 @@ public final class TestBasic {
            .map(R::arg).is(1);
        t.expect(() -> p.parse(new String[0]),
            ArgumentListException.class)
-	   .map(Exception::getMessage)
+           .map(Exception::getMessage)
            .is("option --arg is missing");
        t.expect(() -> p.parse(new String[] {"--arg=X"}),
            ArgumentListException.class)

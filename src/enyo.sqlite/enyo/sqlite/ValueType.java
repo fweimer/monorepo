@@ -34,7 +34,7 @@ public enum ValueType {
     static ValueType fromConstant(int type) {
         if (type <= 0 || type > 5)
             throw new UnsupportedOperationException(
-                "Unsupported SQLite value type: " + type); 
+                "Unsupported SQLite value type: " + type);
         return cached[type - 1];
     }
 }

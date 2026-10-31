@@ -75,19 +75,19 @@ public final class Checks {
     public static Check<ByteBuffer> byteBufferEquals(byte... values) {
         Objects.requireNonNull(values, "values");
         return (ByteBuffer buffer) -> {
-	    if (buffer == null)
-		return new Check.Failure("byteBufferEquals (not null)", values);
-	    boolean ok = values.length == buffer.remaining();
-	    if (ok)
-		for (int i = 0; i < values.length; ++i)
-		    if (buffer.get(buffer.position() + i) != values[i]) {
-			ok = false;
-			break;
-		    }
-	    if (ok)
-		return null;
-	    else
-		return new Check.Failure("byteBufferEquals", values);
+            if (buffer == null)
+                return new Check.Failure("byteBufferEquals (not null)", values);
+            boolean ok = values.length == buffer.remaining();
+            if (ok)
+                for (int i = 0; i < values.length; ++i)
+                    if (buffer.get(buffer.position() + i) != values[i]) {
+                        ok = false;
+                        break;
+                    }
+            if (ok)
+                return null;
+            else
+                return new Check.Failure("byteBufferEquals", values);
         };
     }
 

@@ -21,7 +21,7 @@ public final class TestTerminalStack {
         t.examine(stack.toString()).is("[]");
         t.expect(() -> stack.popInt(),
             IllegalStateException.class)
-	    .map(Exception::getMessage).is("Stack is empty");
+            .map(Exception::getMessage).is("Stack is empty");
         t.expect(() -> stack.popString(),
             IllegalStateException.class)
             .map(Exception::getMessage).is("Stack is empty");
@@ -172,8 +172,8 @@ public final class TestTerminalStack {
                     if (reference.isEmpty())
                         t.expect(() -> stack.popInt(),
                             IllegalStateException.class)
-			    .map(Exception::getMessage)
-			    .is("Stack is empty");
+                            .map(Exception::getMessage)
+                            .is("Stack is empty");
                     else {
                         int idx = reference.size() - 1;
                         Object obj = reference.get(idx);
@@ -183,7 +183,7 @@ public final class TestTerminalStack {
                         } else
                             t.expect(() -> stack.popInt(),
                                 IllegalStateException.class)
-				.map(Exception::getMessage)
+                                .map(Exception::getMessage)
                                 .is("Top of stack is string");
                     }
                     break;
@@ -191,7 +191,7 @@ public final class TestTerminalStack {
                     if (reference.isEmpty())
                         t.expect(() -> stack.popString(),
                             IllegalStateException.class)
-			    .map(Exception::getMessage)
+                            .map(Exception::getMessage)
                             .is("Stack is empty");
                     else {
                         int idx = reference.size() - 1;
@@ -202,7 +202,7 @@ public final class TestTerminalStack {
                         } else
                             t.expect(() -> stack.popString(),
                                 IllegalStateException.class)
-				.map(Exception::getMessage)
+                                .map(Exception::getMessage)
                                 .is("Top of stack is integer");
                     }
                     break;

@@ -222,7 +222,7 @@ public final class TestCSVReader {
         CSVReader r = wrap("\"\"X,\n");
         t.assertTrue(r.nextRow());
         t.expect(r::fetchColumn, IOException.class)
-	    .map(Exception::getMessage)
+            .map(Exception::getMessage)
             .is("Invalid character after quote");
     }
 
@@ -341,12 +341,12 @@ public final class TestCSVReader {
 
     private static void expectEOF(Testing t, ThrowingRunnable r) {
         t.expect(r, EOFException.class).map(Exception::getMessage).is(
-	    "EOF when column was expected");
+            "EOF when column was expected");
     }
 
     private static void expectEOL(Testing t, ThrowingRunnable r) {
         t.expect(r, IOException.class).map(Exception::getMessage).is(
-	    "End of line when column was expected");
+            "End of line when column was expected");
     }
 
     private static void checkNoRowState(Testing t, CSVReader r) {

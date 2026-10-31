@@ -30,10 +30,10 @@ public class TestThreads {
         try (TempDirectory dir = TempDirectory.withPrefix("enyo-sqlite-")) {
             var path = dir.resolve("db").toString(); // FIXME: add Path support
 
-	    t.parallel(IntStream.range(0, THREADS)
-		.mapToObj(i -> (ThrowingRunnable)
+            t.parallel(IntStream.range(0, THREADS)
+                .mapToObj(i -> (ThrowingRunnable)
                     () -> TestThreads.parallelDatabase(t, path, i))
-		.toList());
+                .toList());
             try (var db = Database.of(path, OpenFlag.READONLY)) {
                 checkResult(t, db);
             }
@@ -48,10 +48,10 @@ public class TestThreads {
                 CREATE TABLE IF NOT EXISTS tab
                 (x INTEGER NOT NULL, y INTEGER NOT NULL)"""); //");
 
-	    t.parallel(IntStream.range(0, THREADS)
-		.mapToObj(i -> (ThrowingRunnable)
+            t.parallel(IntStream.range(0, THREADS)
+                .mapToObj(i -> (ThrowingRunnable)
                     () -> TestThreads.sharedDatabase(t, db, i))
-		.toList());
+                .toList());
 
             checkResult(t, db);
         }
@@ -167,42 +167,42 @@ public class TestThreads {
 
                 db1.busyTimeout(Integer.MAX_VALUE);
 
-		t.parallel(List.of(
+                t.parallel(List.of(
                     () -> {
                         // Slight delay, so that the db1.exec(String)
                         // call below has a chance to fail.
                         Thread.sleep(100);
                         db2.exec("COMMIT");
                     },
-		    () -> db1.exec(
+                    () -> db1.exec(
 "CREATE TABLE t (rowid INTEGER NOT NULL PRIMARY KEY)")));
             }
-	}
+        }
     }
 
     @Test
     @Resources(threads=2)
     public static void testInterrupt(Testing t) throws Exception {
         try (var db = Database.inMemory()) {
-	    var done = new AtomicBoolean();
-	    t.parallel(List.<ThrowingRunnable>of(
-		// Interrupting thread.
+            var done = new AtomicBoolean();
+            t.parallel(List.<ThrowingRunnable>of(
+                // Interrupting thread.
                 () -> {
                     // Slight delay, so that the db.exec(String)
                     // call below has a chance to fail.
                     Thread.sleep(100);
-		    // Loop is required because thei interrupt may
-		    // arrive too early.
-		    while (!done.get()) {
+                    // Loop is required because thei interrupt may
+                    // arrive too early.
+                    while (!done.get()) {
                         db.interrupt();
-			Thread.sleep(50);
-		    }
+                        Thread.sleep(50);
+                    }
                 },
-		// Blocked thread.
-		() -> {
-		    // This is guaranteed to run for a very long time, so
-		    // the other thread will interrupt the query.
-		    String sql = """
+                // Blocked thread.
+                () -> {
+                    // This is guaranteed to run for a very long time, so
+                    // the other thread will interrupt the query.
+                    String sql = """
 WITH RECURSIVE c(x) AS (
   VALUES(1)
   UNION ALL
@@ -210,14 +210,14 @@ WITH RECURSIVE c(x) AS (
 )
 SELECT x FROM c WHERE x < 0
 """;
-		    t.expect(() ->
-			db.exec(sql),
-			SQLiteException.class)
-			.map(SQLiteException::getMessage, e0 -> e0.is(
+                    t.expect(() ->
+                        db.exec(sql),
+                        SQLiteException.class)
+                        .map(SQLiteException::getMessage, e0 -> e0.is(
                             "interrupted [9]"))
-			.map(SQLiteException::errorCode, e0 -> e0.is(9));
-		    done.set(true);
-		}));
+                        .map(SQLiteException::errorCode, e0 -> e0.is(9));
+                    done.set(true);
+                }));
         }
     }
 }

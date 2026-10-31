@@ -159,9 +159,9 @@ public final class TestOrder {
             .add(new EqualsNull())
             .close();
         t.expect(() -> c.check(), Order.ObjectFailure.class)
-	    .map(Order.ObjectFailure::failed,
-		e -> e.is(Order.Failed.EQUALS_NULL))
-	    .map(Order.ObjectFailure::object, e-> e.isSame(item));
+            .map(Order.ObjectFailure::failed,
+                e -> e.is(Order.Failed.EQUALS_NULL))
+            .map(Order.ObjectFailure::object, e-> e.isSame(item));
     }
 
     @Test
@@ -181,10 +181,10 @@ public final class TestOrder {
         c.add(item);
         c.add(new EqualsFalse());
         t.expect(() -> c.check(), Order.PairFailure.class)
-	    .map(Order.PairFailure::failed,
-		e -> e.is(Order.FailedPair.EQUALS))
-	    .map(Order.PairFailure::left, e -> e.isSame(item))
-	    .map(Order.PairFailure::right, e -> e.isSame(item));
+            .map(Order.PairFailure::failed,
+                e -> e.is(Order.FailedPair.EQUALS))
+            .map(Order.PairFailure::left, e -> e.isSame(item))
+            .map(Order.PairFailure::right, e -> e.isSame(item));
     }
 
     @Test
@@ -213,10 +213,10 @@ public final class TestOrder {
             .add(item2)
             .close();
         t.expect(() -> c.check(), Order.PairFailure.class)
-	    .map(Order.PairFailure::failed,
-		e -> e.is(Order.FailedPair.HASH_CODE))
-	    .map(Order.PairFailure::left, e -> e.is(item1))
-	    .map(Order.PairFailure::right, e -> e.is(item1));
+            .map(Order.PairFailure::failed,
+                e -> e.is(Order.FailedPair.HASH_CODE))
+            .map(Order.PairFailure::left, e -> e.is(item1))
+            .map(Order.PairFailure::right, e -> e.is(item1));
     }
 
     @Test
@@ -232,13 +232,13 @@ public final class TestOrder {
         c.add(3);
         c.add(4);
         Consumer<Examiner<Order.PairFailure>> verify = e0 -> e0
-	    .map(Order.PairFailure::failed,
-		e -> e.is(Order.FailedPair.EQUALS))
-	    .map(Order.PairFailure::left, e -> e.is(item1))
-	    .map(Order.PairFailure::right, e -> e.is(item2));
+            .map(Order.PairFailure::failed,
+                e -> e.is(Order.FailedPair.EQUALS))
+            .map(Order.PairFailure::left, e -> e.is(item1))
+            .map(Order.PairFailure::right, e -> e.is(item2));
         verify.accept(t.expect(() -> c.check(), Order.PairFailure.class));
         verify.accept(t.expect(() -> c.checkComparable(Integer.class),
-	    Order.PairFailure.class));
+            Order.PairFailure.class));
     }
 
     @Test
@@ -248,9 +248,9 @@ public final class TestOrder {
         c.add(item);
         t.expect(() -> c.checkComparable(Integer.class),
             Order.ObjectFailure.class)
-	    .map(Order.ObjectFailure::failed,
-		e -> e.is(Order.Failed.COMPARABLE))
-	    .map(Order.ObjectFailure::object, e -> e.isSame(item));
+            .map(Order.ObjectFailure::failed,
+                e -> e.is(Order.Failed.COMPARABLE))
+            .map(Order.ObjectFailure::object, e -> e.isSame(item));
     }
 
     @Test
@@ -262,11 +262,11 @@ public final class TestOrder {
         c.add(item1);
         t.expect(() -> c.checkComparable(Integer.class),
             Order.PairFailure.class)
-	    .map(Order.PairFailure::failed,
-		e -> e.is(Order.FailedPair.COMPARE_TO))
-	    .map(Order.PairFailure::expectedComparison, e -> e.is(-1))
-	    .map(Order.PairFailure::left, e -> e.isSame(item2))
-	    .map(Order.PairFailure::right, e -> e.isSame(item1));
+            .map(Order.PairFailure::failed,
+                e -> e.is(Order.FailedPair.COMPARE_TO))
+            .map(Order.PairFailure::expectedComparison, e -> e.is(-1))
+            .map(Order.PairFailure::left, e -> e.isSame(item2))
+            .map(Order.PairFailure::right, e -> e.isSame(item1));
     }
 
     @Test
@@ -283,11 +283,11 @@ public final class TestOrder {
         c.check();              // Equality implementation is not buggy.
         t.expect(() -> c.checkComparable(BrokenCompareTo.class),
             Order.PairFailure.class)
-	    .map(Order.PairFailure::failed,
-		e -> e.is(Order.FailedPair.COMPARE_TO))
-	    .map(Order.PairFailure::expectedComparison, e -> e.is(0))
-	    .map(Order.PairFailure::left, e -> e.isSame(item1))
-	    .map(Order.PairFailure::right, e -> e.isSame(item2));
+            .map(Order.PairFailure::failed,
+                e -> e.is(Order.FailedPair.COMPARE_TO))
+            .map(Order.PairFailure::expectedComparison, e -> e.is(0))
+            .map(Order.PairFailure::left, e -> e.isSame(item1))
+            .map(Order.PairFailure::right, e -> e.isSame(item2));
     }
 
     @Test
@@ -304,11 +304,11 @@ public final class TestOrder {
         c.check();              // Equality implementation is not buggy.
         t.expect(() -> c.checkComparable(BrokenCompareTo.class),
             Order.PairFailure.class)
-	    .map(Order.PairFailure::failed,
-		e -> e.is(Order.FailedPair.COMPARE_TO))
-	    .map(Order.PairFailure::expectedComparison, e -> e.is(-1))
-	    .map(Order.PairFailure::left, e -> e.isSame(item1))
-	    .map(Order.PairFailure::right, e -> e.isSame(item2));
+            .map(Order.PairFailure::failed,
+                e -> e.is(Order.FailedPair.COMPARE_TO))
+            .map(Order.PairFailure::expectedComparison, e -> e.is(-1))
+            .map(Order.PairFailure::left, e -> e.isSame(item1))
+            .map(Order.PairFailure::right, e -> e.isSame(item2));
     }
 
     private static final class BrokenCompareTo

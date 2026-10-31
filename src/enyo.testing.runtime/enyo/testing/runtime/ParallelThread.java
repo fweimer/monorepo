@@ -18,28 +18,28 @@ final class ParallelThread extends Thread {
     volatile Object result;
 
     ParallelThread(CountDownLatch startSignal, CountDownLatch endSignal,
-	ThrowingCallable<?> action) {
+        ThrowingCallable<?> action) {
         this.startSignal = startSignal;
-	this.endSignal = endSignal;
+        this.endSignal = endSignal;
         this.action = action;
     }
 
     @Override
     public void run() {
-	// Start calling the action after all threads have been
-	// launched, to achieve maximum parallel execution.
+        // Start calling the action after all threads have been
+        // launched, to achieve maximum parallel execution.
         try {
-	    startSignal.countDown();
-	    startSignal.await();
-	    result = action.call();
-	    endSignal.countDown();
+            startSignal.countDown();
+            startSignal.await();
+            result = action.call();
+            endSignal.countDown();
         } catch (Throwable e) {
-	    exception = e;
-	    // Signal premature exit.  It's likely that the other
-	    // threads are stuck because this thread failed.
-	    do
-		endSignal.countDown();
-	    while (endSignal.getCount() > 0);
+            exception = e;
+            // Signal premature exit.  It's likely that the other
+            // threads are stuck because this thread failed.
+            do
+                endSignal.countDown();
+            while (endSignal.getCount() > 0);
         }
     }
 }

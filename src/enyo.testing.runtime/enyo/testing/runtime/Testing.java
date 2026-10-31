@@ -316,9 +316,9 @@ public final class Testing implements enyo.testing.Testing {
 
             if (exception.isAssignableFrom(t.getClass()))
                 try {
-		    var cast = exception.cast(t);
+                    var cast = exception.cast(t);
                     consumer.accept(cast);
-		    return examine(cast);
+                    return examine(cast);
                 } catch (Throwable e) {
                     e.addSuppressed(t);
                     throw e;
@@ -334,7 +334,7 @@ public final class Testing implements enyo.testing.Testing {
             context = List.of(new Examined(label, null));
         recordFailureObjects(context, "missing exception",
             captureStackTrace(), exception);
-	return examine(null);
+        return examine(null);
     }
 
     @Override
@@ -353,77 +353,77 @@ public final class Testing implements enyo.testing.Testing {
 
     @Override
     public void parallel(List<? extends ThrowingRunnable> actions) {
-	parallelValues(actions.stream().map(
-	    action -> (ThrowingCallable<Void>) () -> {
-		action.run();
-		return null;
-	    })
-	    .toList());
+        parallelValues(actions.stream().map(
+            action -> (ThrowingCallable<Void>) () -> {
+                action.run();
+                return null;
+            })
+            .toList());
     }
 
     @Override
     public <V> List<V> parallelValues(
-	List<? extends ThrowingCallable<V>> actions) {
-	actions = List.copyOf(actions);
+        List<? extends ThrowingCallable<V>> actions) {
+        actions = List.copyOf(actions);
         if (actions.isEmpty())
             throw new IllegalArgumentException("No threads specified");
-	int threads = actions.size();
+        int threads = actions.size();
         if (resources != null)
             examine(threads)
                 .context("threads")
                 .check(Checks.lessThanOrEquals(resources.threads()));
-	for (var action : actions)
-	    Objects.requireNonNull(action);
+        for (var action : actions)
+            Objects.requireNonNull(action);
 
         CountDownLatch startSignal = new CountDownLatch(threads);
-	CountDownLatch endSignal = new CountDownLatch(threads);
+        CountDownLatch endSignal = new CountDownLatch(threads);
         ParallelThread[] workers = new ParallelThread[threads];
         for (int i = 0; i < threads; ++i)
             workers[i] = new ParallelThread(
-		startSignal, endSignal, actions.get(i));
+                startSignal, endSignal, actions.get(i));
         for (int i = 0; i < threads; ++i)
             workers[i].start();
 
-	// Wait for all the tests to complete (or at least one of them
-	// to throw).
+        // Wait for all the tests to complete (or at least one of them
+        // to throw).
         try {
-	    endSignal.await();
+            endSignal.await();
         } catch (InterruptedException e) {
-	    recordFailure(ExceptionPhase.EXECUTION, e);
+            recordFailure(ExceptionPhase.EXECUTION, e);
         }
 
-	// Collect the non-interrupt-related exceptions.
-	boolean haveExceptions = false;
+        // Collect the non-interrupt-related exceptions.
+        boolean haveExceptions = false;
         for (var worker : workers) {
             Throwable e = worker.exception;
             if (e != null) {
                 recordFailure(ExceptionPhase.EXECUTION, e);
-		haveExceptions = true;
-	    }
-	}
+                haveExceptions = true;
+            }
+        }
 
-	// Interrupt all threads, so that any exception-related
-	// failure gets reported more quickly.
-	if (haveExceptions)
-	    for (var worker : workers)
-		worker.interrupt();
+        // Interrupt all threads, so that any exception-related
+        // failure gets reported more quickly.
+        if (haveExceptions)
+            for (var worker : workers)
+                worker.interrupt();
 
-	// Collect the results.  Some of the may be null due to
-	// exceptions and the subsequent interupts.
-	var result = new ArrayList<V>(threads);
+        // Collect the results.  Some of the may be null due to
+        // exceptions and the subsequent interupts.
+        var result = new ArrayList<V>(threads);
         for (int i = 0; i < threads; ++i) {
-	    try {
-		workers[i].join();
-	    } catch (InterruptedException e) {
-		recordFailure(ExceptionPhase.EXECUTION, e);
-	    }
-	    @SuppressWarnings("unchecked")
-	    var result0 = (V) workers[i].result;
-	    result.add(result0);
-	}
+            try {
+                workers[i].join();
+            } catch (InterruptedException e) {
+                recordFailure(ExceptionPhase.EXECUTION, e);
+            }
+            @SuppressWarnings("unchecked")
+            var result0 = (V) workers[i].result;
+            result.add(result0);
+        }
 
-	// Null references might be among the results.
-	return Collections.unmodifiableList(result);
+        // Null references might be among the results.
+        return Collections.unmodifiableList(result);
     }
 
     void recordFailure(ExaminerBase top, String check) {

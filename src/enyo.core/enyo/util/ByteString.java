@@ -250,7 +250,7 @@ public final class ByteString implements Comparable<ByteString>, Serializable {
      * @see MemorySegment#asReadOnly()
      */
     public MemorySegment asMemorySegment() {
-	return MemorySegment.ofArray(data).asReadOnly();
+        return MemorySegment.ofArray(data).asReadOnly();
     }
 
     /**

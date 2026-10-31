@@ -65,16 +65,16 @@ public final class TestSharedIntArray {
             t.expect(() -> SharedIntArray.open(path, 1,
                     StandardOpenOption.READ, StandardOpenOption.WRITE),
                 NoSuchFileException.class)
-		.map(Exception::getMessage).is(path.toString());
+                .map(Exception::getMessage).is(path.toString());
             t.expect(() -> SharedIntArray.open(tmp.path(), 1,
                     StandardOpenOption.READ, StandardOpenOption.WRITE),
                 FileSystemException.class)
-		.map(FileSystemException::getMessage,
-		    e -> e.is(tmp.path() + ": Is a directory"))
-		.map(FileSystemException::getFile,
-		    e -> e.is(tmp.path().toString()))
-		.map(FileSystemException::getReason,
-		    e -> e.is("Is a directory"));
+                .map(FileSystemException::getMessage,
+                    e -> e.is(tmp.path() + ": Is a directory"))
+                .map(FileSystemException::getFile,
+                    e -> e.is(tmp.path().toString()))
+                .map(FileSystemException::getReason,
+                    e -> e.is("Is a directory"));
         }
     }
 
@@ -85,8 +85,8 @@ public final class TestSharedIntArray {
             t.expect(() -> SharedIntArray.open(tmp.path(), 1,
                     StandardOpenOption.READ, StandardOpenOption.WRITE),
                 IOException.class)
-	    .map(Exception::getMessage)
-	    .test(s -> s.endsWith(
+            .map(Exception::getMessage)
+            .test(s -> s.endsWith(
                 ": invalid file size 3, expected 4 bytes (1 elements)"));
         }
     }
@@ -112,7 +112,7 @@ public final class TestSharedIntArray {
             t.examine(array.get(0)).is(value);
             t.expect(() -> array.set(0, 0),
                 UnsupportedOperationException.class)
-		.map(Exception::getCause)
+                .map(Exception::getCause)
                 .isExactClass(ReadOnlyBufferException.class);
         }
     }

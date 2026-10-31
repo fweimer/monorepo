@@ -48,19 +48,19 @@ public final class TestChecksComparable {
     public void testInvalidRange(Testing t) {
         t.expect(() -> Checks.inRange("low", "high"),
             IllegalArgumentException.class)
-	    .map(Exception::getMessage).is(
+            .map(Exception::getMessage).is(
                 "inRange: low end greater than high end");
         t.expect(() -> Checks.inRangeClosed("low", "high"),
             IllegalArgumentException.class)
-	    .map(Exception::getMessage).is(
+            .map(Exception::getMessage).is(
                 "inRangeClosed: low end greater than high end");
         t.expect(() -> Checks.notInRange("low", "high"),
             IllegalArgumentException.class)
-	    .map(Exception::getMessage).is(
+            .map(Exception::getMessage).is(
                 "notInRange: low end greater than high end");
         t.expect(() -> Checks.notInRangeClosed("low", "high"),
             IllegalArgumentException.class)
-	    .map(Exception::getMessage).is(
+            .map(Exception::getMessage).is(
                 "notInRangeClosed: low end greater than high end");
     }
 

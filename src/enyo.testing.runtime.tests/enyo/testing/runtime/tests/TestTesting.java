@@ -64,7 +64,7 @@ public final class TestTesting {
 
         // This should throw, but not record an exception match failure.
         t.expect(() -> t.fullBarrier(), IllegalArgumentException.class)
-	    .test(_ -> t.assertFail("unreachable"));
+            .test(_ -> t.assertFail("unreachable"));
 
         // This should not be reached.
         throw new UnsupportedOperationException("unexpected");
@@ -72,15 +72,15 @@ public final class TestTesting {
 
     @Test
     public void testExpect(Testing t) {
-	@SuppressWarnings("serial")
-	class E extends Exception { }
-	var e = new E();
-	t.expect(() -> { throw e; }, E.class).isSame(e);
+        @SuppressWarnings("serial")
+        class E extends Exception { }
+        var e = new E();
+        t.expect(() -> { throw e; }, E.class).isSame(e);
 
-	@SuppressWarnings("serial")
-	class E1 extends E { }
-	var e1 = new E1();
-	t.expect(() -> { throw e1; }, E.class).isSame(e1);
+        @SuppressWarnings("serial")
+        class E1 extends E { }
+        var e1 = new E1();
+        t.expect(() -> { throw e1; }, E.class).isSame(e1);
     }
 
     @Test

@@ -42,7 +42,7 @@ public final class TestFileIdentity {
 
             t.expect(() -> FileIdentity.of(attrs),
                 IllegalArgumentException.class)
-		.map(Exception::getMessage).is("Symbolic link: " + attrs);
+                .map(Exception::getMessage).is("Symbolic link: " + attrs);
             t.expect(() -> FileIdentity.of(link),
                 IllegalArgumentException.class)
                 .map(Exception::getMessage).is("Symbolic link: " + link);
@@ -219,11 +219,11 @@ public final class TestFileIdentity {
 
                         t.expect(() -> FileIdentity.of(attrs),
                             IllegalArgumentException.class)
-			    .map(Exception::getMessage)
+                            .map(Exception::getMessage)
                             .is("File without identity: " + attrs);
                         t.expect(() -> FileIdentity.of(path),
                             IllegalArgumentException.class)
-			    .map(Exception::getMessage)
+                            .map(Exception::getMessage)
                             .is("File without identity: " + path);
                     }));
     }
@@ -236,7 +236,7 @@ public final class TestFileIdentity {
                     dir.resolve("subdirectory").resolve("file")))
                 t.expect(() -> FileIdentity.of(path),
                     NoSuchFileException.class)
-		    .map(Exception::getMessage).is(path.toString());
+                    .map(Exception::getMessage).is(path.toString());
         }
     }
 

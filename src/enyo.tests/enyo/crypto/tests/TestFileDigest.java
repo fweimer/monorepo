@@ -54,21 +54,21 @@ public final class TestFileDigest {
             () -> FileDigest.ofHexDigest(DigestAlgorithm.MD5, 1,
                 "68b329da9893e34099c7d8ad5cb9c94"),
             IllegalArgumentException.class)
-	    .map(Exception::getMessage).is(
-		"Digest of odd length: 68b329da9893e34099c7d8ad5cb9c94");
+            .map(Exception::getMessage).is(
+                "Digest of odd length: 68b329da9893e34099c7d8ad5cb9c94");
         t.expect(
             () -> FileDigest.ofHexDigest(DigestAlgorithm.MD5, 1,
                 "68b329da9893e34099c7d8ad5cb9c9"),
             IllegalArgumentException.class)
-	    .map(Exception::getMessage).is(
-		"Invalid digest length 15 for MD5, should be 16:"
+            .map(Exception::getMessage).is(
+                "Invalid digest length 15 for MD5, should be 16:"
                 + " 68b329da9893e34099c7d8ad5cb9c9");
         t.expect(
             () -> FileDigest.ofHexDigest(DigestAlgorithm.MD5, 1,
                 "68b329da9893e34099c7d8ad5cb9c94000"),
             IllegalArgumentException.class)
-	    .map(Exception::getMessage).is(
-		"Invalid digest length 17 for MD5, should be 16:"
+            .map(Exception::getMessage).is(
+                "Invalid digest length 17 for MD5, should be 16:"
                 + " 68b329da9893e34099c7d8ad5cb9c94000");
     }
 

@@ -55,12 +55,12 @@ public final class TestLookupClassValue {
     public static void testConcurrent(Testing t) throws Exception {
         var classes = unnamedClasses(100);
         var cv = LookupClassValue.of((_, cls) -> new Value(cls));
-	var values = t.parallelValues(IntStream.range(0, THREADS)
-	    .mapToObj(_ -> (ThrowingCallable<List<Value>>) () ->
-		classes.stream()
-		.map(cls -> cv.get(lookup(), cls))
-		.toList())
-	    .toList());
+        var values = t.parallelValues(IntStream.range(0, THREADS)
+            .mapToObj(_ -> (ThrowingCallable<List<Value>>) () ->
+                classes.stream()
+                .map(cls -> cv.get(lookup(), cls))
+                .toList())
+            .toList());
         for (var l : values) {
             t.examine(l.stream()
                 .map(Value::name)

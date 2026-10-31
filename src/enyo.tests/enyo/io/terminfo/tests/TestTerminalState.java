@@ -28,8 +28,8 @@ public final class TestTerminalState {
     @Test
     public static void testInvalidStringFormat(Testing t) {
         runScript(t, "%#s", TerminalScriptException.class,
-	    e -> e.map(Throwable::getMessage)
-		.is("%s directive at offset 0 does not support # flag"));
+            e -> e.map(Throwable::getMessage)
+                .is("%s directive at offset 0 does not support # flag"));
     }
 
     @Test
@@ -48,7 +48,7 @@ public final class TestTerminalState {
     public static void testInvalidDecimalFormat(Testing t) {
         runScript(t, "%#d", TerminalScriptException.class,
             e -> e.map(Throwable::getMessage)
-		.is("%d directive at offset 0 does not support # flag"));
+                .is("%d directive at offset 0 does not support # flag"));
     }
 
     @Test
@@ -175,7 +175,7 @@ public final class TestTerminalState {
         Consumer<Examiner<? extends Throwable>> verifier) {
         runScript(t, script, "",
             (state, blob) -> verifier.accept(
-		t.expect(() -> state.runScript(blob), exception)));
+                t.expect(() -> state.runScript(blob), exception)));
     }
 
     public static void runScript(Testing t,

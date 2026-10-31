@@ -15,7 +15,7 @@ public final class TestCounter {
         t.examine(c.value()).is(0);
         t.expect(() -> c.checkTarget(),
             TestFailure.class)
-	    .map(Exception::getMessage).is(
+            .map(Exception::getMessage).is(
                 "Counter has not reached target 1: 0");
         t.examine(c.target()).is(1);
         t.examine(c.value()).is(0);
@@ -25,7 +25,7 @@ public final class TestCounter {
         t.examine(c.value()).is(1);
         t.expect(() -> c.increment(),
             TestFailure.class)
-	    .map(Exception::getMessage).is("Counter reached target: 1");
+            .map(Exception::getMessage).is("Counter reached target: 1");
         t.examine(c.target()).is(1);
         t.examine(c.value()).is(1);
         c.reset();
@@ -33,8 +33,8 @@ public final class TestCounter {
         t.examine(c.value()).is(0);
         t.expect(() -> c.checkTarget(),
             TestFailure.class)
-	    .map(Exception::getMessage).is(
-		"Counter has not reached target 1: 0");
+            .map(Exception::getMessage).is(
+                "Counter has not reached target 1: 0");
         t.examine(c.target()).is(1);
         t.examine(c.value()).is(0);
         c.increment();
@@ -51,8 +51,8 @@ public final class TestCounter {
 
         t.expect(() -> c.increment(),
             TestFailure.class)
-	    .map(Exception::getMessage).is(
-		"Counter reached target: " + target);
+            .map(Exception::getMessage).is(
+                "Counter reached target: " + target);
         t.examine(c.target()).is(target);
         t.examine(c.value()).is(target);
 
@@ -62,7 +62,7 @@ public final class TestCounter {
         t.examine(c.value()).is(1);
         t.expect(() -> c.checkTarget(),
             TestFailure.class)
-	    .map(Exception::getMessage).is(
+            .map(Exception::getMessage).is(
                 "Counter has not reached target " + target + ": 1");
         c.reset();
         doLoop(t, c, target);

@@ -39,9 +39,9 @@ public final class TestByteString {
             .map(ByteBuffer::order, e0 -> e0.is(ByteOrder.BIG_ENDIAN))
             .is(ByteBuffer.allocate(0));
         t.examine(ByteString.of(new byte[0])).isSame(ByteString.of());
-	t.examine(ByteString.of().asMemorySegment())
+        t.examine(ByteString.of().asMemorySegment())
             .test(MemorySegment::isReadOnly)
-	    .mapToLong(MemorySegment::byteSize, e0 -> e0.is(0));
+            .mapToLong(MemorySegment::byteSize, e0 -> e0.is(0));
     }
 
     @Test
@@ -66,11 +66,11 @@ public final class TestByteString {
                     .mapToInt(ByteBuffer::capacity, e0 -> e0.is(1))
                     .map(ByteBuffer::order, e0 -> e0.is(ByteOrder.BIG_ENDIAN))
                     .is(ByteBuffer.wrap(new byte[] { b })))
-		.map(ByteString::asMemorySegment, e -> e
-		    .test(MemorySegment::isReadOnly)
-		    .mapToLong(MemorySegment::byteSize, e0 -> e0.is(1L))
-		    .map(m -> m.get(ValueLayout.JAVA_BYTE, 0),
-			e0 -> e0.is(b)))
+                .map(ByteString::asMemorySegment, e -> e
+                    .test(MemorySegment::isReadOnly)
+                    .mapToLong(MemorySegment::byteSize, e0 -> e0.is(1L))
+                    .map(m -> m.get(ValueLayout.JAVA_BYTE, 0),
+                        e0 -> e0.is(b)))
                 .isSame(ByteString.of(new byte[] { b }))
                 .check(Checks.greaterThan(last));
             t.expect(() -> s.byteAt(-1), IndexOutOfBoundsException.class);
@@ -110,13 +110,13 @@ public final class TestByteString {
                         .map(ByteBuffer::order,
                             e0 -> e0.is(ByteOrder.BIG_ENDIAN))
                         .is(ByteBuffer.wrap(new byte[] { b0, b1 })))
-		    .map(ByteString::asMemorySegment, e -> e
-			.test(MemorySegment::isReadOnly)
-			.mapToLong(MemorySegment::byteSize, e0 -> e0.is(2L))
-			.map(m -> m.get(ValueLayout.JAVA_BYTE, 0),
-			    e0 -> e0.is(b0))
-			.map(m -> m.get(ValueLayout.JAVA_BYTE, 1),
-			    e0 -> e0.is(b1)))
+                    .map(ByteString::asMemorySegment, e -> e
+                        .test(MemorySegment::isReadOnly)
+                        .mapToLong(MemorySegment::byteSize, e0 -> e0.is(2L))
+                        .map(m -> m.get(ValueLayout.JAVA_BYTE, 0),
+                            e0 -> e0.is(b0))
+                        .map(m -> m.get(ValueLayout.JAVA_BYTE, 1),
+                            e0 -> e0.is(b1)))
                     .check(Checks.greaterThan(last));
                 t.expect(() -> s.byteAt(-1), IndexOutOfBoundsException.class);
                 t.expect(() -> s.byteAt(3), IndexOutOfBoundsException.class);
@@ -170,8 +170,8 @@ public final class TestByteString {
             .check(Checks.byteArrayEquals(new byte[] { 65, 0, 66, 0 }));
         t.expect(() -> ByteString.of("\u0100", StandardCharsets.ISO_8859_1),
             IllegalArgumentException.class)
-	    .map(Exception::getCause)
-	    .map(CharacterCodingException.class);
+            .map(Exception::getCause)
+            .map(CharacterCodingException.class);
     }
 
     @Test
@@ -187,8 +187,8 @@ public final class TestByteString {
             .is(ByteString.of((byte) 0xc3, (byte) 0xa4));
         t.expect(() -> ByteString.ofUTF8("\uD800"),
             IllegalArgumentException.class)
-	    .map(Exception::getCause)
-	    .map(CharacterCodingException.class);
+            .map(Exception::getCause)
+            .map(CharacterCodingException.class);
     }
 
     @Test
