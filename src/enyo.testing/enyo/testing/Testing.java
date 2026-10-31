@@ -217,8 +217,10 @@ public interface Testing {
      * @param source the callback that is expected to throw
      * @param exception the type of the expected exception
      * @param <E> the type of the expected exception
+     * @return an examiner for the thrown exception, or the null value in
+     *   case the exception is missing
      */
-    <E extends Throwable> void expect(
+    <E extends Throwable> Examiner<E> expect(
         ThrowingRunnable source, Class<E> exception);
 
     /**
@@ -239,8 +241,11 @@ public interface Testing {
      * @param source the callback that is expected to throw
      * @param exception the type of the expected exception
      * @param <E> the type of the expected exception
+     * @return an examiner for the thrown exception, or the null value in
+     *   case the exception is missing
      */
-    <E extends Throwable> void expect(String label, ThrowingRunnable source,
+    <E extends Throwable> Examiner<E> expect(
+	String label, ThrowingRunnable source,
         Class<E> exception);
 
     /**

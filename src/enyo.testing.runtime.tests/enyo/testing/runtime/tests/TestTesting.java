@@ -71,6 +71,19 @@ public final class TestTesting {
     }
 
     @Test
+    public void testExpect(Testing t) {
+	@SuppressWarnings("serial")
+	class E extends Exception { }
+	var e = new E();
+	t.expect(() -> { throw e; }, E.class).isSame(e);
+
+	@SuppressWarnings("serial")
+	class E1 extends E { }
+	var e1 = new E1();
+	t.expect(() -> { throw e1; }, E.class).isSame(e1);
+    }
+
+    @Test
     public void testUnsupported(Testing t) {
         List<Recorder.Call> history;
 

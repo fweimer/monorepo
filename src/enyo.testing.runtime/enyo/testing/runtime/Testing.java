@@ -295,9 +295,9 @@ public final class Testing implements enyo.testing.Testing {
     }
 
     @Override
-    public <E extends Throwable> void expect(
+    public <E extends Throwable> Examiner<E> expect(
         ThrowingRunnable source, Class<E> exception) {
-        expect(source, exception, e -> { });
+        return expect0("", source, exception, e -> { });
     }
 
     @Override
@@ -308,12 +308,12 @@ public final class Testing implements enyo.testing.Testing {
     }
 
     @Override
-    public <E extends Throwable> void expect(String label,
+    public <E extends Throwable> Examiner<E> expect(String label,
         ThrowingRunnable source, Class<E> exception) {
-        expect(label, source, exception, e -> { });
+        return expect0(" for: " + label, source, exception, e -> { });
     }
 
-    private <T, E extends Throwable> void expect0(
+    private <T, E extends Throwable> Examiner<E> expect0(
         String label, ThrowingRunnable source,
         Class<E> exception, Consumer<? super E> consumer) {
         Objects.requireNonNull(exception, "exception");
@@ -327,7 +327,9 @@ public final class Testing implements enyo.testing.Testing {
 
             if (exception.isAssignableFrom(t.getClass()))
                 try {
-                    consumer.accept(exception.cast(t));
+		    var cast = exception.cast(t);
+                    consumer.accept(cast);
+		    return examine(cast);
                 } catch (Throwable e) {
                     e.addSuppressed(t);
                     throw e;
@@ -335,7 +337,6 @@ public final class Testing implements enyo.testing.Testing {
             else
                 recordFailure(Examined.contextFromString(label),
                     ExceptionPhase.EXCEPTION_TEST, t, exception);
-            return;
         }
         List<Examined> context;
         if (label == null)
@@ -344,6 +345,7 @@ public final class Testing implements enyo.testing.Testing {
             context = List.of(new Examined(label, null));
         recordFailureObjects(context, "missing exception",
             captureStackTrace(), exception);
+	return examine(null);
     }
 
     @Override
