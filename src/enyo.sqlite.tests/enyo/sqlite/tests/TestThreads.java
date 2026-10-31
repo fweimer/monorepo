@@ -10,11 +10,12 @@ import enyo.io.TempDirectory;
 import enyo.testing.Resources;
 import enyo.testing.Test;
 import enyo.testing.Testing;
+import enyo.testing.ThrowingRunnable;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.concurrent.BrokenBarrierException;
-import java.util.concurrent.CyclicBarrier;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.IntStream;
 
 public class TestThreads {
@@ -29,20 +30,10 @@ public class TestThreads {
         try (TempDirectory dir = TempDirectory.withPrefix("enyo-sqlite-")) {
             var path = dir.resolve("db").toString(); // FIXME: add Path support
 
-            var threads = new Thread[THREADS];
-            var barrier = new CyclicBarrier(THREADS);
-            for (int i = 0; i < THREADS; ++i) {
-                int i0 = i;
-                threads[i0] = new Thread(
-                    () -> {try {
-                        parallelDatabase(t, path, barrier, i0);
-                    } catch (Throwable e) {
-                        e.printStackTrace(); } });
-                threads[i0].start();
-            }
-            for (int i = 0; i < THREADS; ++i)
-                threads[i].join();
-
+	    t.parallel(IntStream.range(0, THREADS)
+		.mapToObj(i -> (ThrowingRunnable)
+                    () -> TestThreads.parallelDatabase(t, path, i))
+		.toList());
             try (var db = Database.of(path, OpenFlag.READONLY)) {
                 checkResult(t, db);
             }
@@ -57,19 +48,10 @@ public class TestThreads {
                 CREATE TABLE IF NOT EXISTS tab
                 (x INTEGER NOT NULL, y INTEGER NOT NULL)"""); //");
 
-            var threads = new Thread[THREADS];
-            var barrier = new CyclicBarrier(THREADS);
-            for (int i = 0; i < THREADS; ++i) {
-                int i0 = i;
-                threads[i0] = new Thread(
-                    () -> {try {
-                        sharedDatabase(t, db, barrier, i0);
-                    } catch (Throwable e) {
-                        e.printStackTrace(); } });
-                threads[i0].start();
-            }
-            for (int i = 0; i < THREADS; ++i)
-                threads[i].join();
+	    t.parallel(IntStream.range(0, THREADS)
+		.mapToObj(i -> (ThrowingRunnable)
+                    () -> TestThreads.sharedDatabase(t, db, i))
+		.toList());
 
             checkResult(t, db);
         }
@@ -92,14 +74,7 @@ public class TestThreads {
     }
 
     private static void parallelDatabase(Testing t,
-        String path, CyclicBarrier barrier, int i) {
-        // Make it more likely that the code below runs
-        // concurrently.
-        try {
-            barrier.await();
-        } catch (BrokenBarrierException | InterruptedException e) {
-            throw new AssertionError(e);
-        }
+        String path, int i) {
         try (var db = Database.of(
                 path, OpenFlag.READWRITE, OpenFlag.CREATE)) {
             execCarefully(t, db, """
@@ -117,15 +92,7 @@ public class TestThreads {
         }
     }
 
-    private static void sharedDatabase(Testing t,
-        Database db, CyclicBarrier barrier, int i) {
-        // Make it more likely that the code below runs
-        // concurrently.
-        try {
-            barrier.await();
-        } catch (BrokenBarrierException | InterruptedException e) {
-            throw new AssertionError(e);
-        }
+    private static void sharedDatabase(Testing t, Database db, int i) {
         // Statement-level locking prevents BUSY errors.
         try (var stmt = db.prepare("INSERT INTO tab VALUES (?, ?)")) {
             stmt.bind(1, i);
@@ -200,27 +167,15 @@ public class TestThreads {
 
                 db1.busyTimeout(Integer.MAX_VALUE);
 
-                var barrier = new CyclicBarrier(2);
-                var thr = new Thread(
+		t.parallel(List.of(
                     () -> {
-                        try {
-                            barrier.await();
-                            // Slight delay, so that the db1.exec(String)
-                            // call below has a chance to fail.
-                            Thread.sleep(100);
-                        } catch (BrokenBarrierException
-                            | InterruptedException e) {
-                            throw new AssertionError(e);
-                        }
+                        // Slight delay, so that the db1.exec(String)
+                        // call below has a chance to fail.
+                        Thread.sleep(100);
                         db2.exec("COMMIT");
-                    });
-                thr.start();
-                barrier.await();
-
-                // This is now expected to wait and succeed ventually.
-                db1.exec("CREATE TABLE t (rowid INTEGER NOT NULL PRIMARY KEY)");
-
-                thr.join();
+                    },
+		    () -> db1.exec(
+"CREATE TABLE t (rowid INTEGER NOT NULL PRIMARY KEY)")));
             }
 	}
     }
@@ -229,38 +184,25 @@ public class TestThreads {
     @Resources(threads=2)
     public static void testInterrupt(Testing t) throws Exception {
         try (var db = Database.inMemory()) {
-            var barrier = new CyclicBarrier(2);
-
-            // Interrupting thread.
-            var thr = new Thread(
+	    var done = new AtomicBoolean();
+	    t.parallel(List.<ThrowingRunnable>of(
+		// Interrupting thread.
                 () -> {
-                    try {
-                        barrier.await();
-                        // Slight delay, so that the db.exec(String)
-                        // call below has a chance to fail.
-                        Thread.sleep(100);
-                    } catch (BrokenBarrierException
-                        | InterruptedException e) {
-                        throw new AssertionError(e);
-                    }
-                    // subsequent interrupt is effective if
-                    // earlier ones arrive before the db.exec(String)
-                    // call below.
-                    while (true) {
+                    // Slight delay, so that the db.exec(String)
+                    // call below has a chance to fail.
+                    Thread.sleep(100);
+		    // Loop is required because thei interrupt may
+		    // arrive too early.
+		    while (!done.get()) {
                         db.interrupt();
-                        try {
-                            Thread.sleep(50);
-                        } catch (InterruptedException e) {
-                            break;
-                        }
-                    }
-                });
-            thr.start();
-            barrier.await();
-
-            // This is guaranteed to run for a very long time, so
-            // the other thread will interrupt the query.
-            String sql = """
+			Thread.sleep(50);
+		    }
+                },
+		// Blocked thread.
+		() -> {
+		    // This is guaranteed to run for a very long time, so
+		    // the other thread will interrupt the query.
+		    String sql = """
 WITH RECURSIVE c(x) AS (
   VALUES(1)
   UNION ALL
@@ -268,16 +210,14 @@ WITH RECURSIVE c(x) AS (
 )
 SELECT x FROM c WHERE x < 0
 """;
-
-            t.expect(() ->
-                db.exec(sql),
-                SQLiteException.class)
-                .map(SQLiteException::getMessage, e0 -> e0.is(
-                        "interrupted [9]"))
-                .map(SQLiteException::errorCode, e0 -> e0.is(9));
-
-            thr.interrupt();
-            thr.join();
+		    t.expect(() ->
+			db.exec(sql),
+			SQLiteException.class)
+			.map(SQLiteException::getMessage, e0 -> e0.is(
+                            "interrupted [9]"))
+			.map(SQLiteException::errorCode, e0 -> e0.is(9));
+		    done.set(true);
+		}));
         }
     }
 }
