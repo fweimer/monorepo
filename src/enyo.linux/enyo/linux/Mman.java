@@ -1,7 +1,9 @@
 // Auto-generated.  Do not edit.
 package enyo.linux;
 
-class Mman {
+final class Mman {
+    private Mman() {} // No instances.
+
     public final static int HUGETLB_FLAG_ENCODE_16GB;
     public final static int HUGETLB_FLAG_ENCODE_16KB;
     public final static int HUGETLB_FLAG_ENCODE_16MB;

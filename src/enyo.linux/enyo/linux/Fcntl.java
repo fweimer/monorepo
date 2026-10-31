@@ -1,7 +1,9 @@
 // Auto-generated.  Do not edit.
 package enyo.linux;
 
-class Fcntl {
+final class Fcntl {
+    private Fcntl() {} // No instances.
+
     public final static int AT_EACCESS;
     public final static int AT_EMPTY_PATH;
     public final static int AT_EXECVE_CHECK;

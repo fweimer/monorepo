@@ -10,6 +10,9 @@ package enyo.linux;
  */
 @SuppressWarnings("doclint:missing")
 public final class Errno {
+    private Errno() {} // No instances.
+
+// Auto-generated.  Do not edit.  (macroConstants)
     public final static int E2BIG;
     public final static int EACCES;
     public final static int EADDRINUSE;
@@ -302,4 +305,5 @@ public final class Errno {
             throw new UnsupportedOperationException(osArch);
         }
     }
+// End auto-generated section.  (macroConstants)
 }
