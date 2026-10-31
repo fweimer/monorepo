@@ -51,34 +51,71 @@ public final class TestTestingParallel {
     }
 
     @Test
-    @Resources(threads=3)
+    @Resources(threads=10)
     public static void testExceptions(Testing t) {
         List<Recorder.Call> history = Helpers.testHistory(
             t, TestTestingParallel.class, "exceptions");
         t.examine(Helpers.isSuccess(t, history)).is(false);
-        t.examine(history.size()).is(4);
-        t.examine(history.subList(0, 3).stream()
-            .map(Object::getClass)
-            .collect(Collectors.toSet()))
-            .isObject(Set.of(Recorder.Exception.class));
-        t.examine(history.subList(0, 3).stream()
-            .map(res -> (Recorder.Exception) res)
-            .map(res -> res.exception.getMessage())
-            .collect(Collectors.toSet()))
-            .is(Set.of("thread 1", "thread 2", "thread 3"));
+
+	// The failure history can contain a varying number of
+	// exception failures, depending on how quickly the tests
+	// proceeded.
+	t.examine(history.size())
+	    .check(Checks.greaterThanOrEquals(2));
+	for (var h : history.subList(0, history.size() - 1))
+	    t.examine(h)
+		.map(Recorder.Exception.class)
+		.map(e -> e.exception)
+		.map(Throwable::getMessage)
+		.test(s -> s.startsWith("thread "));
+	t.examine(history.get(history.size() - 1))
+	    .map(Recorder.Completed.class);
     }
 
     // Not marked with @Test due to expected test failure.
-    @Resources(threads=3)
+    @Resources(threads=10)
     public static void exceptions(Testing t) {
         AtomicInteger counter = new AtomicInteger();
-	ThrowingCallable<Integer> f = () -> {
-            int assigned = counter.incrementAndGet();
-            throw new Throwable("thread " + assigned);
-        };
-        t.examine(t.parallelValues(List.of(f, f, f)))
-	    .is(Arrays.asList(null, null, null));
-        t.examine(counter.get()).is(3);
+        t.examine(t.parallelValues(IntStream.range(0, 10)
+	    .mapToObj(i -> (ThrowingCallable<Integer>) () -> {
+	    counter.incrementAndGet();
+	    throw new Throwable("thread " + i);
+        }).toList()))
+	    .is(Arrays.asList(new Integer[10]));
+        t.examine(counter.get()).is(10);
+    }
+
+    @Test
+    @Resources(threads=10)
+    public static void testExceptionsInterrupt(Testing t) {
+        List<Recorder.Call> history = Helpers.testHistory(
+            t, TestTestingParallel.class, "exceptionsInterrupt");
+        t.examine(Helpers.isSuccess(t, history)).is(false);
+	// There is exactly one failure in the history, from the
+	// exception.  (InterruptedException from the post-failure
+	// interrupts should not be recorded.)
+	t.examine(history.size()).is(2);
+	t.examine(history.get(0))
+	    .map(Recorder.Exception.class)
+	    .map(e -> e.exception)
+	    .map(Throwable::getMessage)
+	    .test(s -> s.startsWith("exit"));
+
+	t.examine(history.get(history.size() - 1))
+	    .map(Recorder.Completed.class);
+    }
+
+    // Not marked with @Test due to expected test failure.
+    @Resources(threads=10)
+    public static void exceptionsInterrupt(Testing t) {
+        t.examine(t.parallelValues(IntStream.range(0, 10)
+	    .mapToObj(i -> (ThrowingCallable<String>) () -> {
+	    if (i == 0)
+		throw new Throwable("exit");
+	    Thread.sleep(Long.MAX_VALUE);
+	    return "unreachable";
+	}).toList()))
+	    .is(Arrays.asList(new String[10]));
     }
 
     @Test

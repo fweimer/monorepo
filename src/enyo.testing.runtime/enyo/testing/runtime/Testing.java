@@ -376,27 +376,52 @@ public final class Testing implements enyo.testing.Testing {
 	    Objects.requireNonNull(action);
 
         CountDownLatch startSignal = new CountDownLatch(threads);
+	CountDownLatch endSignal = new CountDownLatch(threads);
         ParallelThread[] workers = new ParallelThread[threads];
         for (int i = 0; i < threads; ++i)
-            workers[i] = new ParallelThread(startSignal, actions.get(i));
+            workers[i] = new ParallelThread(
+		startSignal, endSignal, actions.get(i));
         for (int i = 0; i < threads; ++i)
             workers[i].start();
+
+	// Wait for all the tests to complete (or at least one of them
+	// to throw).
+        try {
+	    endSignal.await();
+        } catch (InterruptedException e) {
+	    recordFailure(ExceptionPhase.EXECUTION, e);
+        }
+
+	// Collect the non-interrupt-related exceptions.
+	boolean haveExceptions = false;
+        for (var worker : workers) {
+            Throwable e = worker.exception;
+            if (e != null) {
+                recordFailure(ExceptionPhase.EXECUTION, e);
+		haveExceptions = true;
+	    }
+	}
+
+	// Interrupt all threads, so that any exception-related
+	// failure gets reported more quickly.
+	if (haveExceptions)
+	    for (var worker : workers)
+		worker.interrupt();
+
+	// Collect the results.  Some of the may be null due to
+	// exceptions and the subsequent interupts.
 	var result = new ArrayList<V>(threads);
         for (int i = 0; i < threads; ++i) {
-            try {
+	    try {
 		workers[i].join();
-            } catch (InterruptedException e) {
+	    } catch (InterruptedException e) {
 		recordFailure(ExceptionPhase.EXECUTION, e);
-            }
+	    }
 	    @SuppressWarnings("unchecked")
 	    var result0 = (V) workers[i].result;
 	    result.add(result0);
 	}
-        for (int i = 0; i < threads; ++i) {
-            Throwable e = workers[i].exception;
-            if (e != null)
-                recordFailure(ExceptionPhase.EXECUTION, e);
-        }
+
 	// Null references might be among the results.
 	return Collections.unmodifiableList(result);
     }

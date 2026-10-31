@@ -243,8 +243,8 @@ public interface Testing {
     /**
      * Runs the actions in parallel, using separate threads.
      *
-     * A test failure may be recorded if {@code threads} is greater
-     * than the resources assigned to this .  Exceptions thrown by the
+     * A test failure may be recorded if {@code actions.size()} is greater
+     * than the resources assigned to this test.  Exceptions thrown by the
      * callbacks in {@code actions} result in test failures.
      *
      * @param actions for each thread, the action to perform
@@ -257,8 +257,8 @@ public interface Testing {
     /**
      * Runs the actions in parallel, using separate threads.
      *
-     * A test failure may be recorded if {@code threads} is greater
-     * than the resources assigned to this .  Exceptions thrown by the
+     * A test failure may be recorded if {@code actions.size()} is greater
+     * than the resources assigned to this test.  Exceptions thrown by the
      * callbacks in {@code actions} result in test failures.
      *
      * @param <V> the type of the return values
