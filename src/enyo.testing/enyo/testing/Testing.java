@@ -1,5 +1,7 @@
 package enyo.testing;
 
+import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
 /**
@@ -239,17 +241,35 @@ public interface Testing {
     void failedCheck(String check, Object... objects);
 
     /**
-     * Runs the action in parallel, using the indicated number of
-     * threads.  The threads are created using an unspecified method.
+     * Runs the actions in parallel, using separate threads.
+     *
      * A test failure may be recorded if {@code threads} is greater
-     * than the resources assigned to this .  Exceptions thrown by
-     * {@code action} result in test failures.
-     * @param threads the number of threads to run in parallel
-     * @param action the action to perform in each thread
-     * @throws IllegalArgumentException if {@code threads} is not positive
-     * @throws NullPointerException if {@code action} is null
+     * than the resources assigned to this .  Exceptions thrown by the
+     * callbacks in {@code actions} result in test failures.
+     *
+     * @param actions for each thread, the action to perform
+     * @throws IllegalArgumentException if {@code actions} is empty
+     * @throws NullPointerException if {@code actions} or any of its
+     *   elements are null
      */
-    void parallel(int threads, ThrowingRunnable action);
+    void parallel(List<? extends ThrowingRunnable> actions);
+
+    /**
+     * Runs the actions in parallel, using separate threads.
+     *
+     * A test failure may be recorded if {@code threads} is greater
+     * than the resources assigned to this .  Exceptions thrown by the
+     * callbacks in {@code actions} result in test failures.
+     *
+     * @param <V> the type of the return values
+     * @param actions for each thread, the action to perform
+     * @return an unmodifiable list with the callback results
+     *   (which may be null)
+     * @throws IllegalArgumentException if {@code actions} is empty
+     * @throws NullPointerException if {@code actions} or any of its
+     *   elements are null
+     */
+    <V> List<V> parallelValues(List<? extends ThrowingCallable<V>> actions);
 
     /**
      * Creates a new counter with the default target, 1.

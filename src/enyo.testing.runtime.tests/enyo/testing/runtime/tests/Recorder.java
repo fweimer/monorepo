@@ -95,6 +95,15 @@ final class Recorder implements Results {
             this.expected = expected;
         }
 
+	@Override
+	public String toString() {
+	    if (exception == null)
+		return "missing exception: " + expected.getName();
+	    else
+		return exception.getClass().getName()
+		       + ": " + exception.getMessage();
+	}
+
         void check(Testing t) {
             super.check(t);
             t.examine(phase).isNotNull();

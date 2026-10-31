@@ -5,20 +5,24 @@ import enyo.testing.Counter;
 import enyo.testing.Resources;
 import enyo.testing.Test;
 import enyo.testing.Testing;
+import enyo.testing.ThrowingCallable;
 import enyo.testing.introspect.ScheduledTest;
 import enyo.testing.introspect.TestResources;
 import enyo.testing.runtime.Examined;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public final class TestTestingParallel {
     @Test
     public static void test1(Testing t) {
         Counter counter = t.counter(1);
-        t.parallel(1, () -> counter.increment());
+        t.parallel(List.of(() -> counter.increment()));
         counter.checkTarget();
     }
 
@@ -26,7 +30,9 @@ public final class TestTestingParallel {
     @Resources(threads=2)
     public static void test2(Testing t) {
         Counter counter = t.counter(2);
-        t.parallel(2, () -> counter.increment());
+        t.parallel(List.of(
+	    () -> counter.increment(),
+	    () -> counter.increment()));
         counter.checkTarget();
     }
 
@@ -34,7 +40,13 @@ public final class TestTestingParallel {
     @Resources(threads=3)
     public static void test3(Testing t) {
         Counter counter = t.counter(3);
-        t.parallel(3, () -> counter.increment());
+        t.examine(t.parallelValues(IntStream.range(0, 3)
+	    .mapToObj(i -> (ThrowingCallable<Integer>) () -> {
+	    counter.increment();
+	    // The thread index is deteriministic.
+	    return i;
+	}).toList()))
+	    .is(List.of(0, 1, 2));
         counter.checkTarget();
     }
 
@@ -60,10 +72,12 @@ public final class TestTestingParallel {
     @Resources(threads=3)
     public static void exceptions(Testing t) {
         AtomicInteger counter = new AtomicInteger();
-        t.parallel(3, () -> {
-                int assigned = counter.incrementAndGet();
-                throw new Throwable("thread " + assigned);
-            });
+	ThrowingCallable<Integer> f = () -> {
+            int assigned = counter.incrementAndGet();
+            throw new Throwable("thread " + assigned);
+        };
+        t.examine(t.parallelValues(List.of(f, f, f)))
+	    .is(Arrays.asList(null, null, null));
         t.examine(counter.get()).is(3);
     }
 
@@ -89,7 +103,8 @@ public final class TestTestingParallel {
     // Not marked with @Test due to expected test failure.
     public static void underAllocation(Testing t) {
         Counter counter = t.counter(2);
-        t.parallel(2, () -> counter.increment());
+        t.parallel(List.of(() -> counter.increment(),
+	    () -> counter.increment()));
         counter.checkTarget();
     }
 }

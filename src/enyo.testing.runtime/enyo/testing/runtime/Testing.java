@@ -4,6 +4,7 @@ import enyo.testing.Checks;
 import enyo.testing.Examiner;
 import enyo.testing.TestAlreadyFailed;
 import enyo.testing.TestFailure;
+import enyo.testing.ThrowingCallable;
 import enyo.testing.ThrowingRunnable;
 import enyo.testing.introspect.TestResources;
 import enyo.testing.introspect.ScheduledTest;
@@ -14,8 +15,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 /**
  * Default implementation of the {@link enyo.testing.Testing} interface.
@@ -349,32 +352,53 @@ public final class Testing implements enyo.testing.Testing {
     }
 
     @Override
-    public void parallel(int threads, ThrowingRunnable action) {
-        if (threads <= 0)
-            throw new IllegalArgumentException("threads: " + threads);
-        Objects.requireNonNull(action);
+    public void parallel(List<? extends ThrowingRunnable> actions) {
+	parallelValues(actions.stream().map(
+	    action -> (ThrowingCallable<Void>) () -> {
+		action.run();
+		return null;
+	    })
+	    .toList());
+    }
+
+    @Override
+    public <V> List<V> parallelValues(
+	List<? extends ThrowingCallable<V>> actions) {
+	actions = List.copyOf(actions);
+        if (actions.isEmpty())
+            throw new IllegalArgumentException("No threads specified");
+	int threads = actions.size();
         if (resources != null)
             examine(threads)
                 .context("threads")
                 .check(Checks.lessThanOrEquals(resources.threads()));
+	for (var action : actions)
+	    Objects.requireNonNull(action);
 
         CountDownLatch startSignal = new CountDownLatch(threads);
         ParallelThread[] workers = new ParallelThread[threads];
         for (int i = 0; i < threads; ++i)
-            workers[i] = new ParallelThread(startSignal, action);
+            workers[i] = new ParallelThread(startSignal, actions.get(i));
         for (int i = 0; i < threads; ++i)
             workers[i].start();
-        try {
-            for (int i = 0; i < threads; ++i)
-                workers[i].join();
-        } catch (InterruptedException e) {
-            recordFailure(ExceptionPhase.EXECUTION, e);
-        }
+	var result = new ArrayList<V>(threads);
+        for (int i = 0; i < threads; ++i) {
+            try {
+		workers[i].join();
+            } catch (InterruptedException e) {
+		recordFailure(ExceptionPhase.EXECUTION, e);
+            }
+	    @SuppressWarnings("unchecked")
+	    var result0 = (V) workers[i].result;
+	    result.add(result0);
+	}
         for (int i = 0; i < threads; ++i) {
             Throwable e = workers[i].exception;
             if (e != null)
                 recordFailure(ExceptionPhase.EXECUTION, e);
         }
+	// Null references might be among the results.
+	return Collections.unmodifiableList(result);
     }
 
     void recordFailure(ExaminerBase top, String check) {

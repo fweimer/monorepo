@@ -1,21 +1,15 @@
 package enyo.testing;
 
 /**
- * A callback which is expected to throw an exception.
+ * A callback which can throw any exception.
+ * @see ThrowingCallable
  * @see Runnable
  */
 @FunctionalInterface
 public interface ThrowingRunnable {
     /**
      * A callback throwing an arbitrary exception.
-     * The test framework calls this method to throw the exception
-     * expected by the test.  It is expected that this method
-     * never returns normally.
-     * @see Testing#expect(ThrowingRunnable,Class)
-     * @see Testing#expect(ThrowingRunnable,Class)
-     * @see Testing#expect(String,ThrowingRunnable,Class)
-     * @see Testing#expect(String,ThrowingRunnable,Class)
-     * @throws Throwable the expected exception
+     * @throws Throwable an arbitrary exception
      */
     void run() throws Throwable;
 }
