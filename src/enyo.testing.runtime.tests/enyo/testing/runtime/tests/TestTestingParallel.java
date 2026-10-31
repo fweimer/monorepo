@@ -13,6 +13,7 @@ import enyo.testing.runtime.Examined;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -70,6 +71,22 @@ public final class TestTestingParallel {
                 .test(s -> s.startsWith("thread "));
         t.examine(history.get(history.size() - 1))
             .map(Recorder.Completed.class);
+
+        if (DEBUG)
+            for (var h : history) {
+                System.out.format("+ %s %s%n", h.getClass(), h);
+                if (h instanceof Recorder.Exception e)
+                    e.exception.printStackTrace();;
+                if (h instanceof Recorder.Failure f) {
+                    System.out.format("* %s%n", f);
+                    System.out.format("  context: %s%n", f.context);
+                    System.out.format("  check: %s%n", f.check);
+                    System.out.format("  otherObjects: %s%n",
+                        List.of(f.otherObjects));
+                    for (var frame : f.stackTrace)
+                        System.out.format("    %s%n", frame);
+                }
+            }
     }
 
     // Not marked with @Test due to expected test failure.
@@ -100,6 +117,13 @@ public final class TestTestingParallel {
             .map(e -> e.exception)
             .map(Throwable::getMessage)
             .test(s -> s.startsWith("exit"));
+
+        if (DEBUG)
+            for (var h : history) {
+                System.out.format("+ %s %s%n", h.getClass(), h);
+                if (h instanceof Recorder.Exception e)
+                    e.exception.printStackTrace();;
+            }
 
         t.examine(history.get(history.size() - 1))
             .map(Recorder.Completed.class);
@@ -144,4 +168,6 @@ public final class TestTestingParallel {
             () -> counter.increment()));
         counter.checkTarget();
     }
+
+    private static final boolean DEBUG = false;
 }

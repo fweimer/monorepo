@@ -30,7 +30,17 @@ final class ParallelThread extends Thread {
         // launched, to achieve maximum parallel execution.
         try {
             startSignal.countDown();
-            startSignal.await();
+            try {
+                startSignal.await();
+            } catch (InterruptedException e) {
+                // This can happen after another thread threw an
+                // exception, triggering the round of interrupt()
+                // calles in Testing.parallelValues().  For
+                // consistency, we still want to invoke the callback,
+                // so catch the exception here and set the interrupt
+                // flag.
+                Thread.currentThread().interrupt();
+            }
             result = action.call();
             endSignal.countDown();
         } catch (Throwable e) {
