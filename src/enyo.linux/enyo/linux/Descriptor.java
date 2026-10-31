@@ -6,6 +6,7 @@ import java.lang.ref.Cleaner;
 import java.lang.ref.Reference;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -172,11 +173,12 @@ public final class Descriptor implements AutoCloseable {
      * @throws SyscallException if the write operation fails
      */
     public int read(byte[] buf, int off, int len) {
+        Objects.checkFromIndexSize(off, len, buf.length);
         try (var arena = Arena.ofConfined()) {
             var seg = arena.allocate(len);
             long result = read(seg);
             MemorySegment.copy(
-                seg, 0, MemorySegment.ofArray(buf).asSlice(off), 0, result);
+                seg, 0, MemorySegment.ofArray(buf), off, result);
             return (int) result;
         }
     }
@@ -206,7 +208,7 @@ public final class Descriptor implements AutoCloseable {
      * {@link ByteBuffer#position() buf.position()}
      * (until {@link ByteBuffer#limit() buf.limit()} is reached).  Reading may
      * stop prematurely for various reasons, not just an end of file
-     * condition.  Neither position nor limit are updated by this method
+     * condition.
      *
      * @param buf the byte buffer into which data is read
      * @return the number of bytes actually read; 0 for end of file
@@ -220,7 +222,8 @@ public final class Descriptor implements AutoCloseable {
         if (buf.isDirect())
             return (int) read(MemorySegment.ofBuffer(buf));
         else
-            return read(buf.array(), buf.arrayOffset(), buf.remaining());
+            return read(buf.array(), buf.arrayOffset() + buf.position(),
+                buf.remaining());
     }
 
     /**
@@ -264,10 +267,11 @@ public final class Descriptor implements AutoCloseable {
      * @throws SyscallException if the write operation fails
      */
     public int write(byte[] buf, int off, int len) {
+        Objects.checkFromIndexSize(off, len, buf.length);
         try (var arena = Arena.ofConfined()) {
             var seg = arena.allocate(len);
             MemorySegment.copy(
-                MemorySegment.ofArray(buf).asSlice(off), 0, seg, 0, len);
+                MemorySegment.ofArray(buf).asSlice(off, len), 0, seg, 0, len);
             return (int) write(seg);
         }
     }
@@ -317,7 +321,8 @@ public final class Descriptor implements AutoCloseable {
         if (buf.isDirect())
             return (int) write(MemorySegment.ofBuffer(buf));
         else
-            return write(buf.array(), buf.arrayOffset(), buf.remaining());
+            return write(buf.array(), buf.arrayOffset() + buf.position(),
+                buf.remaining());
     }
 
     /**

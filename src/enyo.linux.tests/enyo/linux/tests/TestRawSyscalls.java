@@ -1,5 +1,6 @@
 package enyo.linux.tests;
 
+import enyo.linux.Errno;
 import enyo.linux.RawSyscalls;
 import enyo.linux.SyscallException;
 
@@ -19,19 +20,20 @@ public final class TestRawSyscalls {
         t.expect(() -> RawSyscalls.close(-1),
             SyscallException.class)
             .map(SyscallException::getMessage,
-                e0 -> e0.is("EBADF close [-1]"));
+                e0 -> e0.is("EBADF close [-1]"))
+            .check(Helpers.errno(Errno.EBADF));
     }
 
     @Test
     public static void testPipeWriteRead(Testing t) {
         var fds = RawSyscalls.pipe();
         try (var arena = Arena.ofConfined()) {
-        byte[] input = "example".getBytes();
-        t.examine(RawSyscalls.write(fds[1],
-            arena.allocateFrom(ValueLayout.JAVA_BYTE, input)))
-            .is(input.length);
-        t.examine(input)
-            .check(Checks.byteArrayEquals("example".getBytes()));
+            byte[] input = "example".getBytes();
+            t.examine(RawSyscalls.write(fds[1],
+                arena.allocateFrom(ValueLayout.JAVA_BYTE, input)))
+                .is(input.length);
+            t.examine(input)
+                .check(Checks.byteArrayEquals("example".getBytes()));
 
             var output = arena.allocate(
                 ValueLayout.JAVA_BYTE, input.length + 1);

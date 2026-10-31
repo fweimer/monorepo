@@ -1,11 +1,13 @@
 package enyo.linux.tests;
 
 import enyo.linux.Descriptor;
+import enyo.linux.Errno;
+import enyo.linux.OpenFlag;
+import enyo.linux.Pipe;
 import enyo.linux.RawSyscalls;
 import enyo.linux.SyscallException;
-import enyo.linux.OpenFlag;
-import enyo.linux.Errno;
 
+import enyo.io.function.IOFunction;
 import enyo.io.TempDirectory;
 
 import enyo.testing.Test;
@@ -13,6 +15,13 @@ import enyo.testing.Checks;
 import enyo.testing.Testing;
 
 import java.io.IOException;
+import java.lang.foreign.Arena;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.ValueLayout;
+import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
 
 public final class TestDescriptor {
     @Test
@@ -46,21 +55,131 @@ public final class TestDescriptor {
     }
 
     private static void testOpen(Testing t, TempDirectory dir) {
-        // Without O_CREATE, the file is not created.
-        t.expect(() -> Descriptor.open(dir.resolve("a"), OpenFlag.O_RDONLY),
-            SyscallException.class)
-            .map(SyscallException::errno, e0 -> e0.is(Errno.ENOENT));
-        t.expect(() -> Descriptor.open(dir.resolve("a"), OpenFlag.O_WRONLY),
-            SyscallException.class)
-            .map(SyscallException::errno, e0 -> e0.is(Errno.ENOENT));
-        t.expect(() -> Descriptor.open(dir.resolve("a"), OpenFlag.O_RDWR),
-            SyscallException.class)
-            .map(SyscallException::errno, e0 -> e0.is(Errno.ENOENT));
+        Path aPath = dir.resolve("a");
 
-        // This should succed.
-        try (var fd = Descriptor.open(dir.resolve("a"), OpenFlag.O_WRONLY,
+        // Without O_CREATE, the file is not created.
+        t.expect(() -> Descriptor.open(aPath, OpenFlag.O_RDONLY),
+            SyscallException.class)
+            .check(Helpers.errno(Errno.ENOENT));
+        t.assertFalse(Files.exists(aPath));
+        t.expect(() -> Descriptor.open(aPath, OpenFlag.O_WRONLY),
+            SyscallException.class)
+            .check(Helpers.errno(Errno.ENOENT));
+        t.assertFalse(Files.exists(aPath));
+        t.expect(() -> Descriptor.open(aPath, OpenFlag.O_RDWR),
+            SyscallException.class)
+            .check(Helpers.errno(Errno.ENOENT));
+        t.assertFalse(Files.exists(aPath));
+
+        // The file has been created.
+        try (var fd = Descriptor.open(aPath, OpenFlag.O_WRONLY,
             OpenFlag.O_CREAT(0600))) {
-            fd.write("example".getBytes());
+            t.expect(() -> fd.read(new byte[0]),
+                SyscallException.class)
+                .check(Helpers.errno(Errno.EBADF));
+            fd.write("example\n".getBytes());
+        }
+        t.examine(IOFunction.of(Files::readAllBytes).apply(aPath))
+            .check(Checks.byteArrayEquals("example\n".getBytes()));
+
+        try (var fd = Descriptor.open(aPath, OpenFlag.O_RDONLY)) {
+            var buf = ByteBuffer.allocate(10);
+            buf.position(1);
+            t.examine(fd.read(buf)).is(8);
+            buf.limit(9);
+            t.examine(buf)
+                .check(Checks.byteBufferEquals("example\n".getBytes()));
+        }
+
+    }
+
+    @Test
+    public static void testPipeClose(Testing t) {
+        try (var pipe = new Pipe()) {
+            pipe.readEnd().close();
+            pipe.writeEnd().close();
+        }
+    }
+
+    @Test
+    public static void testPipeWriteRead(Testing t) {
+        try (var pipe = new Pipe();
+             var arena = Arena.ofConfined()) {
+            byte[] input = "example".getBytes();
+            t.examine(pipe.writeEnd().write(
+                arena.allocateFrom(ValueLayout.JAVA_BYTE, input)))
+                .is(input.length);
+            t.examine(input)
+                .check(Checks.byteArrayEquals("example".getBytes()));
+
+            var output = arena.allocate(
+                ValueLayout.JAVA_BYTE, input.length + 1);
+            output.set(ValueLayout.JAVA_BYTE, input.length, (byte) '@');
+            t.examine(pipe.readEnd().read(output))
+                .is(input.length);
+            t.examine(output.toArray(ValueLayout.JAVA_BYTE))
+                .check(Checks.byteArrayEquals("example@".getBytes()));
+        }
+    }
+
+    @Test
+    public static void testPipeWriteReadByteBuffer(Testing t) {
+        for (int shift = 0; shift < 1; ++shift) {
+            testPipeWriteReadByteBuffer(t, false, shift);
+            testPipeWriteReadByteBuffer(t, true, shift);
+        }
+    }
+
+    private interface ArrayOp {
+        int perform(Descriptor fd, byte[] buf, int off, int len);
+    }
+
+    private static final List<ArrayOp> READ_OPS = List.of(
+        (fd, buf, off, len) -> fd.read(buf, off, len),
+        (fd, buf, off, len) ->
+            fd.read(ByteBuffer.wrap(buf).position(off).limit(off + len)),
+        // ByteBuffer with a non-zero array offset.
+        (fd, buf, off, len) -> {
+            int shiftL = off / 2;
+            int shiftR = (buf.length - off - len) / 2;
+            return fd.read(ByteBuffer.wrap(buf)
+                .position(shiftL)
+                .limit(buf.length - shiftR)
+                .slice()
+                .position(off - shiftL)
+                .limit(off + len));
+        },
+        // Heap memory segment.
+        (fd, buf, off, len) ->
+            Math.toIntExact(fd.read(MemorySegment.ofArray(buf)
+                .asSlice(off, len))));
+
+
+    private static void testPipeWriteReadByteBuffer(Testing t,
+        boolean direct, int shift) {
+        ByteBuffer input;
+        ByteBuffer output;
+        if (direct) {
+            input = ByteBuffer.allocateDirect(shift + 7);
+            output = ByteBuffer.allocateDirect(shift + 8);
+        } else {
+            input = ByteBuffer.allocate(shift + 7);
+            output = ByteBuffer.allocate(shift + 8);
+        }
+        input.position(shift);
+        input.put("example".getBytes());
+        input.position(shift);
+        output.position(shift);
+        output.put(shift + 7, (byte) '@');
+
+        try (var pipe = new Pipe()) {
+            t.examine(pipe.writeEnd().write(input)).is(7);
+            t.examine(input)
+                .check(Checks.byteBufferEquals("example".getBytes()));
+
+            t.examine(pipe.readEnd().read(output)).is(7);
+            t.examine(output)
+                .check(Checks.byteBufferEquals("example@".getBytes()));
         }
     }
 }
