@@ -64,17 +64,17 @@ public final class TestSharedIntArray {
             Path path = tmp.path().resolve("array");
             t.expect(() -> SharedIntArray.open(path, 1,
                     StandardOpenOption.READ, StandardOpenOption.WRITE),
-                NoSuchFileException.class,
-                e -> t.examine(e.getMessage()).is(path.toString()));
+                NoSuchFileException.class)
+		.map(Exception::getMessage).is(path.toString());
             t.expect(() -> SharedIntArray.open(tmp.path(), 1,
                     StandardOpenOption.READ, StandardOpenOption.WRITE),
-                FileSystemException.class,
-                e -> {
-                    t.examine(e.getMessage())
-                        .is(tmp.path() + ": Is a directory");
-                    t.examine(e.getFile()).is(tmp.path().toString());
-                    t.examine(e.getReason()).is("Is a directory");
-                });
+                FileSystemException.class)
+		.map(FileSystemException::getMessage,
+		    e -> e.is(tmp.path() + ": Is a directory"))
+		.map(FileSystemException::getFile,
+		    e -> e.is(tmp.path().toString()))
+		.map(FileSystemException::getReason,
+		    e -> e.is("Is a directory"));
         }
     }
 
@@ -84,10 +84,10 @@ public final class TestSharedIntArray {
             Files.writeString(tmp.path(), "123");
             t.expect(() -> SharedIntArray.open(tmp.path(), 1,
                     StandardOpenOption.READ, StandardOpenOption.WRITE),
-                IOException.class,
-                e -> t.assertTrue(e.getMessage().endsWith(
-                        ": invalid file size 3, expected 4 bytes"
-                        + " (1 elements)")));
+                IOException.class)
+	    .map(Exception::getMessage)
+	    .test(s -> s.endsWith(
+                ": invalid file size 3, expected 4 bytes (1 elements)"));
         }
     }
 
@@ -111,9 +111,9 @@ public final class TestSharedIntArray {
             t.expect(() -> buffer.put(0), ReadOnlyBufferException.class);
             t.examine(array.get(0)).is(value);
             t.expect(() -> array.set(0, 0),
-                UnsupportedOperationException.class,
-                e -> t.examine(e.getCause())
-                .isExactClass(ReadOnlyBufferException.class));
+                UnsupportedOperationException.class)
+		.map(Exception::getCause)
+                .isExactClass(ReadOnlyBufferException.class);
         }
     }
 

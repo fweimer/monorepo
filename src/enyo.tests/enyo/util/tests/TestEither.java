@@ -153,8 +153,8 @@ public final class TestEither {
                 .is("2");
             counter.checkTarget();
         }
-        t.expect(() -> r.leftOrElseThrow(),
-            EitherException.class, e -> t.examine(e.getMessage()).is("1"));
+        t.expect(() -> r.leftOrElseThrow(), EitherException.class)
+	    .map(Exception::getMessage).is("1");
         t.examine(r.leftStream().collect(Collectors.toList())).is(List.of());
         t.examine(r.toString()).is("1");
         t.examine(r.equalsOfLeft(1)).is(false);

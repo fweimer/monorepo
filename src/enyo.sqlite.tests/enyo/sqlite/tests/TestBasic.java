@@ -35,12 +35,11 @@ public class TestBasic {
     public static void testPrepareMultiple(Testing t) {
         try (var db = Database.inMemory()) {
             t.expect(() ->  db.prepare("SELECT 1; SELECT 2"),
-                SQLiteException.class,
-                e -> t.examine(e)
+                SQLiteException.class)
                 .map(Exception::getMessage, e1 -> e1.is("""
                         Multiple SQL statements in prepare: SELECT 1; SELECT 2\
                         """)) // "))
-                .map(SQLiteException::errorCode, e1-> e1.is(0)));
+                .map(SQLiteException::errorCode, e1-> e1.is(0));
         }
     }
 
@@ -72,11 +71,10 @@ public class TestBasic {
                 t.assertFalse(stmt.step());
             }
             t.expect(() -> db.exec("INSERT INTO names VALUES ('Enyo')"),
-                SQLiteException.class,
-                e -> t.examine(e)
+                SQLiteException.class)
                 .map(Exception::getMessage, e1 -> e1.is(
-                        "attempt to write a readonly database [8]"))
-                .map(SQLiteException::errorCode, e1-> e1.is(8)));
+                    "attempt to write a readonly database [8]"))
+                .map(SQLiteException::errorCode, e1-> e1.is(8));
         }
         try (var db = Database.of(path, OpenFlag.READWRITE)) {
             // This verifies that extended error codes are used.
@@ -85,11 +83,10 @@ public class TestBasic {
                     INSERT INTO names VALUES ('Fama');
                     INSERT INTO names VALUES ('Bellona')
                     """), // "),
-                SQLiteException.class,
-                e -> t.examine(e)
+                SQLiteException.class)
                 .map(Exception::getMessage, e1 -> e1.is(
-                        "UNIQUE constraint failed: names.name [1555]"))
-                .map(SQLiteException::errorCode, e1-> e1.is(1555)));
+                    "UNIQUE constraint failed: names.name [1555]"))
+                .map(SQLiteException::errorCode, e1-> e1.is(1555));
             try (var stmt = db.prepare(
                     "SELECT COUNT(*) FROM names WHERE name = 'Fama'")) {
                 t.assertTrue(stmt.step());
@@ -123,11 +120,10 @@ public class TestBasic {
             db.exec(";");
             db.exec("SELECT 1");
             t.expect(() -> db.exec("bad syntax"),
-                SQLiteException.class,
-                e -> t.examine(e)
+                SQLiteException.class)
                 .map(Exception::getMessage, e1 -> e1.is(
-                        "near \"bad\": syntax error [1]"))
-                .map(SQLiteException::errorCode, e1-> e1.is(1)));
+                    "near \"bad\": syntax error [1]"))
+                .map(SQLiteException::errorCode, e1-> e1.is(1));
             db.exec("""
                 CREATE TABLE names (name TEXT NOT NULL PRIMARY KEY);
                 INSERT INTO names VALUES ('Ossa');
@@ -149,11 +145,10 @@ public class TestBasic {
                     INSERT INTO names VALUES ('Fama');
                     INSERT INTO names VALUES ('Bellona')
                     """), // "),
-                SQLiteException.class,
-                e -> t.examine(e)
+                SQLiteException.class)
                 .map(Exception::getMessage, e1 -> e1.is(
-                        "UNIQUE constraint failed: names.name [1555]"))
-                .map(SQLiteException::errorCode, e1-> e1.is(1555)));
+                    "UNIQUE constraint failed: names.name [1555]"))
+                .map(SQLiteException::errorCode, e1-> e1.is(1555));
             try (var stmt = db.prepare(
                     "SELECT COUNT(*) FROM names WHERE name = 'Fama'")) {
                 t.assertTrue(stmt.step());
@@ -177,18 +172,16 @@ public class TestBasic {
             db.close();
             db.close();         // No-op.
             t.expect(() -> db.exec(""),
-                IllegalStateException.class,
-                e -> t.examine(e)
-                .map(Exception::getMessage).is(dbClosed));
+                IllegalStateException.class)
+                .map(Exception::getMessage).is(dbClosed);
         }
         // Database.prepare()
         {
             var db = Database.inMemory();
             db.close();
             t.expect(() -> db.prepare("SELECT 1"),
-                IllegalStateException.class,
-                e -> t.examine(e)
-                .map(Exception::getMessage).is(dbClosed));
+                IllegalStateException.class)
+                .map(Exception::getMessage).is(dbClosed);
         }
         // Statement.step()
         {
@@ -197,9 +190,8 @@ public class TestBasic {
             db.close();
             t.examine(stmt.columnCount()).is(1); // Uses cached value.
             t.expect(() -> stmt.step(),
-                IllegalStateException.class,
-                e -> t.examine(e)
-                .map(Exception::getMessage).is(dbClosed));
+                IllegalStateException.class)
+                .map(Exception::getMessage).is(dbClosed);
             stmt.close();
         }
         // Statement.step()
@@ -208,9 +200,8 @@ public class TestBasic {
             var stmt = db.prepare("SELECT 1");
             db.close();
             t.expect(() -> stmt.reset(),
-                IllegalStateException.class,
-                e -> t.examine(e)
-                .map(Exception::getMessage).is(dbClosed));
+                IllegalStateException.class)
+                .map(Exception::getMessage).is(dbClosed);
             stmt.close();
         }
         // Statement.bind() (String)
@@ -220,9 +211,8 @@ public class TestBasic {
             db.close();
             t.examine(stmt.columnCount()).is(1); // Uses cached value.
             t.expect(() -> stmt.bind(1, "does not matter"),
-                IllegalStateException.class,
-                e -> t.examine(e)
-                .map(Exception::getMessage).is(dbClosed));
+                IllegalStateException.class)
+                .map(Exception::getMessage).is(dbClosed);
             stmt.close();
         }
         // Statement.step() after statement close
@@ -232,9 +222,8 @@ public class TestBasic {
             stmt.close();
             stmt.close(); // No-op
             t.expect(() -> stmt.step(),
-                IllegalStateException.class,
-                e -> t.examine(e)
-                .map(Exception::getMessage).is("Statement is closed"));
+                IllegalStateException.class)
+                .map(Exception::getMessage).is("Statement is closed");
         }
         {
             var db = Database.inMemory();
@@ -261,17 +250,14 @@ public class TestBasic {
         final String empty = "Empty prepared statement";
         try (var db = Database.inMemory()) {
             t.expect(() -> db.prepare(""),
-                SQLiteException.class,
-                e -> t.examine(e)
-                .map(Exception::getMessage).is(empty));
+                SQLiteException.class)
+                .map(Exception::getMessage).is(empty);
             t.expect(() -> db.prepare(" "),
-                SQLiteException.class,
-                e -> t.examine(e)
-                .map(Exception::getMessage).is(empty));
+                SQLiteException.class)
+                .map(Exception::getMessage).is(empty);
             t.expect(() -> db.prepare(";"),
-                SQLiteException.class,
-                e -> t.examine(e)
-                .map(Exception::getMessage).is(empty));
+                SQLiteException.class)
+                .map(Exception::getMessage).is(empty);
         }
     }
 
@@ -297,10 +283,9 @@ public class TestBasic {
 
 	    BiConsumer<String, String> errCheck = (sql, err) ->
 		t.expect(() -> db.prepare(sql),
-		    SQLiteException.class,
-		    e -> t.examine(e)
+		    SQLiteException.class)
 			.map(SQLiteException::getMessage, e0 -> e0.is(err))
-			.map(SQLiteException::errorCode, e0 -> e0.is(0)));
+			.map(SQLiteException::errorCode, e0 -> e0.is(0));
 	    errCheck.accept("SELECT 1; SELECT 2",
 		"Multiple SQL statements in prepare: SELECT 1; SELECT 2");
 	    errCheck.accept("SELECT 1; SELEC 2",
@@ -316,11 +301,10 @@ public class TestBasic {
     public static void testPrepareBadSyntax(Testing t) {
         try (var db = Database.inMemory()) {
             t.expect(() -> db.prepare("bad syntax"),
-                SQLiteException.class,
-                e -> t.examine(e)
+                SQLiteException.class)
                 .map(Exception::getMessage, e1 -> e1.is(
                         "near \"bad\": syntax error [1]"))
-                .map(SQLiteException::errorCode, e1-> e1.is(1)));
+                .map(SQLiteException::errorCode, e1-> e1.is(1));
         }
     }
 
@@ -350,11 +334,10 @@ public class TestBasic {
                 t.assertFalse(stmt.step());
                 stmt.reset();
                 t.expect(() -> stmt.step(),
-                    SQLiteException.class,
-                    e -> t.examine(e)
+                    SQLiteException.class)
                     .map(Exception::getMessage, e1 -> e1.is(
-                            "UNIQUE constraint failed: names.name [1555]"))
-                    .map(SQLiteException::errorCode, e1-> e1.is(1555)));
+                        "UNIQUE constraint failed: names.name [1555]"))
+                    .map(SQLiteException::errorCode, e1-> e1.is(1555));
                 stmt.reset();
                 stmt.bind(1, "Bellona");
                 t.assertFalse(stmt.step());
@@ -368,11 +351,10 @@ public class TestBasic {
             try (var stmt = db.prepare("INSERT INTO names VALUES (?)")) {
                 stmt.bind(1, "Enyo");
                 t.expect(() -> stmt.step(),
-                    SQLiteException.class,
-                    e -> t.examine(e)
+                    SQLiteException.class)
                     .map(Exception::getMessage, e1 -> e1.is(
-                            "UNIQUE constraint failed: names.name [1555]"))
-                    .map(SQLiteException::errorCode, e1-> e1.is(1555)));
+                        "UNIQUE constraint failed: names.name [1555]"))
+                    .map(SQLiteException::errorCode, e1-> e1.is(1555));
                 db.exec("DELETE FROM names WHERE name = 'Enyo'");
                 // Insertion now succeds.
                 t.assertFalse(stmt.step());
@@ -420,11 +402,10 @@ public class TestBasic {
         try (var db = Database.inMemory()) {
             try (var stmt = db.prepare("SELECT ?, ?")) {
                 t.expect(() -> stmt.bind(-1, new byte[0]),
-                    IndexOutOfBoundsException.class,
-		    e -> t.examine(e)
-			.map(Exception::getMessage)
-			.is(
-"SQL statement has 2 parameters, index -1 invalid: SELECT ?, ?"));
+                    IndexOutOfBoundsException.class)
+		    .map(Exception::getMessage)
+		    .is(
+"SQL statement has 2 parameters, index -1 invalid: SELECT ?, ?");
                 t.expect(() -> stmt.bind(0, new byte[0]),
                     IndexOutOfBoundsException.class);
                 t.expect(() -> stmt.bind(3, new byte[0]),

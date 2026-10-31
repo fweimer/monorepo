@@ -45,21 +45,21 @@ public final class TestBasic {
         t.examine(p.parse(new String[] {"--arg", "--arg", "--arg=3"}))
             .map(ArgLong::arg).is("3");
         t.expect(() -> p.parse(new String[] {"--arg"}),
-            ArgumentListException.class,
-            e -> t.examine(e).map(Exception::getMessage)
-            .is("option --arg needs a value"));
+            ArgumentListException.class)
+            .map(Exception::getMessage)
+            .is("option --arg needs a value");
         t.expect(() -> p.parse(new String[] {"--arg=3", "4"}),
-            ArgumentListException.class,
-            e -> t.examine(e).map(Exception::getMessage)
-            .is("unrecognized argument: \"4\""));
+            ArgumentListException.class)
+            .map(Exception::getMessage)
+            .is("unrecognized argument: \"4\"");
         t.expect(() -> p.parse(new String[] {"--not-known"}),
-            ArgumentListException.class,
-            e -> t.examine(e).map(Exception::getMessage)
-            .is("unknown option: --not-known"));
+            ArgumentListException.class)
+            .map(Exception::getMessage)
+            .is("unknown option: --not-known");
         t.expect(() -> p.parse(new String[] {"--arg=151", "extra", "special"}),
-            ArgumentListException.class,
-            e -> t.examine(e).map(Exception::getMessage)
-            .is("unrecognized positional arguments: \"extra\", \"special\""));
+            ArgumentListException.class)
+            .map(Exception::getMessage)
+            .is("unrecognized positional arguments: \"extra\", \"special\"");
         t.expect(() -> p.parse(new String[] {"--help"}),
             HelpException.class);
     }
@@ -107,17 +107,17 @@ public final class TestBasic {
        t.examine(p.parse(new String[] {"-a", "-a", "-a3"}))
            .map(ArgShort::arg).is("3");
        t.expect(() -> p.parse(new String[] {"-a"}),
-           ArgumentListException.class,
-           e -> t.examine(e).map(Exception::getMessage)
-           .is("option -a needs a value"));
+           ArgumentListException.class)
+           .map(Exception::getMessage)
+           .is("option -a needs a value");
        t.expect(() -> p.parse(new String[] {"-a3", "4"}),
-           ArgumentListException.class,
-           e -> t.examine(e).map(Exception::getMessage)
-           .is("unrecognized argument: \"4\""));
+           ArgumentListException.class)
+           .map(Exception::getMessage)
+           .is("unrecognized argument: \"4\"");
        t.expect(() -> p.parse(new String[] {"-a151", "extra", "special"}),
-           ArgumentListException.class,
-           e -> t.examine(e).map(Exception::getMessage)
-           .is("unrecognized positional arguments: \"extra\", \"special\""));
+           ArgumentListException.class)
+           .map(Exception::getMessage)
+           .is("unrecognized positional arguments: \"extra\", \"special\"");
     }
 
 
@@ -204,18 +204,18 @@ public final class TestBasic {
        t.examine(p.parse(new String[] {"--arg", "1", "--"}))
            .map(R::arg).is(1);
        t.expect(() -> p.parse(new String[0]),
-           ArgumentListException.class,
-           e -> t.examine(e).map(Exception::getMessage)
-           .is("option --arg is missing"));
+           ArgumentListException.class)
+	   .map(Exception::getMessage)
+           .is("option --arg is missing");
        t.expect(() -> p.parse(new String[] {"--arg=X"}),
-           ArgumentListException.class,
-           e -> t.examine(e).map(Exception::getMessage)
-           .is("invalid value for option --arg: X"));
+           ArgumentListException.class)
+           .map(Exception::getMessage)
+           .is("invalid value for option --arg: X");
        // FIXME: Arguably, this should pass.
        t.expect(() -> p.parse(new String[] {"--arg", "0xffffffff"}),
-           ArgumentListException.class,
-           e -> t.examine(e).map(Exception::getMessage)
-           .is("invalid value for option --arg: 0xffffffff"));
+           ArgumentListException.class)
+           .map(Exception::getMessage)
+           .is("invalid value for option --arg: 0xffffffff");
     }
 
     @Test
@@ -264,15 +264,15 @@ public final class TestBasic {
             .map(R::from, e -> e.is("source"))
             .map(R::to, e -> e.is("--progress"));
         t.expect(() -> p.parse(new String[0]),
-            ArgumentListException.class,
-            e -> t.examine(e).map(ArgumentListException::errors).is(List.of(
-                    "argument from is missing",
-                    "argument to is missing")));
+            ArgumentListException.class)
+            .map(ArgumentListException::errors).is(List.of(
+                "argument from is missing",
+                "argument to is missing"));
         t.expect(() -> p.parse(new String[] { "--progress" }),
-            ArgumentListException.class,
-            e -> t.examine(e).map(ArgumentListException::errors).is(List.of(
-                    "argument from is missing",
-                    "argument to is missing")));
+            ArgumentListException.class)
+            .map(ArgumentListException::errors).is(List.of(
+                "argument from is missing",
+                "argument to is missing"));
        checkHelp(t, R.class, """
            Options:
 

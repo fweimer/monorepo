@@ -193,11 +193,10 @@ public class TestThreads {
                 t.expect(() ->
                     db1.exec(
                         "CREATE TABLE t (rowid INTEGER NOT NULL PRIMARY KEY)"),
-                    SQLiteException.class,
-                    e -> t.examine(e)
+                    SQLiteException.class)
                     .map(Exception::getMessage, e1 -> e1.is(
                             "database is locked [5]"))
-                    .map(SQLiteException::errorCode, e1-> e1.is(5)));
+                    .map(SQLiteException::errorCode, e1-> e1.is(5));
 
                 db1.busyTimeout(Integer.MAX_VALUE);
 
@@ -272,11 +271,10 @@ SELECT x FROM c WHERE x < 0
 
             t.expect(() ->
                 db.exec(sql),
-                SQLiteException.class,
-                e -> t.examine(e)
+                SQLiteException.class)
                 .map(SQLiteException::getMessage, e0 -> e0.is(
                         "interrupted [9]"))
-                .map(SQLiteException::errorCode, e0 -> e0.is(9)));
+                .map(SQLiteException::errorCode, e0 -> e0.is(9));
 
             thr.interrupt();
             thr.join();

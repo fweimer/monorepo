@@ -5,6 +5,8 @@ import enyo.io.terminfo.TerminalScriptException;
 import enyo.io.terminfo.TerminalState;
 import enyo.io.terminfo.TerminalTarget;
 import enyo.io.terminfo.TerminalWriter;
+
+import enyo.testing.Examiner;
 import enyo.testing.Test;
 import enyo.testing.Testing;
 
@@ -26,8 +28,8 @@ public final class TestTerminalState {
     @Test
     public static void testInvalidStringFormat(Testing t) {
         runScript(t, "%#s", TerminalScriptException.class,
-            e -> t.examine("%s directive at offset 0 does not support # flag")
-            .is(e.getMessage()));
+	    e -> e.map(Throwable::getMessage)
+		.is("%s directive at offset 0 does not support # flag"));
     }
 
     @Test
@@ -45,8 +47,8 @@ public final class TestTerminalState {
     @Test
     public static void testInvalidDecimalFormat(Testing t) {
         runScript(t, "%#d", TerminalScriptException.class,
-            e -> t.examine("%d directive at offset 0 does not support # flag")
-            .is(e.getMessage()));
+            e -> e.map(Throwable::getMessage)
+		.is("%d directive at offset 0 does not support # flag"));
     }
 
     @Test
@@ -170,10 +172,10 @@ public final class TestTerminalState {
 
     public static void runScript(Testing t,
         String script, Class<? extends Throwable> exception,
-        Consumer<? super Throwable> verifier) {
+        Consumer<Examiner<? extends Throwable>> verifier) {
         runScript(t, script, "",
-            (state, blob) -> t.expect(() -> state.runScript(blob),
-                exception, verifier));
+            (state, blob) -> verifier.accept(
+		t.expect(() -> state.runScript(blob), exception)));
     }
 
     public static void runScript(Testing t,

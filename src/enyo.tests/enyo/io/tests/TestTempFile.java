@@ -112,8 +112,8 @@ public final class TestTempFile {
                 Files.setPosixFilePermissions(tempDir, Set.of());
                 t.examine(path).testNot(Files::exists);
                 t.expect(() -> file.close(),
-                    AccessDeniedException.class,
-                    e -> t.examine(e.getMessage()).is(path.toString()));
+                    AccessDeniedException.class)
+		    .map(Exception::getMessage).is(path.toString());
             } finally {
                 Files.setPosixFilePermissions(tempDir, perms);
                 t.examine(path).test(Files::exists);

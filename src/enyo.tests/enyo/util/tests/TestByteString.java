@@ -169,11 +169,9 @@ public final class TestByteString {
             .map(ByteString::getBytes)
             .check(Checks.byteArrayEquals(new byte[] { 65, 0, 66, 0 }));
         t.expect(() -> ByteString.of("\u0100", StandardCharsets.ISO_8859_1),
-            IllegalArgumentException.class,
-            e -> {
-                t.expect(() -> { throw e.getCause(); },
-                    CharacterCodingException.class);
-            });
+            IllegalArgumentException.class)
+	    .map(Exception::getCause)
+	    .map(CharacterCodingException.class);
     }
 
     @Test
@@ -188,11 +186,9 @@ public final class TestByteString {
         t.examine(ByteString.ofUTF8("\u00E4"))
             .is(ByteString.of((byte) 0xc3, (byte) 0xa4));
         t.expect(() -> ByteString.ofUTF8("\uD800"),
-            IllegalArgumentException.class,
-            e -> {
-                t.expect(() -> { throw e.getCause(); },
-                    CharacterCodingException.class);
-            });
+            IllegalArgumentException.class)
+	    .map(Exception::getCause)
+	    .map(CharacterCodingException.class);
     }
 
     @Test

@@ -221,9 +221,9 @@ public final class TestCSVReader {
     public static void quotedQuote3(Testing t) throws IOException {
         CSVReader r = wrap("\"\"X,\n");
         t.assertTrue(r.nextRow());
-        t.expect(r::fetchColumn, IOException.class,
-            e -> t.examine(e.getMessage())
-                .is("Invalid character after quote"));
+        t.expect(r::fetchColumn, IOException.class)
+	    .map(Exception::getMessage)
+            .is("Invalid character after quote");
     }
 
     @Test
@@ -340,13 +340,13 @@ public final class TestCSVReader {
     }
 
     private static void expectEOF(Testing t, ThrowingRunnable r) {
-        t.expect(r, EOFException.class, e -> t.examine(e.getMessage()).is(
-                "EOF when column was expected"));
+        t.expect(r, EOFException.class).map(Exception::getMessage).is(
+	    "EOF when column was expected");
     }
 
     private static void expectEOL(Testing t, ThrowingRunnable r) {
-        t.expect(r, IOException.class, e -> t.examine(e.getMessage()).is(
-                "End of line when column was expected"));
+        t.expect(r, IOException.class).map(Exception::getMessage).is(
+	    "End of line when column was expected");
     }
 
     private static void checkNoRowState(Testing t, CSVReader r) {

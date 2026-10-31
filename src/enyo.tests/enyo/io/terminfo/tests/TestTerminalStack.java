@@ -20,11 +20,11 @@ public final class TestTerminalStack {
         t.examine(stack.stream().collect(Collectors.toList())).is(List.of());
         t.examine(stack.toString()).is("[]");
         t.expect(() -> stack.popInt(),
-            IllegalStateException.class,
-            e -> t.examine(e.getMessage()).is("Stack is empty"));
+            IllegalStateException.class)
+	    .map(Exception::getMessage).is("Stack is empty");
         t.expect(() -> stack.popString(),
-            IllegalStateException.class,
-            e -> t.examine(e.getMessage()).is("Stack is empty"));
+            IllegalStateException.class)
+            .map(Exception::getMessage).is("Stack is empty");
     }
 
     @Test
@@ -171,9 +171,9 @@ public final class TestTerminalStack {
                 case POP_INT:
                     if (reference.isEmpty())
                         t.expect(() -> stack.popInt(),
-                            IllegalStateException.class,
-                            e -> t.examine(e.getMessage())
-                            .is("Stack is empty"));
+                            IllegalStateException.class)
+			    .map(Exception::getMessage)
+			    .is("Stack is empty");
                     else {
                         int idx = reference.size() - 1;
                         Object obj = reference.get(idx);
@@ -182,17 +182,17 @@ public final class TestTerminalStack {
                             reference.remove(idx);
                         } else
                             t.expect(() -> stack.popInt(),
-                                IllegalStateException.class,
-                                e -> t.examine(e.getMessage())
-                                .is("Top of stack is string"));
+                                IllegalStateException.class)
+				.map(Exception::getMessage)
+                                .is("Top of stack is string");
                     }
                     break;
                 case POP_STRING:
                     if (reference.isEmpty())
                         t.expect(() -> stack.popString(),
-                            IllegalStateException.class,
-                            e -> t.examine(e.getMessage())
-                            .is("Stack is empty"));
+                            IllegalStateException.class)
+			    .map(Exception::getMessage)
+                            .is("Stack is empty");
                     else {
                         int idx = reference.size() - 1;
                         Object obj = reference.get(idx);
@@ -201,9 +201,9 @@ public final class TestTerminalStack {
                             reference.remove(idx);
                         } else
                             t.expect(() -> stack.popString(),
-                                IllegalStateException.class,
-                                e -> t.examine(e.getMessage())
-                                .is("Top of stack is integer"));
+                                IllegalStateException.class)
+				.map(Exception::getMessage)
+                                .is("Top of stack is integer");
                     }
                     break;
                 }

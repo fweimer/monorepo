@@ -63,8 +63,8 @@ public final class TestTesting {
         t.examine(true).is(false);
 
         // This should throw, but not record an exception match failure.
-        t.expect(() -> t.fullBarrier(), IllegalArgumentException.class,
-                 e -> t.assertFail("unreachable"));
+        t.expect(() -> t.fullBarrier(), IllegalArgumentException.class)
+	    .test(_ -> t.assertFail("unreachable"));
 
         // This should not be reached.
         throw new UnsupportedOperationException("unexpected");

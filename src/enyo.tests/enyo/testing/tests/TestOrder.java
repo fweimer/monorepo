@@ -1,5 +1,6 @@
 package enyo.testing.tests;
 
+import enyo.testing.Examiner;
 import enyo.testing.Order;
 import enyo.testing.Test;
 import enyo.testing.Testing;
@@ -157,10 +158,10 @@ public final class TestOrder {
             .add(item)
             .add(new EqualsNull())
             .close();
-        t.expect(() -> c.check(), Order.ObjectFailure.class, e -> {
-                t.examine(e.failed()).is(Order.Failed.EQUALS_NULL);
-                t.examine(e.object()).isSame(item);
-            });
+        t.expect(() -> c.check(), Order.ObjectFailure.class)
+	    .map(Order.ObjectFailure::failed,
+		e -> e.is(Order.Failed.EQUALS_NULL))
+	    .map(Order.ObjectFailure::object, e-> e.isSame(item));
     }
 
     @Test
@@ -179,11 +180,11 @@ public final class TestOrder {
         var item = new EqualsFalse();
         c.add(item);
         c.add(new EqualsFalse());
-        t.expect(() -> c.check(), Order.PairFailure.class, e -> {
-                t.examine(e.failed()).is(Order.FailedPair.EQUALS);
-                t.examine(e.left()).isSame(item);
-                t.examine(e.right()).isSame(item);
-            });
+        t.expect(() -> c.check(), Order.PairFailure.class)
+	    .map(Order.PairFailure::failed,
+		e -> e.is(Order.FailedPair.EQUALS))
+	    .map(Order.PairFailure::left, e -> e.isSame(item))
+	    .map(Order.PairFailure::right, e -> e.isSame(item));
     }
 
     @Test
@@ -211,11 +212,11 @@ public final class TestOrder {
             .add(item1)
             .add(item2)
             .close();
-        t.expect(() -> c.check(), Order.PairFailure.class, e -> {
-                t.examine(e.failed()).is(Order.FailedPair.HASH_CODE);
-                t.examine(e.left()).isSame(item1);
-                t.examine(e.right()).isSame(item2);
-            });
+        t.expect(() -> c.check(), Order.PairFailure.class)
+	    .map(Order.PairFailure::failed,
+		e -> e.is(Order.FailedPair.HASH_CODE))
+	    .map(Order.PairFailure::left, e -> e.is(item1))
+	    .map(Order.PairFailure::right, e -> e.is(item1));
     }
 
     @Test
@@ -230,14 +231,14 @@ public final class TestOrder {
             .close();
         c.add(3);
         c.add(4);
-        Consumer<Order.PairFailure> verify = e -> {
-            t.examine(e.failed()).is(Order.FailedPair.EQUALS);
-            t.examine(e.left()).isSame(item1);
-            t.examine(e.right()).isSame(item2);
-        };
-        t.expect(() -> c.check(), Order.PairFailure.class, verify);
-        t.expect(() -> c.checkComparable(Integer.class),
-            Order.PairFailure.class, verify);
+        Consumer<Examiner<Order.PairFailure>> verify = e0 -> e0
+	    .map(Order.PairFailure::failed,
+		e -> e.is(Order.FailedPair.EQUALS))
+	    .map(Order.PairFailure::left, e -> e.is(item1))
+	    .map(Order.PairFailure::right, e -> e.is(item2));
+        verify.accept(t.expect(() -> c.check(), Order.PairFailure.class));
+        verify.accept(t.expect(() -> c.checkComparable(Integer.class),
+	    Order.PairFailure.class));
     }
 
     @Test
@@ -246,10 +247,10 @@ public final class TestOrder {
         var item = "";
         c.add(item);
         t.expect(() -> c.checkComparable(Integer.class),
-            Order.ObjectFailure.class, e -> {
-                t.examine(e.failed()).is(Order.Failed.COMPARABLE);
-                t.examine(e.object()).isSame(item);
-            });
+            Order.ObjectFailure.class)
+	    .map(Order.ObjectFailure::failed,
+		e -> e.is(Order.Failed.COMPARABLE))
+	    .map(Order.ObjectFailure::object, e -> e.isSame(item));
     }
 
     @Test
@@ -260,12 +261,12 @@ public final class TestOrder {
         c.add(item2);
         c.add(item1);
         t.expect(() -> c.checkComparable(Integer.class),
-            Order.PairFailure.class, e -> {
-                t.examine(e.failed()).is(Order.FailedPair.COMPARE_TO);
-                t.examine(e.expectedComparison()).is(-1);
-                t.examine(e.left()).isSame(item2);
-                t.examine(e.right()).isSame(item1);
-            });
+            Order.PairFailure.class)
+	    .map(Order.PairFailure::failed,
+		e -> e.is(Order.FailedPair.COMPARE_TO))
+	    .map(Order.PairFailure::expectedComparison, e -> e.is(-1))
+	    .map(Order.PairFailure::left, e -> e.isSame(item2))
+	    .map(Order.PairFailure::right, e -> e.isSame(item1));
     }
 
     @Test
@@ -281,12 +282,12 @@ public final class TestOrder {
         c.add(new BrokenCompareTo(4, 4));
         c.check();              // Equality implementation is not buggy.
         t.expect(() -> c.checkComparable(BrokenCompareTo.class),
-            Order.PairFailure.class, e -> {
-                t.examine(e.failed()).is(Order.FailedPair.COMPARE_TO);
-                t.examine(e.expectedComparison()).is(0);
-                t.examine(e.left()).isSame(item1);
-                t.examine(e.right()).isSame(item2);
-            });
+            Order.PairFailure.class)
+	    .map(Order.PairFailure::failed,
+		e -> e.is(Order.FailedPair.COMPARE_TO))
+	    .map(Order.PairFailure::expectedComparison, e -> e.is(0))
+	    .map(Order.PairFailure::left, e -> e.isSame(item1))
+	    .map(Order.PairFailure::right, e -> e.isSame(item2));
     }
 
     @Test
@@ -302,12 +303,12 @@ public final class TestOrder {
         c.add(item2);
         c.check();              // Equality implementation is not buggy.
         t.expect(() -> c.checkComparable(BrokenCompareTo.class),
-            Order.PairFailure.class, e -> {
-                t.examine(e.failed()).is(Order.FailedPair.COMPARE_TO);
-                t.examine(e.expectedComparison()).is(-1);
-                t.examine(e.left()).isSame(item1);
-                t.examine(e.right()).isSame(item2);
-            });
+            Order.PairFailure.class)
+	    .map(Order.PairFailure::failed,
+		e -> e.is(Order.FailedPair.COMPARE_TO))
+	    .map(Order.PairFailure::expectedComparison, e -> e.is(-1))
+	    .map(Order.PairFailure::left, e -> e.isSame(item1))
+	    .map(Order.PairFailure::right, e -> e.isSame(item2));
     }
 
     private static final class BrokenCompareTo

@@ -107,8 +107,8 @@ public final class TestBadConfiguration {
     private static void expect(
         Testing t, Class<? extends Record> cls, String message) {
         t.expect(() -> new ArgParser<>(lookup(), cls),
-            ConfigurationException.class,
-            e -> t.examine(e).map(Exception::getMessage)
-            .is(message));
+            ConfigurationException.class)
+	    .map(Exception::getMessage)
+            .is(message);
     }
 }

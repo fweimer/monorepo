@@ -41,11 +41,11 @@ public final class TestFileIdentity {
             t.assertFalse(FileIdentity.hasFileIdentity(attrs));
 
             t.expect(() -> FileIdentity.of(attrs),
-                IllegalArgumentException.class,
-                e -> t.examine(e.getMessage()).is("Symbolic link: " + attrs));
+                IllegalArgumentException.class)
+		.map(Exception::getMessage).is("Symbolic link: " + attrs);
             t.expect(() -> FileIdentity.of(link),
-                IllegalArgumentException.class,
-                e -> t.examine(e.getMessage()).is("Symbolic link: " + link));
+                IllegalArgumentException.class)
+                .map(Exception::getMessage).is("Symbolic link: " + link);
         }
     }
 
@@ -218,13 +218,13 @@ public final class TestFileIdentity {
                             return;
 
                         t.expect(() -> FileIdentity.of(attrs),
-                            IllegalArgumentException.class,
-                            e -> t.examine(e.getMessage())
-                            .is("File without identity: " + attrs));
+                            IllegalArgumentException.class)
+			    .map(Exception::getMessage)
+                            .is("File without identity: " + attrs);
                         t.expect(() -> FileIdentity.of(path),
-                            IllegalArgumentException.class,
-                            e -> t.examine(e.getMessage())
-                            .is("File without identity: " + path));
+                            IllegalArgumentException.class)
+			    .map(Exception::getMessage)
+                            .is("File without identity: " + path);
                     }));
     }
 
@@ -235,8 +235,8 @@ public final class TestFileIdentity {
                     dir.resolve("file"),
                     dir.resolve("subdirectory").resolve("file")))
                 t.expect(() -> FileIdentity.of(path),
-                    NoSuchFileException.class,
-                    e -> t.examine(e.getMessage()).is(path.toString()));
+                    NoSuchFileException.class)
+		    .map(Exception::getMessage).is(path.toString());
         }
     }
 

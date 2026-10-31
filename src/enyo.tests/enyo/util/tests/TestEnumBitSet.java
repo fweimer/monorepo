@@ -181,10 +181,9 @@ public final class TestEnumBitSet {
                 result = op.apply(left);
             } catch (RuntimeException e) {
                 t.expect(() -> op.apply(right),
-                    e.getClass(),
-                    e1 -> t.examine(e1)
+                    e.getClass())
                     .map(RuntimeException::getMessage)
-                    .nullableIs(e.getMessage()));
+                    .nullableIs(e.getMessage());
                 t.fullBarrier();
                 check();
                 throw e;

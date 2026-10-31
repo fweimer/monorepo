@@ -15,8 +15,8 @@ final class Helpers {
         IOException exception = new IOException();
         t.expect(
             () -> callback.doThrow(exception),
-            UncheckedIOException.class,
-            e -> t.examine(e.getCause()).isSame(exception));
+            UncheckedIOException.class)
+	    .map(Exception::getCause).isSame(exception);
     }
 
     private Helpers() { } // no instances

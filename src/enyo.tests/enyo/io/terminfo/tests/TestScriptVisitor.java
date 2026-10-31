@@ -318,8 +318,8 @@ public final class TestScriptVisitor {
             ScriptVisitor visitor = new FailingVisitor(t) {};
             byte[] bytes = script.getBytes(StandardCharsets.ISO_8859_1);
             t.expect(() -> new ScriptParser().accept(visitor, bytes),
-                TerminalScriptException.class, e ->
-                t.examine(e.getMessage()).is("% width too large"));
+                TerminalScriptException.class)
+		.map(Throwable::getMessage).is("% width too large");
         }
         for (String script : List.of(
                 "%.1000d",
@@ -327,8 +327,8 @@ public final class TestScriptVisitor {
             ScriptVisitor visitor = new FailingVisitor(t) {};
             byte[] bytes = script.getBytes(StandardCharsets.ISO_8859_1);
             t.expect(() -> new ScriptParser().accept(visitor, bytes),
-                TerminalScriptException.class, e ->
-                t.examine(e.getMessage()).is("% precision too large"));
+                TerminalScriptException.class)
+		.map(Throwable::getMessage).is("% precision too large");
         }
     }
 

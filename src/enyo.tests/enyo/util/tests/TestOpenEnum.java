@@ -154,9 +154,8 @@ public final class TestOpenEnum {
         }
         t.expect(() -> OpenEnum.intType(MethodHandles.lookup().in(T.class),
                 T.class, T.E.class),
-            IllegalArgumentException.class,
-            e -> t.examine(e)
+            IllegalArgumentException.class)
             .map(Throwable::getMessage)
-            .is("Enum constants A and B have same value 1"));
+            .is("Enum constants A and B have same value 1");
     }
 }
