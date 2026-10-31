@@ -6,13 +6,12 @@ import enyo.lang.UncheckedIllegalAccessException;
 import enyo.testing.Resources;
 import enyo.testing.Test;
 import enyo.testing.Testing;
+import enyo.testing.ThrowingCallable;
 
 import java.lang.classfile.ClassFile;
 import java.lang.constant.ClassDesc;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.BrokenBarrierException;
-import java.util.concurrent.CyclicBarrier;
 import java.util.stream.IntStream;
 import static java.lang.invoke.MethodHandles.lookup;
 import static java.lang.invoke.MethodHandles.publicLookup;
@@ -55,29 +54,13 @@ public final class TestLookupClassValue {
     @Resources(threads=THREADS)
     public static void testConcurrent(Testing t) throws Exception {
         var classes = unnamedClasses(100);
-        var values = IntStream.range(0, THREADS)
-            .mapToObj(i -> new ArrayList<Value>(classes.size()))
-            .toList();
-        var barrier = new CyclicBarrier(THREADS);
         var cv = LookupClassValue.of((_, cls) -> new Value(cls));
-        Thread[] threads = new Thread[THREADS];
-        for (int i = 0; i < THREADS; ++i) {
-            var result = values.get(i);
-            threads[i] = new Thread(() -> {
-                    // Make it more likely that the code below runs
-                    // concurrently.
-                    try {
-                        barrier.await();
-                    } catch (BrokenBarrierException | InterruptedException e) {
-                        throw new AssertionError(e);
-                    }
-                    for (Class<?> cls : classes)
-                        result.add(cv.get(lookup(), cls));
-            });
-            threads[i].start();
-        }
-        for (Thread thr : threads)
-            thr.join();
+	var values = t.parallelValues(IntStream.range(0, THREADS)
+	    .mapToObj(_ -> (ThrowingCallable<List<Value>>) () ->
+		classes.stream()
+		.map(cls -> cv.get(lookup(), cls))
+		.toList())
+	    .toList());
         for (var l : values) {
             t.examine(l.stream()
                 .map(Value::name)
