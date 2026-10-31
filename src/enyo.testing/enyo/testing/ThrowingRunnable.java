@@ -12,10 +12,9 @@ public interface ThrowingRunnable {
      * expected by the test.  It is expected that this method
      * never returns normally.
      * @see Testing#expect(ThrowingRunnable,Class)
-     * @see Testing#expect(ThrowingRunnable,Class,java.util.funcion.Consumer)
+     * @see Testing#expect(ThrowingRunnable,Class)
      * @see Testing#expect(String,ThrowingRunnable,Class)
-     * @see Testing#expect(String,ThrowingRunnable,Class,
-     *   java.util.funcion.Consumer)
+     * @see Testing#expect(String,ThrowingRunnable,Class)
      * @throws Throwable the expected exception
      */
     void run() throws Throwable;

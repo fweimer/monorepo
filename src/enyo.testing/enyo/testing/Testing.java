@@ -205,37 +205,12 @@ public interface Testing {
      * Checks that an expected exception is thrown.
      * @param source the callback that is expected to throw
      * @param exception the type of the expected exception
-     * @param consumer a callback which is invoked for further
-     *   checks on the exception object
-     * @param <E> the type of the expected exception
-     */
-    @Deprecated
-    <E extends Throwable> void expect(ThrowingRunnable source,
-        Class<E> exception, Consumer<? super E> consumer);
-
-    /**
-     * Checks that an expected exception is thrown.
-     * @param source the callback that is expected to throw
-     * @param exception the type of the expected exception
      * @param <E> the type of the expected exception
      * @return an examiner for the thrown exception, or the null value in
      *   case the exception is missing
      */
     <E extends Throwable> Examiner<E> expect(
         ThrowingRunnable source, Class<E> exception);
-
-    /**
-     * Checks that an expected exception is thrown.
-     * @param label an informative string included in failure messages
-     * @param source the callback that is expected to throw
-     * @param exception the type of the expected exception
-     * @param consumer a callback which is invoked for further
-     *   checks on the exception object
-     * @param <E> the type of the expected exception
-     */
-    @Deprecated
-    <E extends Throwable> void expect(String label, ThrowingRunnable source,
-        Class<E> exception, Consumer<? super E> consumer);
 
     /**
      * Checks that an expected exception is thrown.

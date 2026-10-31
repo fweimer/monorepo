@@ -288,25 +288,9 @@ public final class Testing implements enyo.testing.Testing {
     }
 
     @Override
-    @Deprecated
-    public <E extends Throwable> void expect(
-        ThrowingRunnable source, Class<E> exception,
-        Consumer<? super E> consumer) {
-        expect0("", source, exception, consumer);
-    }
-
-    @Override
     public <E extends Throwable> Examiner<E> expect(
         ThrowingRunnable source, Class<E> exception) {
         return expect0("", source, exception, e -> { });
-    }
-
-    @Override
-    @Deprecated
-    public <E extends Throwable> void expect(String label,
-        ThrowingRunnable source, Class<E> exception,
-        Consumer<? super E> consumer) {
-        expect0(" for: " + label, source, exception, consumer);
     }
 
     @Override
