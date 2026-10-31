@@ -1,6 +1,7 @@
 package enyo.testing;
 
 import java.io.Serializable;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
@@ -61,6 +62,32 @@ public final class Checks {
                     check = "byteArrayEquals";
                 return new Check.Failure(check, values);
             }
+        };
+    }
+
+    /**
+     * Returns a check for the active region of a {@link ByteBuffer}
+     * containing the specified elements.
+     * @param values the expected buffer contents
+     * @return a check for {@link ByteBuffer} objects
+     * @throws NullPointerException if {@code values} is null
+     */
+    public static Check<ByteBuffer> byteBufferEquals(byte... values) {
+        Objects.requireNonNull(values, "values");
+        return (ByteBuffer buffer) -> {
+	    if (buffer == null)
+		return new Check.Failure("byteBufferEquals (not null)", values);
+	    boolean ok = values.length == buffer.remaining();
+	    if (ok)
+		for (int i = 0; i < values.length; ++i)
+		    if (buffer.get(buffer.position() + i) != values[i]) {
+			ok = false;
+			break;
+		    }
+	    if (ok)
+		return null;
+	    else
+		return new Check.Failure("byteBufferEquals", values);
         };
     }
 
