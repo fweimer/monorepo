@@ -209,6 +209,7 @@ public interface Testing {
      *   checks on the exception object
      * @param <E> the type of the expected exception
      */
+    @Deprecated
     <E extends Throwable> void expect(ThrowingRunnable source,
         Class<E> exception, Consumer<? super E> consumer);
 
@@ -232,6 +233,7 @@ public interface Testing {
      *   checks on the exception object
      * @param <E> the type of the expected exception
      */
+    @Deprecated
     <E extends Throwable> void expect(String label, ThrowingRunnable source,
         Class<E> exception, Consumer<? super E> consumer);
 

@@ -288,6 +288,7 @@ public final class Testing implements enyo.testing.Testing {
     }
 
     @Override
+    @Deprecated
     public <E extends Throwable> void expect(
         ThrowingRunnable source, Class<E> exception,
         Consumer<? super E> consumer) {
@@ -301,6 +302,7 @@ public final class Testing implements enyo.testing.Testing {
     }
 
     @Override
+    @Deprecated
     public <E extends Throwable> void expect(String label,
         ThrowingRunnable source, Class<E> exception,
         Consumer<? super E> consumer) {
