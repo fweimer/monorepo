@@ -239,7 +239,7 @@ public final class RawSyscalls {
      * <ul>
      * <li>The value 0 ({@code SHUT_RD}) indicates that there will
      *   be no further reads
-     * <li>The value 1 ({@code SHUT_RDWR}) indicates that there will
+     * <li>The value 1 ({@code SHUT_WR}) indicates that there will
      *   be no further writes
      * <li>The value 2 ({@code SHUT_RDWR}) indicates that there will
      *   be no further reads or writes, but the descriptor remains open
