@@ -208,7 +208,7 @@ public final class RawSyscalls {
      * @param fd the descriptor to read from
      * @param buf the memory segment into which the bytes read
      * @return the number of bytes read
-     * @throws IllegalArgumentException {@code buf} is not writable
+     * @throws UnsupportedOperationException {@code buf} is not writable
      * @throws SyscallException the read operation failed
      */
     public static long read(int fd, MemorySegment buf) {
@@ -300,7 +300,7 @@ public final class RawSyscalls {
 
     private static void checkWritable(MemorySegment buf) {
         if (buf.isReadOnly())
-            throw new IllegalArgumentException(
+            throw new UnsupportedOperationException(
                 "Writable memory segment required: "+ buf);
     }
 

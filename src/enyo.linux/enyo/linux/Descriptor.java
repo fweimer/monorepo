@@ -269,6 +269,7 @@ public final class Descriptor implements AutoCloseable {
      * @param buf the byte buffer into which data is read
      * @return the number of bytes actually read; 0 for end of file
      * @throws NullPointerException if {@code buf} is null
+     * @throws UnsupportedOperationException if the memory segment is read-only
      * @throws SyscallException if the read operation fails
      */
     public long read(MemorySegment buf) {
