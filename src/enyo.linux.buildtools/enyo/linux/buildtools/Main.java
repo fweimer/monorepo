@@ -32,8 +32,10 @@ public final class Main {
         boolean listUncommonErrno,
         @Help("update the syscalls files in the source tree")
         boolean updateSyscalls,
-        @Help("update the macr classes")
-        boolean updateMacroClasses
+        @Help("update the macro classes")
+        boolean updateMacroClasses,
+        @Help("generate asm UAPI headers (updates Linux source tree")
+        boolean generateUapiHeaders
     ) {}
 
     @SuppressWarnings("doclint:missing")
@@ -43,6 +45,8 @@ public final class Main {
         var glibcTree = Path.of(options.glibcTree());
         var linuxTree =
             options.linuxTree() != null ? Path.of(options.linuxTree()) : null;
+        if (options.generateUapiHeaders())
+            generateUapiHeaders(linuxTree);
         if (options.listCommonSyscalls())
             SyscallDescriptor.commonSyscalls(
                 SyscallDescriptor.allSyscalls(glibcTree))
@@ -65,6 +69,25 @@ public final class Main {
                 "#include <linux/mman.h>",
                 Pattern.compile("^(HUGETLB|MAP|PROT)_[A-Z0-9]"));
 
+        }
+    }
+
+    private static void generateUapiHeaders(Path linuxTree) throws Exception {
+        if (linuxTree == null) {
+            System.err.println(
+                "error: --update-uapi-headers requires --linux-tre");
+            System.exit(1);
+        }
+        for (Architecture arch : Architecture.values()) {
+            try (var proc = new ProcessBuilder(
+                "make", "ARCH=" + arch.linuxArch, "uapi-asm-generic")
+                .directory(linuxTree.toFile())
+                .inheritIO()
+                .start()) {
+                int rc = proc.waitFor();
+                if (rc != 0)
+                    System.exit(rc);
+            }
         }
     }
 
