@@ -20,7 +20,7 @@ public final class Syscalls {
     }
 
     /**
-     * Relinquishs the CPU.
+     * Relinquishes the CPU.
      * This pauses the execution of the current thread.
      * @see Thread#yield()
      */

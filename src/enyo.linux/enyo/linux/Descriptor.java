@@ -8,7 +8,6 @@ import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * A file descriptor.
@@ -48,6 +47,7 @@ public final class Descriptor implements AutoCloseable {
      *
      * @param fd the descriptor to duplicate
      * @return a new descriptor for a duplicate of {@code fd}
+     *   (which has {@code O_CLOEXEC} set)
      * @see #of(int)
      */
     public static Descriptor dup(int fd) {
@@ -68,7 +68,7 @@ public final class Descriptor implements AutoCloseable {
      *   {@link OpenFlag#O_WRONLY}, or {@link OpenFlag#O_RDWR}.
      * @param flags additional open flags, including
      *   {@link OpenFlag#O_CREAT(int)} to enable file creation
-     * @return a new file descriptor
+     * @return a new file descriptor (which has {@code O_CLOEXEC} set)
      * @throws NullPointerException if {@code path} is null
      * @throws SyscallException if the file cannot be opened
      * @see #openat(Path,OpenFlag,OpenOrCreateFlag[])
@@ -79,7 +79,7 @@ public final class Descriptor implements AutoCloseable {
     }
 
     /**
-     * Opens the specified file, relative to aspecified directory.
+     * Opens the specified file, relative to a specified directory.
      *
      * If {@code path} is not absolute, it is interpreted relative
      * to this descriptor's directory.
@@ -89,8 +89,9 @@ public final class Descriptor implements AutoCloseable {
      *   {@link OpenFlag#O_WRONLY}, or {@link OpenFlag#O_RDWR}.
      * @param flags additional open flags, including
      *   {@link OpenFlag#O_CREAT(int)} to enable file creation
-     * @return a new file descriptor
+     * @return a new file descriptor (which has {@code O_CLOEXEC} set)
      * @throws NullPointerException if {@code path} is null
+     * @throws IllegalStateException if this descriptor is closed
      * @throws SyscallException if the file cannot be opened
      * @see #open(Path,OpenFlag,OpenOrCreateFlag[])
      */
@@ -127,6 +128,11 @@ public final class Descriptor implements AutoCloseable {
             try {
                 return Descriptor.dup(fd);
             } finally {
+                // This could theoretically throw (but likely only
+                // after file descriptor corruption leading to an
+                // incorrect close(), so that we get EBADF here).  A
+                // successful dup() has a cleanable, so this will not
+                // result in a permanent leak.
                 RawSyscalls.close(fd);
             }
         else
@@ -138,6 +144,28 @@ public final class Descriptor implements AutoCloseable {
             }
     }
 
+    /**
+     * Closes the descriptor.
+     *
+     * After closing a descriptor, further operations on it result in an
+     * {@link IllegalStateException} exception being thrown.
+     *
+     * The close request may not always result in the underlying descriptor
+     * being closed:
+     * <ul>
+     * <li>If there is a concurrent operation on this descriptor
+     *   from another thread, the closing is deferred until after
+     *   this operation stops.  A best-effort attempt is made to
+     *   cancel the operation, but this depends on the type of
+     *   descriptor.  For example, if the descriptor refers to a
+     *   regular file, operations cannot be canceled.
+     * <li>Standard descriptors ({@link #stdin()}, {@link #stdout()},
+     *   {@link #stderr()}) are not closed and the request is ignored.
+     * <li>The descriptor is already closed.  This is not treated as an error.
+     * </ul>
+     * @throws SyscallException the kernel reported an error during the
+     *   close operation; note that the descriptor is still closed
+     */
     @Override
     public void close() {
         long oldValue;
@@ -159,12 +187,12 @@ public final class Descriptor implements AutoCloseable {
                 throw new InternalError(
                     "Invalid descriptor state: " + oldValue);
         } while (!state.fd.compareAndSet(oldValue, newValue));
-        // Mask out FD_CLOSING_MASK.
+        // Mask out CLOSING_MASK.
         int fd = (int) newValue & State.FD_MASK;
         if ((newValue >> 31) == 0b11)
             // Close request posted.  No other thread can perform
             // another system call on this descriptor (see lock() and
-            // its FD_CLOSING_MASK check).  The reference count is one
+            // its CLOSING_MASK check).  The reference count is one
             // (incremented by us), so we can close directly.
             closeAsOwner(fd);
         else {
@@ -201,7 +229,7 @@ public final class Descriptor implements AutoCloseable {
      * @throws NullPointerException if {@code buf} is null
      * @throws IndexOutOfBoundsException if {@code off} or {@code len}
      *   are out of bounds for {@code buf}
-     * @throws SyscallException if the write operation fails
+     * @throws SyscallException if the read operation fails
      */
     public int read(byte[] buf, int off, int len) {
         Objects.checkFromIndexSize(off, len, buf.length);
@@ -215,7 +243,7 @@ public final class Descriptor implements AutoCloseable {
     }
 
     /**
-     * Reads data into the the array.
+     * Reads data into the array.
      *
      * This method attempts to fill the array {@code buf} with data
      * read from the descriptor.  Reading may stop prematurely for various
@@ -224,7 +252,7 @@ public final class Descriptor implements AutoCloseable {
      * @param buf the byte array into which the data is read
      * @return the number of bytes actually read; 0 for end of file
      * @throws NullPointerException if {@code buf} is null
-     * @throws SyscallException if the write operation fails
+     * @throws SyscallException if the read operation fails
      */
     public int read(byte[] buf) {
         return read(buf, 0, buf.length);
@@ -264,9 +292,9 @@ public final class Descriptor implements AutoCloseable {
      * {@link MemorySegment#byteSize() buf.byteSize()}
      * bytes into {@code buf} (the entire segment).  Reading may
      * stop prematurely for various reasons, not just an end of file
-     * condition.  Neither position or limit are updated by this method
+     * condition.  Neither position nor limit are updated by this method.
      *
-     * @param buf the byte buffer into which data is read
+     * @param buf the memory segment into which data is read
      * @return the number of bytes actually read; 0 for end of file
      * @throws NullPointerException if {@code buf} is null
      * @throws UnsupportedOperationException if the memory segment is read-only
@@ -333,7 +361,7 @@ public final class Descriptor implements AutoCloseable {
      * {@link ByteBuffer#remaining() buf.remaining()}
      * bytes from {@code buf} starting at
      * {@link ByteBuffer#position() buf.position()}
-     * (until {@link ByteBuffer#limit() buf.limit()} is reached).  Reading may
+     * (until {@link ByteBuffer#limit() buf.limit()} is reached).  Writing may
      * stop prematurely for various reasons, not just the end of the
      * active buffer region.
      * Neither position mor limit are updated by this method
@@ -362,7 +390,7 @@ public final class Descriptor implements AutoCloseable {
      *
      * This method writes to this descriptor at most
      * {@link MemorySegment#byteSize() buf.byteSize()}
-     * bytes from {@code buf} (the  entire segment).
+     * bytes from {@code buf} (the entire segment).
      * Writing may stop prematurely for various reasons, not just the
      * end of the memory segment.
      *
@@ -429,7 +457,9 @@ public final class Descriptor implements AutoCloseable {
      * Returns the raw file descriptor.
      *
      * Note that this object retains ownership of the raw descriptor,
-     * and it may be closed concurrently.
+     * and it may be closed concurrently.  The caller must not close
+     * the returned descriptor because this object will close it eventually
+     * (or it is one of the standard descriptors that must not be closed).
      *
      * @return the raw file descriptor, or -1 if the descriptor is closed
      */
@@ -440,12 +470,17 @@ public final class Descriptor implements AutoCloseable {
         return (int) fd & State.FD_MASK;
     }
 
+    // Closing based on garbage collection.  The implementation assumes
+    // that garbage collection does not happen when the reference count
+    // is positive.  Reachability fences must be used to ensure this.
     private static final class State implements Runnable {
+        // Encoding of the descriptor and state in the fd value:
+        //
         // -1 means the descriptor is closed.  This is the terminal state,
         // no further updates.
         //
-        // Bits 32 to 62 are a reference counter of concurrently
-        // running operations.  0 means that the descriptor is not busy.
+        // Bits 0 to 30 encode the actual file descriptor.
+        final static int FD_MASK = 0x7fffffff;
         //
         // Bit 31 means that there is a pending close() request.
         // The close request is only acted upon by the thread that observes
@@ -453,8 +488,11 @@ public final class Descriptor implements AutoCloseable {
         // thread that observes count 0 after the decrement in unlock().
         // Only one of them performs the raw close.
         final static long CLOSING_MASK = 1L << 31;
-        // The lower 31 bits contain the descriptor.
-        final static int FD_MASK = 0x7fffffff;
+        // Bits 32 to 62 are a reference counter of concurrently
+        // running operations.  0 means that the descriptor is not busy.
+        // This bit field is incremented by lock() and decremented by unlock().
+        // Bit 63 is used as an overflow indicator,
+        // and as part of the -1 sentinel value.
         final AtomicLong fd;
 
         private State(int fd) {
@@ -469,8 +507,8 @@ public final class Descriptor implements AutoCloseable {
             // The descriptor only becomes eligible for collection
             // if there are no pending operations.
             if ((fd0 >>> 31) != 0)
-                // This is mostly visisble (but could be detected with
-                // a service agent).
+                // This exception is not invisible on the cleaner
+                // thread, but could be detected with a service agent.
                 throw new InternalError("Invalid descriptor state: " + fd0);
             fd.set(-1);
             RawSyscalls.close((int) fd0);
@@ -510,7 +548,7 @@ public final class Descriptor implements AutoCloseable {
         if ((newValue >> 31) == 1)
             // Close request, but zero reference counts.  No other
             // thread can perform another system call on this
-            // descriptor (see lock() and its FD_CLOSING_MASK check
+            // descriptor (see lock() and its CLOSING_MASK check
             // above).  close() will not update the descriptor,
             // either.  So we can directly close it.
             closeAsOwner((int) newValue & State.FD_MASK);
