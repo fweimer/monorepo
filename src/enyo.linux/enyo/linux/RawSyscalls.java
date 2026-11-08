@@ -217,22 +217,6 @@ public final class RawSyscalls {
     }
 
     /**
-     * Relinquishs the CPU.
-     * This pauses the execution of the current thread.
-     * @see Thread#yield()
-     */
-    public static void sched_yield() {
-        try {
-            long _ = (long) Trampolines.NONE.invokeExact(
-                SyscallConstants.sched_yield);
-        } catch (RuntimeException | Error e) {
-            throw e;
-        } catch (Throwable e) {
-            throw new InternalError(e);
-        }
-    }
-
-    /**
      * Shuts down the file descriptor.
      *
      * The {@code how} argument is interpreted as follows.
