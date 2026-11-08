@@ -127,7 +127,7 @@ class LinuxData implements Closeable{
     }
 
     Map<String, Long> macroValues(Architecture arch, String fragment,
-                                  Collection<? extends LinuxData.Macro> macros)
+                                  Collection<? extends String> macros)
         throws IOException {
         return CExtract.macroValues(arch, includes(arch), fragment, macros);
     }

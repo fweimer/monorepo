@@ -20,7 +20,7 @@ class CExtract {
     // Uses the fragment to provide definitions.
     static Map<String, Long> macroValues(Architecture arch,
         List<? extends String> cflags, String fragment,
-        Collection<? extends LinuxData.Macro> macros) throws IOException {
+        Collection<? extends String> macros) throws IOException {
 
         var outPath = Files.createTempFile("enyo-linux-cc-", ".c");
         try {
@@ -35,18 +35,16 @@ class CExtract {
     }
 
     static void asmExtraction(PrintWriter out,
-        Collection<? extends LinuxData.Macro> macros)
+        Collection<? extends String> macros)
         throws IOException {
         // Pseudo-assembler directives that force constant evaluation.
         out.write("void global_function(void) {\n");
         for (var macro : macros) {
-            if (macro.expansion().strip().isEmpty())
-                continue;
             out.format("""
   __asm__ volatile (".asciiz \\"@@@EXPORT@@@ @%s@ @%%0@\\""
                     :: "i" ((long) (%s))); /* %s */
 """,
-                        macro.name(), macro.name(), macro.name());
+                        macro, macro, macro);
                 }
                 out.write("}\n");
     }
@@ -54,9 +52,8 @@ class CExtract {
 
     static Map<String, Long> runExtraction(Architecture arch,
         List<? extends String> cflags, Path outPath,
-        Collection<? extends LinuxData.Macro> macros) throws IOException {
+        Collection<? extends String> macros) throws IOException {
         var macroNames = macros.stream()
-            .map(LinuxData.Macro::name)
             .collect(Collectors.toUnmodifiableSet());
 
         var result = new HashMap<String, Long>();

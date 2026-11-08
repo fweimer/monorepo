@@ -26,12 +26,12 @@ record SyscallDescriptor(String name, int number) {
             .collect(Collectors.toUnmodifiableMap(
                     arch -> arch,
                     IOFunction.of(arch -> {
-                            String fragment = "#include <asm/syscall.h>";
+                            String fragment = "#include <linux/unistd.h>";
                             var macros = linuxData.macros(
                                 arch, fragment,
                                 name -> name.startsWith(PREFIX));
                             var macroValues = linuxData.macroValues(
-                                arch, fragment, macros.values());
+                                arch, fragment, macros.keySet());
                             return macroValues.entrySet().stream()
                                 .map(SyscallDescriptor::of)
                                 .collect(Collectors.toUnmodifiableMap(

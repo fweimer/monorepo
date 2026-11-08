@@ -203,7 +203,7 @@ final class SyscallConstants%s {
                             e.getKey(),
                             linuxData.includes(e.getKey()),
                             fragment,
-                            e.getValue().values()))));
+                            e.getValue().keySet()))));
         Updater.writeMacroClass(className, isPublic, allMacros,
             pattern.asPredicate());
     }
