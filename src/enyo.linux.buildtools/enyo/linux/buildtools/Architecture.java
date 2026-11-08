@@ -13,15 +13,15 @@ import java.util.List;
  * in the OpenJDK sources.
  */
 enum Architecture {
-    AARCH64("aarch64", null, "arm", List.of("-D__arch64__")),
-    AMD64("x86_64", "64", "x86", List.of("-D__x86_64__")),
-    LOONGARCH64("loongarch", "lp64", "loongarch",
+    AARCH64("aarch64", null, "arm", "aarch64", List.of("-D__arch64__")),
+    AMD64("x86_64", "64", "x86", "x86_64", List.of("-D__x86_64__")),
+    LOONGARCH64("loongarch", "lp64", "loongarch", "loongarch64",
         List.of("-D__loongarch__", "-D__loongarch_grlen=64")),
-    PPC64LE("powerpc", "powerpc64", "powerpc",
+    PPC64LE("powerpc", "powerpc64", "powerpc", "powerpc64le",
         List.of("-D__powerpc__", "-D__powerpc64__")),
-    RISCV64("riscv", "rv64", "riscv",
+    RISCV64("riscv", "rv64", "riscv", "riscv64",
         List.of("-D_riscv")),
-    S390X("s390", "s390-64", "s390",
+    S390X("s390", "s390-64", "s390", "s390x",
         List.of("-D__s390__", "-D__s390x__")),
     ;
 
@@ -31,15 +31,27 @@ enum Architecture {
 
     private final String glibcBase;
     private final String glibcAlternate;
+
+
+    // Architecture name used in configure triplets.
+    final String gnuArch;
+
+    // Architecture name used in the Linux source tree.
     final String linuxArch;
-    final List<String> cppFlags;
 
     private Architecture(String glibcBase, String glibcAlternate,
-        String linuxArch, List<String> cppFlags) {
+        String linuxArch, String gnuArch, List<String> cppFlags) {
         this.glibcBase = glibcBase;
         this.glibcAlternate = glibcAlternate;
+        this.gnuArch = gnuArch;
         this.linuxArch = linuxArch;
-        this.cppFlags = cppFlags;
+    }
+
+    /**
+     * The C compiler command for this architecture.
+     */
+    String cc() {
+        return gnuArch + "-linux-gnu-gcc";
     }
 
     /**

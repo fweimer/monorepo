@@ -6,6 +6,7 @@ import enyo.util.argparse.Help;
 import enyo.util.argparse.MetaVar;
 import enyo.util.argparse.Required;
 
+import java.io.File;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -13,8 +14,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * The tool for updating {@code enyo.linux} sources.
@@ -24,6 +25,7 @@ public final class Main {
         @Required @MetaVar("PATH")
         @Help("the glibc source checkout")
         String glibcTree,
+        @Required @MetaVar("PATH")
         @Help("the Linux source checkout")
         String linuxTree,
         @Help("list system calls shared by all architectures")
@@ -33,9 +35,7 @@ public final class Main {
         @Help("update the syscalls files in the source tree")
         boolean updateSyscalls,
         @Help("update the macro classes")
-        boolean updateMacroClasses,
-        @Help("generate asm UAPI headers (updates Linux source tree")
-        boolean generateUapiHeaders
+        boolean updateMacroClasses
     ) {}
 
     @SuppressWarnings("doclint:missing")
@@ -43,32 +43,33 @@ public final class Main {
         var options = new ArgParser<>(MethodHandles.lookup(), Options.class)
             .run(Main.class, args);
         var glibcTree = Path.of(options.glibcTree());
-        var linuxTree =
-            options.linuxTree() != null ? Path.of(options.linuxTree()) : null;
-        if (options.generateUapiHeaders())
-            generateUapiHeaders(linuxTree);
-        if (options.listCommonSyscalls())
-            SyscallDescriptor.commonSyscalls(
-                SyscallDescriptor.allSyscalls(glibcTree))
-                .stream()
-                .forEach(System.out::println);
-        if (options.listUncommonErrno())
-            listUncommonMacros(glibcTree, linuxTree,
-                "#include <linux/errno.h>",
-                Pattern.compile("^E[A-Z0-9]"));
-        if (options.updateSyscalls)
-            updateSyscalls(glibcTree);
-        if (options.updateMacroClasses()) {
-            writeMacroClass(linuxTree, "Errno", true,
-                "#include <linux/errno.h>",
-                Pattern.compile("^E[A-Z0-9]"));
-            writeMacroClass(linuxTree, "Fcntl", false,
-                "#include <linux/fcntl.h>",
-                Pattern.compile("^(__)?([OF]|AT)_[A-Z0-9]"));
-            writeMacroClass(linuxTree, "Mman", false,
-                "#include <linux/mman.h>",
-                Pattern.compile("^(HUGETLB|MAP|PROT)_[A-Z0-9]"));
+        checkCrossCompilers();
+        var linuxTree =Path.of(options.linuxTree());
 
+        try (var linuxData = new LinuxData(linuxTree)) {
+            if (options.listCommonSyscalls())
+                SyscallDescriptor.commonSyscalls(
+                    SyscallDescriptor.allSyscalls(glibcTree))
+                    .stream()
+                    .forEach(System.out::println);
+            if (options.listUncommonErrno())
+                listUncommonMacros(linuxData,
+                    "#include <linux/errno.h>",
+                    Pattern.compile("^E[A-Z0-9]"));
+            if (options.updateSyscalls)
+                updateSyscalls(glibcTree);
+            if (options.updateMacroClasses()) {
+                writeMacroClass(linuxData, "Errno", true,
+                    "#include <linux/errno.h>",
+                    Pattern.compile("^E[A-Z0-9]"));
+                writeMacroClass(linuxData, "Fcntl", false,
+                    "#include <linux/fcntl.h>",
+                    Pattern.compile("^(__)?([OF]|AT)_[A-Z0-9]"));
+                writeMacroClass(linuxData, "Mman", false,
+                    "#include <linux/mman.h>",
+                    Pattern.compile("^(HUGETLB|MAP|PROT)_[A-Z0-9]"));
+
+            }
         }
     }
 
@@ -91,9 +92,27 @@ public final class Main {
         }
     }
 
-    private static void listUncommonMacros(Path glibcTree, Path linuxTree,
+    private static void checkCrossCompilers() throws Exception {
+        String path = System.getenv("PATH");
+        if (path == null)
+            throw new Exception("PATH is not set");
+        String dirs[] = path.split(File.pathSeparator);
+        for (var arch : Architecture.values()) {
+            String command = arch.cc();
+            for (String dir : dirs) {
+                if (dir.isEmpty())
+                    dir = ".";
+                File f = new File(dir, command);
+                if (f.isFile() && f.canExecute())
+                    return;
+            }
+            throw new Exception(String.format(
+                    "Cannot find program \"%s\" on PATH: %s", command, path));
+        }
+    }
+
+    private static void listUncommonMacros(LinuxData linuxData,
         String fragment, Pattern regexp) throws Exception {
-        var linuxData = new LinuxData(linuxTree);
         var allMacros = linuxData.allMacros(fragment, regexp.asPredicate());
         allMacros.values().stream()
             .map(Map::keySet)
@@ -177,16 +196,18 @@ final class SyscallConstants%s {
         }
     }
 
-    private static void writeMacroClass(Path linuxTree, String className,
+    private static void writeMacroClass(LinuxData linuxData, String className,
         boolean isPublic, String fragment, Pattern pattern) throws Exception {
-        var linuxData = new LinuxData(linuxTree);
-        var cExtract = new CExtract();
         var allMacros = linuxData.allMacros(fragment, pattern.asPredicate())
             .entrySet().stream()
             .collect(Collectors.toUnmodifiableMap(
                     Map.Entry::getKey,
                     IOFunction.of(
-                        e -> cExtract.macroValues(e.getValue().values()))));
+                        e -> CExtract.macroValues(
+                            e.getKey(),
+                            linuxData.includes(e.getKey()),
+                            fragment,
+                            e.getValue().values()))));
         Updater.writeMacroClass(className, isPublic, allMacros,
             pattern.asPredicate());
     }
