@@ -20,6 +20,10 @@ public final class Descriptor implements AutoCloseable {
      * The original descriptor is associated with the object, it is not
      * duplicated.
      *
+     * If a descriptor 0, 1, 2, is passed, a shared descriptor object
+     * is returned, which does not obtain ownership.  This prevents
+     * accidental closing of these standard descriptors.
+     *
      * @param fd the descriptor to wrap
      * @return a new descriptor which has ownership of the descriptor
      *   {@code fd}, or the descriptors {@link #stdin()}, {@link #stdout()},
@@ -115,12 +119,23 @@ public final class Descriptor implements AutoCloseable {
             var path0 = arena.allocateFrom(path.toString());
             fd = RawSyscalls.openat(dirfd, path0, flagsRaw, mode);
         }
-        try {
-            return Descriptor.of(fd);
-        } catch (Throwable e) {
-            RawSyscalls.close(fd);
-            throw e;
-        }
+        if (fd <= 2)
+            // One of the 0, 1, 2 were closed. Descriptor#of(int) does
+            // not obtain ownership of such descriptors.  Create a
+            // duplicate, so that the return descriptor object has
+            // true ownership.
+            try {
+                return Descriptor.dup(fd);
+            } finally {
+                RawSyscalls.close(fd);
+            }
+        else
+            try {
+                return Descriptor.of(fd);
+            } catch (Throwable e) {
+                RawSyscalls.close(fd);
+                throw e;
+            }
     }
 
     @Override
@@ -146,18 +161,13 @@ public final class Descriptor implements AutoCloseable {
         } while (!state.fd.compareAndSet(oldValue, newValue));
         // Mask out FD_CLOSING_MASK.
         int fd = (int) newValue & State.FD_MASK;
-        if ((newValue >> 31) == 0b11) {
+        if ((newValue >> 31) == 0b11)
             // Close request posted.  No other thread can perform
             // another system call on this descriptor (see lock() and
             // its FD_CLOSING_MASK check).  The reference count is one
             // (incremented by us), so we can close directly.
-            state.fd.set(-1);
-            // Fence before the raw close in case the close throws.  It
-            // has to come after the state.fd update, so that the
-            // cleaner thread cannot observe an intermediate value.
-            Reference.reachabilityFence(this);
-            RawSyscalls.close(fd);
-        } else {
+            closeAsOwner(fd);
+        else {
             // We cannot perform an immediate close.  Shutting down
             // a socket may interrupt pending operations.
             try {
@@ -457,7 +467,9 @@ public final class Descriptor implements AutoCloseable {
                 return;
             // The descriptor only becomes eligible for collection
             // if there are no pending operations.
-            if ((fd0 >>> 32) != 0)
+            if ((fd0 >>> 31) != 0)
+                // This is mostly visisble (but could be detected with
+                // a service agent).
                 throw new InternalError("Invalid descriptor state: " + fd0);
             fd.set(-1);
             RawSyscalls.close((int) fd0);
@@ -469,7 +481,9 @@ public final class Descriptor implements AutoCloseable {
         // The standard descriptors are never closed and therefore do
         // not need cleaner registration.
         if (fd >= 3)
-            cleaner.register(this, state);
+            cleanable = cleaner.register(this, state);
+        else
+            cleanable = null;
     }
 
     private int lock() {
@@ -492,26 +506,37 @@ public final class Descriptor implements AutoCloseable {
         long newValue = state.fd.addAndGet(-1L << 32);
         if (newValue < 0)
             throw new InternalError("Invalid descriptor state: " + newValue);
-        if ((newValue >> 31) == 1) {
+        if ((newValue >> 31) == 1)
             // Close request, but zero reference counts.  No other
             // thread can perform another system call on this
             // descriptor (see lock() and its FD_CLOSING_MASK check
             // above).  close() will not update the descriptor,
             // either.  So we can directly close it.
-            state.fd.set(-1);
-            // Fence before the raw close in case the close throws.  It
-            // has to come after the state.fd update, so that the
-            // cleaner thread cannot observe an intermediate value.
-            Reference.reachabilityFence(this);
-            // Mask out FD_CLOSING_MASK.
-            RawSyscalls.close((int) newValue & State.FD_MASK);
-        } else
+            closeAsOwner((int) newValue & State.FD_MASK);
+        else
             // Must come last, so that the cleaner thread cannot observe
             // an intermediate value (with non-zero reference count).
             Reference.reachabilityFence(this);
     }
 
+    // Called for a descriptor that can be closed (so not
+    // CLOSED/STDIN/STDOUT/STDERR) after the current thread has
+    // obtained exclusive ownership, either after increment in close(),
+    // or by being the last thread in unlock().
+    private void closeAsOwner(int fd) {
+        state.fd.set(-1);
+        // This does nothing in State.run(), but still deregisters
+        // the cleanable.  Not null because we have a closeable descriptor.
+        cleanable.clean();
+        // Fence before the raw close in case the close throws.  It
+        // has to come after the state.fd update, so that the
+        // cleaner thread cannot observe an intermediate value.
+        Reference.reachabilityFence(this);
+        RawSyscalls.close(fd);
+    }
+
     private final State state;
+    private final Cleaner.Cleanable cleanable;
 
     static private final Descriptor CLOSED = new Descriptor(-1);
     static private final Descriptor STDIN = new Descriptor(0);
