@@ -11,46 +11,33 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 record SyscallDescriptor(String name, int number) {
-    static SyscallDescriptor parse(String line) {
-        String NR = "__NR_";
-        String[] components = line.strip().split(" ");
-        if (line.startsWith("#define ")
-            && components.length == 3
-            && components[1].startsWith(NR))
-            return new SyscallDescriptor(
-                components[1].substring(NR.length()),
-                Integer.parseInt(components[2]));
-        throw new IllegalArgumentException("Malformed line: " + line.strip());
-    }
+    private final static String PREFIX = "__NR_";
 
-    static Map<String, SyscallDescriptor> fromFile(Path path)
-        throws IOException {
-        try {
-            return Files.readAllLines(path).stream()
-                .filter(line -> !line.startsWith("/*"))
-                .map(SyscallDescriptor::parse)
-                .collect(Collectors.toUnmodifiableMap(
-                        SyscallDescriptor::name,
-                        d -> d));
-        } catch (Exception e) {
-            throw new IOException("Reading: " + path, e);
-        }
-    }
-
-    static Map<String, SyscallDescriptor> fromFile(
-        Path glibcTree, Architecture arch) throws IOException {
-        return SyscallDescriptor.fromFile(arch.sysdepsFile(
-                glibcTree, Path.of("arch-syscall.h")));
+    static SyscallDescriptor of(Map.Entry<String, Long> macro) {
+        if (!macro.getKey().startsWith(PREFIX))
+            throw new IllegalArgumentException(macro.toString());
+        String name = macro.getKey().substring(PREFIX.length());
+        return new SyscallDescriptor(name, Math.toIntExact(macro.getValue()));
     }
 
     static Map<Architecture, Map<String, SyscallDescriptor>> allSyscalls(
-        Path glibcTree) {
+        LinuxData linuxData) {
         return Arrays.stream(Architecture.values())
             .collect(Collectors.toUnmodifiableMap(
                     arch -> arch,
-                    IOFunction.of(arch ->
-                        SyscallDescriptor.fromFile(arch.sysdepsFile(
-                                glibcTree, Path.of("arch-syscall.h"))))));
+                    IOFunction.of(arch -> {
+                            String fragment = "#include <asm/syscall.h>";
+                            var macros = linuxData.macros(
+                                arch, fragment,
+                                name -> name.startsWith(PREFIX));
+                            var macroValues = linuxData.macroValues(
+                                arch, fragment, macros.values());
+                            return macroValues.entrySet().stream()
+                                .map(SyscallDescriptor::of)
+                                .collect(Collectors.toUnmodifiableMap(
+                                        SyscallDescriptor::name,
+                                        e -> e));
+                        })));
     }
 
     /**

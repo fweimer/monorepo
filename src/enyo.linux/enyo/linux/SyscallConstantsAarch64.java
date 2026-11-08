@@ -50,6 +50,7 @@ final class SyscallConstantsAarch64 {
             452, // fchmodat2
             55, // fchown
             54, // fchownat
+            472, // fchroot
             25, // fcntl
             83, // fdatasync
             10, // fgetxattr
@@ -64,6 +65,7 @@ final class SyscallConstantsAarch64 {
             432, // fsmount
             430, // fsopen
             433, // fspick
+            80, // fstat
             44, // fstatfs
             82, // fsync
             46, // ftruncate
@@ -174,6 +176,7 @@ final class SyscallConstantsAarch64 {
             215, // munmap
             264, // name_to_handle_at
             101, // nanosleep
+            79, // newfstatat
             42, // nfsservctl
             265, // open_by_handle_at
             428, // open_tree

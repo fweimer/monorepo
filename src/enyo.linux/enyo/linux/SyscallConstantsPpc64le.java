@@ -50,6 +50,7 @@ final class SyscallConstantsPpc64le {
             452, // fchmodat2
             95, // fchown
             289, // fchownat
+            472, // fchroot
             55, // fcntl
             148, // fdatasync
             214, // fgetxattr
@@ -64,6 +65,7 @@ final class SyscallConstantsPpc64le {
             432, // fsmount
             430, // fsopen
             433, // fspick
+            108, // fstat
             100, // fstatfs
             118, // fsync
             93, // ftruncate
@@ -174,6 +176,7 @@ final class SyscallConstantsPpc64le {
             91, // munmap
             345, // name_to_handle_at
             162, // nanosleep
+            291, // newfstatat
             168, // nfsservctl
             346, // open_by_handle_at
             428, // open_tree

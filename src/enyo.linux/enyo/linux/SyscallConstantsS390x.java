@@ -50,6 +50,7 @@ final class SyscallConstantsS390x {
             452, // fchmodat2
             207, // fchown
             291, // fchownat
+            472, // fchroot
             55, // fcntl
             148, // fdatasync
             229, // fgetxattr
@@ -64,6 +65,7 @@ final class SyscallConstantsS390x {
             432, // fsmount
             430, // fsopen
             433, // fspick
+            108, // fstat
             100, // fstatfs
             118, // fsync
             93, // ftruncate
@@ -174,6 +176,7 @@ final class SyscallConstantsS390x {
             91, // munmap
             335, // name_to_handle_at
             162, // nanosleep
+            293, // newfstatat
             169, // nfsservctl
             336, // open_by_handle_at
             428, // open_tree

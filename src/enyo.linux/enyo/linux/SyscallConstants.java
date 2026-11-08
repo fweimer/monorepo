@@ -78,6 +78,7 @@ final class SyscallConstants {
         fchmodat2 = syscallArray[syscallIndex++];
         fchown = syscallArray[syscallIndex++];
         fchownat = syscallArray[syscallIndex++];
+        fchroot = syscallArray[syscallIndex++];
         fcntl = syscallArray[syscallIndex++];
         fdatasync = syscallArray[syscallIndex++];
         fgetxattr = syscallArray[syscallIndex++];
@@ -92,6 +93,7 @@ final class SyscallConstants {
         fsmount = syscallArray[syscallIndex++];
         fsopen = syscallArray[syscallIndex++];
         fspick = syscallArray[syscallIndex++];
+        fstat = syscallArray[syscallIndex++];
         fstatfs = syscallArray[syscallIndex++];
         fsync = syscallArray[syscallIndex++];
         ftruncate = syscallArray[syscallIndex++];
@@ -202,6 +204,7 @@ final class SyscallConstants {
         munmap = syscallArray[syscallIndex++];
         name_to_handle_at = syscallArray[syscallIndex++];
         nanosleep = syscallArray[syscallIndex++];
+        newfstatat = syscallArray[syscallIndex++];
         nfsservctl = syscallArray[syscallIndex++];
         open_by_handle_at = syscallArray[syscallIndex++];
         open_tree = syscallArray[syscallIndex++];
@@ -400,6 +403,7 @@ final class SyscallConstants {
     final static int fchmodat2;
     final static int fchown;
     final static int fchownat;
+    final static int fchroot;
     final static int fcntl;
     final static int fdatasync;
     final static int fgetxattr;
@@ -414,6 +418,7 @@ final class SyscallConstants {
     final static int fsmount;
     final static int fsopen;
     final static int fspick;
+    final static int fstat;
     final static int fstatfs;
     final static int fsync;
     final static int ftruncate;
@@ -524,6 +529,7 @@ final class SyscallConstants {
     final static int munmap;
     final static int name_to_handle_at;
     final static int nanosleep;
+    final static int newfstatat;
     final static int nfsservctl;
     final static int open_by_handle_at;
     final static int open_tree;

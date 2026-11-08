@@ -23,9 +23,6 @@ import java.util.stream.Collectors;
 public final class Main {
     private record Options(
         @Required @MetaVar("PATH")
-        @Help("the glibc source checkout")
-        String glibcTree,
-        @Required @MetaVar("PATH")
         @Help("the Linux source checkout")
         String linuxTree,
         @Help("list system calls shared by all architectures")
@@ -42,14 +39,13 @@ public final class Main {
     public static void main(String[] args) throws Exception {
         var options = new ArgParser<>(MethodHandles.lookup(), Options.class)
             .run(Main.class, args);
-        var glibcTree = Path.of(options.glibcTree());
         checkCrossCompilers();
         var linuxTree =Path.of(options.linuxTree());
 
         try (var linuxData = new LinuxData(linuxTree)) {
             if (options.listCommonSyscalls())
                 SyscallDescriptor.commonSyscalls(
-                    SyscallDescriptor.allSyscalls(glibcTree))
+                    SyscallDescriptor.allSyscalls(linuxData))
                     .stream()
                     .forEach(System.out::println);
             if (options.listUncommonErrno())
@@ -57,7 +53,7 @@ public final class Main {
                     "#include <linux/errno.h>",
                     Pattern.compile("^E[A-Z0-9]"));
             if (options.updateSyscalls)
-                updateSyscalls(glibcTree);
+                updateSyscalls(linuxData);
             if (options.updateMacroClasses()) {
                 writeMacroClass(linuxData, "Errno", true,
                     "#include <linux/errno.h>",
@@ -133,9 +129,9 @@ public final class Main {
                 });
     }
 
-    private static void updateSyscalls(Path glibcTree) throws Exception {
+    private static void updateSyscalls(LinuxData linuxData) throws Exception {
         String targetPrefix = "src/enyo.linux/enyo/linux/SyscallConstants";
-        var allSyscalls = SyscallDescriptor.allSyscalls(glibcTree);
+        var allSyscalls = SyscallDescriptor.allSyscalls(linuxData);
         List<String> commonSyscalls =
             SyscallDescriptor.commonSyscalls(allSyscalls);
         Updater.patchSegments(targetPrefix + ".java",

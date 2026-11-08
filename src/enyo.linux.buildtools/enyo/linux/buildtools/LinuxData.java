@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -123,6 +124,12 @@ class LinuxData implements Closeable{
         } finally {
             Files.delete(outPath);
         }
+    }
+
+    Map<String, Long> macroValues(Architecture arch, String fragment,
+                                  Collection<? extends LinuxData.Macro> macros)
+        throws IOException {
+        return CExtract.macroValues(arch, includes(arch), fragment, macros);
     }
 
     Map<Architecture, Map<String, Macro>> allMacros(

@@ -46,7 +46,7 @@ class CExtract {
   __asm__ volatile (".asciiz \\"@@@EXPORT@@@ @%s@ @%%0@\\""
                     :: "i" ((long) (%s))); /* %s */
 """,
-                        macro.name(), macro.expansion(), macro.name());
+                        macro.name(), macro.name(), macro.name());
                 }
                 out.write("}\n");
     }

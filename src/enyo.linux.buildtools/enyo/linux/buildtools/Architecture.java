@@ -13,7 +13,7 @@ import java.util.List;
  * in the OpenJDK sources.
  */
 enum Architecture {
-    AARCH64("aarch64", null, "arm", "aarch64", List.of("-D__arch64__")),
+    AARCH64("aarch64", null, "arm64", "aarch64", List.of("-D__arch64__")),
     AMD64("x86_64", "64", "x86", "x86_64", List.of("-D__x86_64__")),
     LOONGARCH64("loongarch", "lp64", "loongarch", "loongarch64",
         List.of("-D__loongarch__", "-D__loongarch_grlen=64")),
