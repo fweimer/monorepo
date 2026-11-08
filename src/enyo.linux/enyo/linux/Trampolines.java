@@ -16,10 +16,12 @@ final class Trampolines {
     final static MethodHandle LL;
     final static MethodHandle LLL;
     final static MethodHandle LLLLLL;
+    final static MethodHandle LLM;
+    final static MethodHandle LLMLLL;
     final static MethodHandle LML;
     final static MethodHandle LMLL;
-    final static MethodHandle LMM;
     final static MethodHandle LMLLLL;
+    final static MethodHandle LMM;
     final static MethodHandle LMMLLL;
     final static MethodHandle ML;
     final static MethodHandle MLLLLL;
@@ -50,6 +52,7 @@ final class Trampolines {
         }
 
         LLLLLL = syscallWrapper(trampoline);
+        LLMLLL = syscallWrapper(trampoline, 2);
         LMLLLL = syscallWrapper(trampoline, 1);
         LMMLLL = syscallWrapper(trampoline, 1, 2);
         MLLLLL = syscallWrapper(trampoline, 0);
@@ -57,6 +60,7 @@ final class Trampolines {
         L = withArguments(LLLLLL, 1);
         LL = withArguments(LLLLLL, 2);
         LLL = withArguments(LLLLLL, 3);
+        LLM = withArguments(LLMLLL, 3);
         LML = withArguments(LMLLLL, 3);
         LMLL = withArguments(LMLLLL, 4);
         LMM = withArguments(LMMLLL, 3);

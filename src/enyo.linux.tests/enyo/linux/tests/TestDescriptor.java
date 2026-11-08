@@ -6,6 +6,7 @@ import enyo.linux.OpenFlag;
 import enyo.linux.Pipe;
 import enyo.linux.RawSyscalls;
 import enyo.linux.SyscallException;
+import enyo.linux.Termios;
 
 import enyo.io.function.IOFunction;
 import enyo.io.TempDirectory;
@@ -127,6 +128,88 @@ public final class TestDescriptor {
         for (int shift = 0; shift < 1; ++shift) {
             testPipeWriteReadByteBuffer(t, false, shift);
             testPipeWriteReadByteBuffer(t, true, shift);
+        }
+    }
+
+    @Test
+    public static void testOpenpt(Testing t) {
+        try (var fd = Descriptor.openpt()) {
+            t.examine(fd).map(Descriptor::isatty).is(true);
+            t.examine(fd)
+                .map(Descriptor::ptsname)
+                .map(Path::toString)
+                .check(Checks.startsWith("/dev/pts/"));
+            t.examine(fd)
+                .map(Descriptor::tcgetwinsize)
+                .map(Termios.Winsize::toString)
+                .is("Winsize[row=0, col=0, xpixel=0, ypixel=0]");
+            fd.tcsetwinsize(
+                new Termios.Winsize(1, 2, 3, 4));
+            t.examine(fd)
+                .map(Descriptor::tcgetwinsize)
+                .map(Termios.Winsize::toString)
+                .is("Winsize[row=1, col=2, xpixel=3, ypixel=4]");
+            fd.tcsetwinsize(
+                new Termios.Winsize(0xffff, 0xfffe, 0xfffd, 0xfffc));
+            t.examine(fd)
+                .map(Descriptor::tcgetwinsize)
+                .map(Termios.Winsize::toString)
+                .is("Winsize[row=65535, col=65534,"
+                    + " xpixel=65533, ypixel=65532]");
+            // Stil locked.
+            t.expect(() -> Descriptor.open(fd.ptsname(),
+                    OpenFlag.O_RDWR, OpenFlag.O_NOCTTY),
+                SyscallException.class)
+                .map(SyscallException::errno)
+                .is(Errno.EIO);
+            // Unlock.
+            fd.unlockpt();
+            try (var fds = Descriptor.open(fd.ptsname(),
+                    OpenFlag.O_RDWR, OpenFlag.O_NOCTTY)) {
+                t.examine(fds).map(Descriptor::isatty).is(true);
+                // Set multiplexer side.
+                fd.tcsetwinsize(
+                    new Termios.Winsize(1, 2, 3, 4));
+                // The service side follows.
+                t.examine(fds)
+                    .map(Descriptor::tcgetwinsize)
+                    .map(Termios.Winsize::toString)
+                    .is("Winsize[row=1, col=2, xpixel=3, ypixel=4]");
+                // And vice versa.
+                fds.tcsetwinsize(
+                    new Termios.Winsize(11, 22, 33, 44));
+                t.examine(fd)
+                    .map(Descriptor::tcgetwinsize)
+                    .map(Termios.Winsize::toString)
+                    .is("Winsize[row=11, col=22, xpixel=33, ypixel=44]");
+                // Not a multiplexer.
+                t.expect(() -> fds.unlockpt(),
+                    SyscallException.class)
+                    .map(SyscallException::errno)
+                    .is(Errno.ENOTTY);
+            }
+        }
+    }
+
+    @Test
+    public static void testOpenpty(Testing t) {
+        try (var fd = Descriptor.openpt()) {
+            // Unlocking is required.
+            t.expect(() -> fd.openpty(),
+                SyscallException.class)
+                .map(SyscallException::errno)
+                .is(Errno.EIO);
+            fd.unlockpt();
+            try (var fds = fd.openpty()) {
+                t.examine(fds).map(Descriptor::isatty).is(true);
+            }
+        }
+    }
+
+    @Test
+    public static void testIsatty(Testing t) {
+        try (var fd = Descriptor.open(Path.of("/dev/null"), OpenFlag.O_RDWR)) {
+            t.examine(fd).map(Descriptor::isatty).is(false);
         }
     }
 

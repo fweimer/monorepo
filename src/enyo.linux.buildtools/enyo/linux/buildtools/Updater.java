@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Predicate;
 
 class Updater {
@@ -82,7 +83,8 @@ class Updater {
 
     static void writeMacroClass(String className, boolean isTemplated,
         Map<Architecture, Map<String, Long>> values,
-        Predicate<String> filter) throws IOException {
+        Predicate<String> filter, Set<? extends String> alwaysInclude)
+        throws IOException {
         var commonMacros = new HashSet<String>();
         {
             boolean first = true;
@@ -95,13 +97,20 @@ class Updater {
             }
         }
         commonMacros.removeIf(filter.negate());
+        commonMacros.addAll(alwaysInclude);
 
         var commonValues = new HashMap<String, Long>();
         MACRO: for (String macro : commonMacros) {
             Long value = null;
-            for (var macros : values.values()) {
+            for (var e : values.entrySet()) {
+                var macros = e.getValue();
                 Long newValue = macros.get(macro);
-                newValue.longValue();
+                if (newValue == null)
+                    newValue = 0L;
+                else if (newValue == 0 && alwaysInclude.contains(macro))
+                    throw new IOException(String.format(
+                        "Optional macro %s defined on %s with value zero",
+                        macro, e.getKey().name()));
                 if (value == null)
                     value = newValue;
                 else if (value.longValue() != newValue.longValue())
@@ -169,20 +178,22 @@ final class %s {
 
             // Architecture-specific field initialization.
             out.print("\n        ");
+
             values.entrySet().stream()
                 .sorted(Comparator.comparing(Map.Entry::getKey))
                 .forEach(archMacros -> {
                 Architecture arch = archMacros.getKey();
                 out.format("if (osArch.equals(\"%s\")) {%n",
                     arch.name().toLowerCase());
-                archMacros.getValue().entrySet().stream()
-                    .filter(e -> commonMacros.contains(e.getKey()))
-                    .filter(e -> !commonValues.containsKey(e.getKey()))
-                    .sorted(Comparator.comparing(Map.Entry::getKey))
-                    .forEach(e -> out.format("""
+                commonMacros.stream()
+                    .filter(e -> !commonValues.containsKey(e))
+                    .sorted()
+                    .forEach(e ->
+out.format("""
             %s = %d;
 """,
-                        e.getKey(), (int) (long) e.getValue()));
+                        e,  (int) (long) archMacros.getValue().getOrDefault(
+                            e, 0L)));
 
                 out.write("""
         } else \

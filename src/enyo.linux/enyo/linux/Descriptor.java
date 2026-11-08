@@ -105,6 +105,7 @@ public final class Descriptor implements AutoCloseable {
         }
     }
 
+
     private static Descriptor openat0(int dirfd, Path path, OpenFlag flag,
         OpenOrCreateFlag... flags) {
         int flagsRaw = Fcntl.O_CLOEXEC | flag.value();
@@ -120,6 +121,10 @@ public final class Descriptor implements AutoCloseable {
             var path0 = arena.allocateFrom(path.toString());
             fd = RawSyscalls.openat(dirfd, path0, flagsRaw, mode);
         }
+        return open0(fd);
+    }
+
+    private static Descriptor open0(int fd) {
         if (fd <= 2)
             // One of the 0, 1, 2 were closed. Descriptor#of(int) does
             // not obtain ownership of such descriptors.  Create a
@@ -413,6 +418,143 @@ public final class Descriptor implements AutoCloseable {
     }
 
     /**
+     * Opens the pseudo-terminal multiplexer device.
+     *
+     * @param flag the open mode, typically {@link OpenFlag#O_RDWR}
+     * @param flags additional flags, often {@link OpenFlag#O_NOCTTY};
+     *   {@code CLOEXEC} is implied
+     * @return a file descriptor for a new pseudo-terminal controller
+     * @see #openpt()
+     */
+    public static Descriptor openpt(OpenFlag flag, OpenFlag... flags) {
+        return open(Path.of("/dev/ptmx"), flag, flags);
+    }
+
+    /**
+     * Opens the pseudo-terminal multiplexer device.
+     *
+     * Equivalent to {@code openpt(OpenFlag.O_RDWR, OpenFlag.O_NOCTTY)}.
+     *
+     * @return a file descriptor for a new pseudo-terminal controller
+     * @see #openpt(OpenFlag,OpenFlag[])
+     */
+    public static Descriptor openpt() {
+        return openpt(OpenFlag.O_RDWR, OpenFlag.O_NOCTTY);
+    }
+
+    /**
+     * Opens the service end of a pseudo-terminal multiplexer.
+     *
+     * Equivalent to {@code openpty(OpenFlag.O_RDWR)}.
+     * @return a pseudo-terminal file descriptor
+     * @see #openpt()
+     * @see #openpty(OpenFlag,OpenFlag[])
+     */
+    public Descriptor openpty() {
+        return openpty(OpenFlag.O_RDWR, OpenFlag.O_NOCTTY);
+    }
+
+    /**
+     * Opens the service end of a pseudo-terminal multiplexer.
+     *
+     * @return a pseudo-terminal file descriptor
+     * @param flag the first flag, typically {@link OpenFlag#O_RDONLY},
+     *   {@link OpenFlag#O_WRONLY}, or {@link OpenFlag#O_RDWR}.
+     * @param flags additional flags, often {@link OpenFlag#O_NOCTTY}
+     * @see #openpt(OpenFlag,OpenFlag[])
+     * @see #openpty()
+     */
+    public Descriptor openpty(OpenFlag flag, OpenFlag... flags) {
+        int flagsRaw = convertFlags(flag, flags);
+        int fd = lock();
+        try {
+            return open0(Termios.openpty(raw(), flagsRaw));
+        } finally {
+            unlock();
+        }
+    }
+
+    /**
+     * Unlocks the pseudo-terminal service end.
+     * This method must be called before the path returned from
+     * {@link #ptsname()} can be opened.
+     * @throws SyscallException if this descriptor does not refer to a
+     *   pseudo-terminal multiplexer
+     */
+    public void unlockpt() {
+        int fd = lock();
+        try {
+            Termios.unlockpt(raw());
+        } finally {
+            unlock();
+        }
+    }
+
+    /**
+     * Returns the path to the service side of a pseudo-terminal multiplexer.
+     *
+     * The {@link #unlockpt()} method must be called before the path
+     * becomes usable.
+     *
+     * <p>If you need just the file descriptor, use {@link #openpty()}.
+     *
+     * @return a path under {@code /dev/pts/}.
+     * @throws SyscallException if this descriptor does not refer to a
+     *   pseudo-terminal multiplexer
+     * @see #unlockpt()
+     * @see #openpty()
+     */
+    public Path ptsname() {
+        int fd = lock();
+        try {
+            return Termios.ptsname(raw());
+        } finally {
+            unlock();
+        }
+    }
+
+    /**
+     * Returns the terminal size for this descriptor.
+     * @return the window size
+     * @throws SyscallException if this descriptor does not refer to a terminal
+     */
+    public Termios.Winsize tcgetwinsize() {
+        int fd = lock();
+        try {
+            return Termios.tcgetwinsize(raw());
+        } finally {
+            unlock();
+        }
+    }
+
+    /**
+     * Set the terminal size for this descriptor.
+     * @param winsize the new terminal size
+     * @throws SyscallException if this descriptor does not refer to a terminal
+     */
+    public void tcsetwinsize(Termios.Winsize winsize) {
+        int fd = lock();
+        try {
+            Termios.tcsetwinsize(raw(), winsize);
+        } finally {
+            unlock();
+        }
+    }
+
+    /**
+     * Returns true if this descriptor is a terminal.
+     * @return true if a terminal, false if not
+     */
+    public boolean isatty() {
+        int fd = lock();
+        try {
+            return Termios.isatty(raw());
+        } finally {
+            unlock();
+        }
+    }
+
+    /**
      * Returns a closed descriptor.
      * @return a closed descriptor
      */
@@ -572,6 +714,13 @@ public final class Descriptor implements AutoCloseable {
         // cleaner thread cannot observe an intermediate value.
         Reference.reachabilityFence(this);
         RawSyscalls.close(fd);
+    }
+
+    private static int convertFlags(OpenFlag flag, OpenFlag[] flags) {
+        int flagsRaw = Fcntl.O_CLOEXEC | flag.value();
+        for (var flag0 : flags)
+            flagsRaw |= flag0.value();
+        return flagsRaw;
     }
 
     private final State state;

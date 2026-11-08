@@ -61,6 +61,15 @@ public final class Main {
                 writeMacroClass(linuxData, "Fcntl", false,
                     "#include <linux/fcntl.h>",
                     Pattern.compile("^(__)?([OF]|AT)_[A-Z0-9]"));
+                writeMacroClass(linuxData, "IoctlConstants", false,
+                    """
+                    #include <linux/ioctl.h>
+                    #include <asm/ioctls.h>
+                    #include <linux/serial.h>
+                    #include <linux/termios.h>
+                    """,
+                    Pattern.compile("^(_*IO[_A-Z0-9]|TC|TIO|NCCS)"),
+                    Set.of("TCGETS2", "TCSETS2", "TCSETSW2", "TCSETSF2"));
                 writeMacroClass(linuxData, "Mman", false,
                     "#include <linux/mman.h>",
                     Pattern.compile("^(HUGETLB|MAP|PROT)_[A-Z0-9]"));
@@ -194,6 +203,15 @@ final class SyscallConstants%s {
 
     private static void writeMacroClass(LinuxData linuxData, String className,
         boolean isPublic, String fragment, Pattern pattern) throws Exception {
+        writeMacroClass(linuxData, className, isPublic, fragment, pattern,
+            Set.of());
+    }
+
+    // Macro names in alwaysInclude are always output, with the value 0.
+    // It is an error if the macro has value 0 on any supported architecture.
+    private static void writeMacroClass(LinuxData linuxData, String className,
+        boolean isPublic, String fragment, Pattern pattern,
+        Set<? extends String> alwaysInclude) throws Exception {
         var allMacros = linuxData.allMacros(fragment, pattern.asPredicate())
             .entrySet().stream()
             .collect(Collectors.toUnmodifiableMap(
@@ -205,7 +223,7 @@ final class SyscallConstants%s {
                             fragment,
                             e.getValue().keySet()))));
         Updater.writeMacroClass(className, isPublic, allMacros,
-            pattern.asPredicate());
+            pattern.asPredicate(), alwaysInclude);
     }
 
     private Main() {}
