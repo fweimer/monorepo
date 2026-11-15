@@ -6,6 +6,7 @@ import enyo.lang.NeedsNativeAccess;
 @NeedsNativeAccess
 module enyo.linux {
     exports enyo.linux;
+    exports enyo.linux.alsa;
 
-    requires enyo.core;
+    requires transitive enyo.core;
 }
