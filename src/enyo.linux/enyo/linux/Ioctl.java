@@ -114,11 +114,45 @@ public final class Ioctl {
      * @throws UnsupportedOperationException if the request requires
      *   a writable buffer, but {@code} is read-only
      * @throws SyscallException if the {@code ioctl} operation failed
-     * @see ioctlUnchecked(int,int,MemorySegment)
+     * @see #ioctl(Descriptor,int,MemorySegment)
+     * @see #ioctlUnchecked(int,int,MemorySegment)
      */
     public static long ioctl(int fd, int request, MemorySegment buf) {
         Direction.of(request).check(request, buf);
         return ioctlUnchecked(fd, request, buf);
+    }
+
+    /**
+     * Performs a partially checked I/O control operation.
+     *
+     * This method attempts to validate the request against the passed memory
+     * segment.  However, validation is incomplete; see {@link Ioctl}.
+     *
+     * @param fd the file descriptor on which the {@code ioctl} is performed
+     * @param request the {@code ioctl} request number
+     * @param buf the memory segment with the data for the
+     *   {@code ioctl} operation;
+     *   can be {@link MemorySegment#NULL} for some request types
+     * @return the raw system call return value
+     * @throws NullPointerException if {@code buf} is null and the
+     *   direction is not {@link Direction#NONE}
+     * @throws IllegalStateException if the descriptor is closed
+     * @throws NullPointerException if {@code fd} is null
+     * @throws IllegalArgumentException if the {@linkplain Direction direction}
+     *   of the request cannot be determined
+     * @throws UnsupportedOperationException if the request requires
+     *   a writable buffer, but {@code} is read-only
+     * @throws SyscallException if the {@code ioctl} operation failed
+     * @see #ioctl(int,int,MemorySegment)
+     * @see #ioctlUnchecked(int,int,MemorySegment)
+     */
+    public static long ioctl(Descriptor fd, int request, MemorySegment buf) {
+        int fd0 = fd.lock();
+        try {
+            return ioctl(fd0, request, buf);
+        } finally {
+            fd.unlock();
+        }
     }
 
     /**
@@ -155,20 +189,47 @@ public final class Ioctl {
     /**
      * Performs a totally unchecked I/O control operation.
      *
+     * This method does not validate the request against the memory segment.
+     *
+     * @param fd the file descriptor on which the {@code ioctl} is performed
+     * @param request the {@code ioctl} request number
+     * @param buf the memory segment with the data for the
+     *   {@code ioctl} operation;
+     *   can be {@link MemorySegment#NULL} for some request types
+     * @return the raw system call return value
+     * @throws IllegalStateException if the descriptor is closed
+     * @throws NullPointerException if {@code fd} is null
+     * @throws SyscallException if the {@code ioctl} operation failed
+     * @see ioctlUnchecked(int,int,MemorySegment)
+     * @see ioctl(int,int,MemorySegment)
+     */
+    public static long ioctlUnchecked(Descriptor fd, int request, MemorySegment buf) {
+        int fd0 = fd.lock();
+        try {
+            return ioctlUnchecked(fd0, request, buf);
+        } finally {
+            fd.unlock();
+        }
+    }
+
+    /**
+     * Performs a totally unchecked I/O control operation.
+     *
      * This method does not validate the value against the request.
      *
      * <p><b>This method must not be used with a raw memory address.</b>
-     * use the {@linkplain ioctlUnchecked(int,int,MemorySegment) memory
+     * Use the {@linkplain ioctlUnchecked(int,int,MemorySegment) memory
      * segment version} instead.
      *
      * @param fd the file descriptor on which the {@code ioctl} is performed
      * @param request the {@code ioctl} request number
      * @param value the non-pointer argument for the {@code ioctl} operation
      * @return the raw system call return value
+     * @throws SyscallException if the {@code ioctl} operation failed
+     * @see ioctlUnchecked(Descriptor,int,int)
      * @see ioctl(int,int,MemorySegment)
      */
-    public static long ioctlUnchecked(
-        int fd, int request, int value) {
+    public static long ioctlUnchecked(int fd, int request, int value) {
         long result;
         try {
             result = (long) Trampolines.LLL.invokeExact(
@@ -183,6 +244,35 @@ public final class Ioctl {
             throw new SyscallException(SyscallConstants.ioctl,
                 List.of((long) fd, (long) request, (long) value), List.of(), result);
         return result;
+    }
+
+    /**
+     * Performs a totally unchecked I/O control operation.
+     *
+     * This method does not validate the value against the request.
+     *
+     * <p><b>This method must not be used with a raw memory address.</b>
+     * Use the {@linkplain ioctlUnchecked(Descriptor,int,MemorySegment) memory
+     * segment version} instead.
+     *
+     * @param fd the file descriptor on which the {@code ioctl} is performed
+     * @param request the {@code ioctl} request number
+     * @param value the non-pointer argument for the {@code ioctl} operation
+     * @return the raw system call return value
+     * @throws IllegalStateException if the descriptor is closed
+     * @throws NullPointerException if {@code fd} is null
+     * @throws SyscallException if the {@code ioctl} operation failed
+     * @see ioctlUnchecked(int,int,int)
+     * @see ioctl(Descriptor,int,MemorySegment)
+     */
+    public static long ioctlUnchecked(Descriptor fd, int request, int value) {
+        long result;
+        int fd0 = fd.lock();
+        try {
+            return ioctlUnchecked(fd0, request, value);
+        } finally {
+            fd.unlock();
+        }
     }
 
     /**

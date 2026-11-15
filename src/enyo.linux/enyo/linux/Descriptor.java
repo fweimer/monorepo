@@ -667,7 +667,7 @@ public final class Descriptor implements AutoCloseable {
             cleanable = null;
     }
 
-    private int lock() {
+    int lock() {
         long oldValue;
         long newValue;
         do {
@@ -683,7 +683,7 @@ public final class Descriptor implements AutoCloseable {
         return (int) newValue;
     }
 
-    private void unlock() {
+    void unlock() {
         long newValue = state.fd.addAndGet(-1L << 32);
         if (newValue < 0)
             throw new InternalError("Invalid descriptor state: " + newValue);
