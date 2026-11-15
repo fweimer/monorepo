@@ -37,8 +37,15 @@ public final class Termios {
             int tcgets = IoctlConstants.TCGETS2;
             if (tcgets == 0)
                 tcgets = IoctlConstants.TCGETS;
-            return Ioctl.ioctl(fd, IoctlConstants.TCGETS,
-                arena.allocate(Termios.structTermios())) == 0;
+            try {
+                Ioctl.ioctl(fd, IoctlConstants.TCGETS,
+                    arena.allocate(Termios.structTermios()));
+                return true;
+            } catch (SyscallException e) {
+                if (e.errno() == Errno.ENOTTY)
+                    return false;
+                throw e;
+            }
         }
     }
 

@@ -101,9 +101,6 @@ public final class Ioctl {
      * This method attempts to validate the request against the passed memory
      * segment.  However, validation is incomplete; see {@link Ioctl}.
      *
-     * <p>Note that this method does not throw {@link SyscallException}.
-     * The caller needs to check the return value and make the call instead.
-     *
      * @param fd the file descriptor on which the {@code ioctl} is performed
      * @param request the {@code ioctl} request number
      * @param buf the memory segment with the data for the
@@ -116,6 +113,7 @@ public final class Ioctl {
      *   of the request cannot be determined
      * @throws UnsupportedOperationException if the request requires
      *   a writable buffer, but {@code} is read-only
+     * @throws SyscallException if the {@code ioctl} operation failed
      * @see ioctlUnchecked(int,int,MemorySegment)
      */
     public static long ioctl(int fd, int request, MemorySegment buf) {
@@ -128,27 +126,30 @@ public final class Ioctl {
      *
      * This method does not validate the request against the memory segment.
      *
-     * <p>Note that this method does not throw {@link SyscallException}.
-     * The caller needs to check the return value and make the call instead.
-     *
      * @param fd the file descriptor on which the {@code ioctl} is performed
      * @param request the {@code ioctl} request number
      * @param buf the memory segment with the data for the
      *   {@code ioctl} operation;
      *   can be {@link MemorySegment#NULL} for some request types
      * @return the raw system call return value
+     * @throws SyscallException if the {@code ioctl} operation failed
      * @see ioctl(int,int,MemorySegment)
      */
     public static long ioctlUnchecked(
         int fd, int request, MemorySegment buf) {
+        long result;
         try {
-            return (long) Trampolines.LLM.invokeExact(
+            result = (long) Trampolines.LLM.invokeExact(
                 (long) fd, (long) request, buf, SyscallConstants.ioctl);
         } catch (RuntimeException | Error e) {
             throw e;
         } catch (Throwable e) {
             throw new InternalError(e);
         }
+        if (SyscallException.isError(result))
+            throw new SyscallException(SyscallConstants.ioctl,
+                List.of((long) fd, (long) request), List.of(buf), result);
+        return result;
     }
 
     /**
@@ -160,9 +161,6 @@ public final class Ioctl {
      * use the {@linkplain ioctlUnchecked(int,int,MemorySegment) memory
      * segment version} instead.
      *
-     * <p>Note that this method does not throw {@link SyscallException}.
-     * The caller needs to check the return value and make the call instead.
-     *
      * @param fd the file descriptor on which the {@code ioctl} is performed
      * @param request the {@code ioctl} request number
      * @param value the non-pointer argument for the {@code ioctl} operation
@@ -171,8 +169,9 @@ public final class Ioctl {
      */
     public static long ioctlUnchecked(
         int fd, int request, int value) {
+        long result;
         try {
-            return (long) Trampolines.LLL.invokeExact(
+            result = (long) Trampolines.LLL.invokeExact(
                 (long) fd, (long) request, (long) value,
                 SyscallConstants.ioctl);
         } catch (RuntimeException | Error e) {
@@ -180,6 +179,10 @@ public final class Ioctl {
         } catch (Throwable e) {
             throw new InternalError(e);
         }
+        if (SyscallException.isError(result))
+            throw new SyscallException(SyscallConstants.ioctl,
+                List.of((long) fd, (long) request, (long) value), List.of(), result);
+        return result;
     }
 
     /**
