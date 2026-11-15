@@ -21,6 +21,7 @@ class LinuxData implements Closeable{
     private final Path sourceTree;
     private final TempDirectory tempDir;
     private final Path buildTree;
+    private final Path includeDir;
 
     LinuxData(Path linuxTree) throws IOException {
         this.sourceTree = linuxTree;
@@ -29,6 +30,27 @@ class LinuxData implements Closeable{
         buildTree = tempDir.resolve("build");
         for (var arch : Architecture.values())
             installArch(arch);
+        // Some kernel headers include <stdlib.h> and <time.h>.
+        // Produce a fake version of <time.h> corresponding to time64 mode.
+        includeDir = tempDir.resolve("include");
+        Files.createDirectories(includeDir);
+        Files.writeString(includeDir.resolve("time.h"), """
+            #ifndef _TIME_H
+            #define _TIME_H
+            typedef long long time_t;
+            struct timespec {
+                time_t tv_sec;
+                long long tv_nsec;
+            };
+            #endif
+            """);
+        // These UAPI headers also require <stddef.h>.
+        Files.writeString(includeDir.resolve("stdlib.h"), """
+            #ifndef _STDLIB_H
+            #define _STDLIB_H
+            #include <stddef.h>
+            #endif
+            """);
     }
 
     @Override
@@ -71,6 +93,7 @@ class LinuxData implements Closeable{
 
     List<String> includes(Architecture arch) {
         return List.of(
+            "-I" + includeDir,
             "-I" + sysroot(arch).resolve("usr").resolve("include"));
     }
 
@@ -78,7 +101,10 @@ class LinuxData implements Closeable{
         Predicate<String> filter)
         throws IOException {
         var args = new ArrayList<String>();
-        args.addAll(List.of(arch.cc(), "-E", "-x", "c", "-nostdinc"));
+        // Mask the inclusion of <stddef.h> by our <stdlib.h> because
+        // -nosdinc makes in unavailable.
+        args.addAll(List.of(arch.cc(), "-E", "-x", "c", "-nostdinc",
+                            "-D_STDLIB_H"));
         args.addAll(includes(arch));
         args.add("-dM");
         args.add("-");
@@ -105,14 +131,14 @@ class LinuxData implements Closeable{
                     if (!components[0].equals("#define"))
                         throw new IllegalArgumentException();
                     String macroName = components[1];
-                    // Do not include function-like macros and
-                    // predefined macros not suppressed by -undef.
+                    String expansion = components[2];
+                    // Do not include function-like macros, macros that
+                    // expand to strings, and filtered macros.
                     if (macroName.indexOf('(') >= 0
-                        || macroName.equals("_STDC_PREDEF_H")
-                        || macroName.startsWith("__STDC_")
+                        || expansion.startsWith("\"")
                         || !filter.test(macroName))
                         return Stream.of();
-                    return Stream.of(new Macro(components[1], components[2]));
+                    return Stream.of(new Macro(macroName, expansion));
                 } catch (Exception e) {
                     throw new RuntimeException("Line: " + line, e);
                 }

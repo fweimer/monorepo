@@ -55,13 +55,13 @@ public final class Main {
             if (options.updateSyscalls)
                 updateSyscalls(linuxData);
             if (options.updateMacroClasses()) {
-                writeMacroClass(linuxData, "Errno", true,
+                writeMacroClass(linuxData, "enyo.linux.Errno", true,
                     "#include <linux/errno.h>",
                     Pattern.compile("^E[A-Z0-9]"));
-                writeMacroClass(linuxData, "Fcntl", false,
+                writeMacroClass(linuxData, "enyo.linux.Fcntl", false,
                     "#include <linux/fcntl.h>",
                     Pattern.compile("^(__)?([OF]|AT)_[A-Z0-9]"));
-                writeMacroClass(linuxData, "IoctlConstants", false,
+                writeMacroClass(linuxData, "enyo.linux.IoctlConstants", false,
                     """
                     #include <linux/ioctl.h>
                     #include <asm/ioctls.h>
@@ -70,7 +70,7 @@ public final class Main {
                     """,
                     Pattern.compile("^(_*IO[_A-Z0-9]|TC|TIO|NCCS)"),
                     Set.of("TCGETS2", "TCSETS2", "TCSETSW2", "TCSETSF2"));
-                writeMacroClass(linuxData, "Mman", false,
+                writeMacroClass(linuxData, "enyo.linux.Mman", false,
                     "#include <linux/mman.h>",
                     Pattern.compile("^(HUGETLB|MAP|PROT)_[A-Z0-9]"));
 
