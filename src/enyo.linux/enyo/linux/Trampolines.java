@@ -12,6 +12,22 @@ import java.lang.invoke.MethodHandles;
 import java.util.Arrays;
 
 final class Trampolines {
+    // Method handles for system call trampolines.  The number of
+    // characters corresponds to the number of arguments.  The meaning
+    // of the characters are:
+    //
+    // L: a long argument
+    // M: an address (MemorySegment) argument
+    //
+    // After these arguments, there is a final argument, the system
+    // call number.  Internally, the trampolines zero unused argument
+    // registers.  This seems to be a minor inefficiency compared to a
+    // situation where a new flag happens to activate a previously
+    // unused argument register (as it happens with openat and
+    // membarrier).
+    //
+    // All handles return the system call result as return by the kernel.
+    // See SyscallException#isError(long).
     final static MethodHandle L;
     final static MethodHandle LL;
     final static MethodHandle LLL;
@@ -25,6 +41,8 @@ final class Trampolines {
     final static MethodHandle LMMLLL;
     final static MethodHandle ML;
     final static MethodHandle MLLLLL;
+
+    // No argument trampoline (still returning long).
     final static MethodHandle NONE;
 
     static {
@@ -69,6 +87,9 @@ final class Trampolines {
         NONE = withArguments(LLLLLL, 0);
     }
 
+    // Create the mapping with the system call trampoline.  This needs
+    // to use restricted methods to create the function pointers and
+    // to resize the returned memory segment.
     @SuppressWarnings("restricted")
     private static MemorySegment syscallTrampoline(int... code) {
         var linker = Linker.nativeLinker();
@@ -79,12 +100,12 @@ final class Trampolines {
             long size = code.length * 4;
             var mmap = linker.downcallHandle(
                 libc.find("mmap64").get(), FunctionDescriptor.of(
-                    ValueLayout.ADDRESS,
-                    ValueLayout.ADDRESS,
-                    size_t,
-                    ValueLayout.JAVA_INT,
-                    ValueLayout.JAVA_INT,
-                    ValueLayout.JAVA_INT,
+                    ValueLayout.ADDRESS, // return address
+                    ValueLayout.ADDRESS, // fixed address
+                    size_t,              // length of the request
+                    ValueLayout.JAVA_INT, // protection flags
+                    ValueLayout.JAVA_INT, // mmap flags
+                    ValueLayout.JAVA_INT, // file descriptor
                     ValueLayout.JAVA_LONG)); // mmap64 always uses 64-bit off_t
             var mprotect = linker.downcallHandle(
                 libc.find("mprotect").get(), FunctionDescriptor.of(
@@ -93,10 +114,10 @@ final class Trampolines {
                     size_t,
                     ValueLayout.JAVA_INT));
 
-            // Allocate the page.
-            var codeAddress = (MemorySegment) mmap.invokeExact(
+            // Allocate the page.  Do not use invokeExact() because we
+            // do not know the exact size of size_t.
+            var codeAddress = (MemorySegment) mmap.invoke(
                 MemorySegment.NULL,
-                // FIXME: long will not match size_t on 32 bit.
                 size,
                 Mman.PROT_READ | Mman.PROT_WRITE,
                 Mman.MAP_PRIVATE | Mman.MAP_ANONYMOUS,
@@ -145,6 +166,8 @@ final class Trampolines {
                 ValueLayout.JAVA_LONG, args));
     }
 
+    // Produces a wrapper with fewer arguments by inserting zero arguments
+    // before the system call number.
     private static MethodHandle withArguments(MethodHandle wrapper, int count) {
         if (wrapper.type().parameterCount() != 7
             || count < 0 || count >= 6)
