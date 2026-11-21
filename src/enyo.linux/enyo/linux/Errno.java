@@ -1,7 +1,15 @@
 // Auto-generated.  Do not edit.
 package enyo.linux;
 
-class Errno {
+/**
+ * Error code constants.
+ *
+ * System call failures indicate the error type with one of these constants.
+ *
+ * @see SyscallException#errno()
+ */
+@SuppressWarnings("doclint:missing")
+public final class Errno {
     public final static int E2BIG;
     public final static int EACCES;
     public final static int EADDRINUSE;

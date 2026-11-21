@@ -13,9 +13,14 @@ import java.util.Arrays;
 
 final class Trampolines {
     final static MethodHandle L;
+    final static MethodHandle LL;
+    final static MethodHandle LLL;
     final static MethodHandle LLLLLL;
     final static MethodHandle LML;
+    final static MethodHandle LMLL;
+    final static MethodHandle LMM;
     final static MethodHandle LMLLLL;
+    final static MethodHandle LMMLLL;
     final static MethodHandle ML;
     final static MethodHandle MLLLLL;
     final static MethodHandle NONE;
@@ -46,10 +51,15 @@ final class Trampolines {
 
         LLLLLL = syscallWrapper(trampoline);
         LMLLLL = syscallWrapper(trampoline, 1);
+        LMMLLL = syscallWrapper(trampoline, 1, 2);
         MLLLLL = syscallWrapper(trampoline, 0);
 
         L = withArguments(LLLLLL, 1);
+        LL = withArguments(LLLLLL, 2);
+        LLL = withArguments(LLLLLL, 3);
         LML = withArguments(LMLLLL, 3);
+        LMLL = withArguments(LMLLLL, 4);
+        LMM = withArguments(LMMLLL, 3);
         ML = withArguments(MLLLLL, 2);
         NONE = withArguments(LLLLLL, 0);
     }

@@ -99,6 +99,16 @@ public final class SyscallException extends RuntimeException {
     }
 
     /**
+     * Returns the error code for this exception.
+     * @return the error code ({@code errno}) constant for this exception,
+     *   or zero if unavailable
+     * @see Errno
+     */
+    public int errno() {
+        return errno;
+    }
+
+    /**
      * The triggering syscall, or 0 if unknown.
      */
     private final int syscall;

@@ -55,13 +55,13 @@ public final class Main {
         if (options.updateSyscalls)
             updateSyscalls(glibcTree);
         if (options.updateMacroClasses()) {
-            writeMacroClass(linuxTree, "Errno",
+            writeMacroClass(linuxTree, "Errno", true,
                 "#include <linux/errno.h>",
                 Pattern.compile("^E[A-Z0-9]"));
-            writeMacroClass(linuxTree, "Fcntl",
+            writeMacroClass(linuxTree, "Fcntl", false,
                 "#include <linux/fcntl.h>",
                 Pattern.compile("^(__)?([OF]|AT)_[A-Z0-9]"));
-            writeMacroClass(linuxTree, "Mman",
+            writeMacroClass(linuxTree, "Mman", false,
                 "#include <linux/mman.h>",
                 Pattern.compile("^(HUGETLB|MAP|PROT)_[A-Z0-9]"));
 
@@ -155,7 +155,7 @@ final class SyscallConstants%s {
     }
 
     private static void writeMacroClass(Path linuxTree, String className,
-        String fragment, Pattern pattern) throws Exception {
+        boolean isPublic, String fragment, Pattern pattern) throws Exception {
         var linuxData = new LinuxData(linuxTree);
         var cExtract = new CExtract();
         var allMacros = linuxData.allMacros(fragment, pattern.asPredicate())
@@ -164,7 +164,7 @@ final class SyscallConstants%s {
                     Map.Entry::getKey,
                     IOFunction.of(
                         e -> cExtract.macroValues(e.getValue().values()))));
-        Updater.writeMacroClass(className, allMacros,
+        Updater.writeMacroClass(className, isPublic, allMacros,
             pattern.asPredicate());
     }
 
