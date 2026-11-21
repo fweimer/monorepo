@@ -38,13 +38,14 @@ final class Trampolines {
 
         switch (System.getProperty("os.arch")) {
             case "amd64":
+                // endbr64
                 // mov 8(%rsp), %eax
                 // mov %rcx, %r10
                 // syscall
                 // ret
                 // ud2
                 trampoline = syscallTrampoline(
-                    0x0824448b, 0x0fca8949, 0x0b0fc305);
+                    0xfa1e0ff3, 0x0824448b, 0x0fca8949, 0x0b0fc305);
                 break;
             default:
                 throw new UnsupportedOperationException(
