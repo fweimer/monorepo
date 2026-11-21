@@ -266,7 +266,6 @@ public final class Main {
             List.of(
                 "-quiet",
                 "-d", targetPath.toString(),
-                "-linkoffline", PUBLIC_API, "etc/javadoc",
                 "--module-source-path", "src",
                 "--module", modulesString),
             List.of());
@@ -343,9 +342,6 @@ public final class Main {
                 Files.delete(path);;
         }
     }
-
-    private static final String PUBLIC_API =
-        "https://docs.oracle.com/en/java/javase/14/docs/api/";
 
     private Main() { } // No instances.
 }
