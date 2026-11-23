@@ -1,0 +1,20 @@
+# Prerequisites
+
+This repository requires OpenJDK 27, mainly due to the use of the
+
+    MemorySegment.getString(long, Charset, long)
+
+method for extracting fixed-length strings from native byte arrays.
+
+# Building
+
+Run this command:
+
+    java bootstrap/Bootstrap.java --once
+
+Without the option, the process will not terminate, wait for source
+code changes, and automatically rebuild and run the test suite.
+
+# License
+
+GPL version 3.  This may change in the future.
