@@ -3,6 +3,7 @@
  */
 module enyo.core {
     exports enyo.crypto;
+    exports enyo.hash;
     exports enyo.lang;
     exports enyo.util;
     exports enyo.util.argparse;
