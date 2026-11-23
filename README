@@ -6,6 +6,13 @@ This repository requires OpenJDK 27, mainly due to the use of the
 
 method for extracting fixed-length strings from native byte arrays.
 
+# Portability
+
+The enyo.linux system call trampoline has only been implemented for
+x86-64.  Linux UAPI metadata currently covers aarch64, loongarch64,
+powerpc64le, riscv64, s390x, x86-64.  See the
+enyo.linux.buildtools.Architecture enum.
+
 # Building
 
 Run this command:
